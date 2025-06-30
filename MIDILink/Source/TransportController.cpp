@@ -1,5 +1,24 @@
 #include "TransportController.h"
 
+// Helper function for emoji-compatible font setup
+static juce::Font getEmojiCompatibleFont(float size = 12.0f, bool bold = false)
+{
+    // On macOS, prefer system fonts that support emoji
+    #if JUCE_MAC
+        auto font = juce::Font(juce::FontOptions().withName("SF Pro Text").withHeight(size));
+        if (bold) font = font.boldened();
+        return font;
+    #elif JUCE_WINDOWS
+        auto font = juce::Font(juce::FontOptions().withName("Segoe UI Emoji").withHeight(size));
+        if (bold) font = font.boldened();
+        return font;
+    #else
+        auto font = juce::Font(juce::FontOptions().withName("Noto Color Emoji").withHeight(size));
+        if (bold) font = font.boldened();
+        return font;
+    #endif
+}
+
 //==============================================================================
 void TransportButton::paintButton(juce::Graphics& g, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown)
 {
@@ -55,7 +74,7 @@ void TransportButton::paintButton(juce::Graphics& g, bool shouldDrawButtonAsHigh
     // Draw the symbol
     g.setColour(symbolColor);
     auto symbolBounds = bounds.reduced(6.0f);
-    g.setFont(juce::FontOptions(symbolBounds.getHeight() * 0.6f, juce::Font::bold));
+    g.setFont(getEmojiCompatibleFont(symbolBounds.getHeight() * 0.6f, true));
     
     juce::String symbol;
     if (buttonType == Play)
@@ -95,13 +114,13 @@ TransportController::TransportController()
     // Set up labels
     sessionTimeLabel.setText("SESSION TIME: 00:00:00", juce::dontSendNotification);
     sessionTimeLabel.setJustificationType(juce::Justification::centred);
-    sessionTimeLabel.setFont(juce::FontOptions(14.0f, juce::Font::bold));
+    sessionTimeLabel.setFont(getEmojiCompatibleFont(14.0f, true));
     sessionTimeLabel.setColour(juce::Label::textColourId, juce::Colours::lightyellow);
     addAndMakeVisible(sessionTimeLabel);
     
     barsBeatsLabel.setText("BARS: 1.1.1", juce::dontSendNotification);
     barsBeatsLabel.setJustificationType(juce::Justification::centred);
-    barsBeatsLabel.setFont(juce::FontOptions(14.0f, juce::Font::bold));
+    barsBeatsLabel.setFont(getEmojiCompatibleFont(14.0f, true));
     barsBeatsLabel.setColour(juce::Label::textColourId, juce::Colours::lightyellow);
     addAndMakeVisible(barsBeatsLabel);
 }

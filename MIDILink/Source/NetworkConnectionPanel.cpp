@@ -1,5 +1,18 @@
 #include "NetworkConnectionPanel.h"
 
+// Helper function for emoji-compatible font setup
+static juce::Font getEmojiCompatibleFont(float size = 12.0f)
+{
+    // On macOS, prefer system fonts that support emoji
+    #if JUCE_MAC
+        return juce::Font(juce::FontOptions().withName("SF Pro Text").withHeight(size));
+    #elif JUCE_WINDOWS
+        return juce::Font(juce::FontOptions().withName("Segoe UI Emoji").withHeight(size));
+    #else
+        return juce::Font(juce::FontOptions().withName("Noto Color Emoji").withHeight(size));
+    #endif
+}
+
 NetworkConnectionPanel::NetworkConnectionPanel()
     : connectButton("Connect"), disconnectButton("Disconnect")
 {
@@ -28,6 +41,7 @@ NetworkConnectionPanel::NetworkConnectionPanel()
     
     // Set up status label
     statusLabel.setText("Disconnected", juce::dontSendNotification);
+    statusLabel.setFont(getEmojiCompatibleFont(12.0f));
     statusLabel.setColour(juce::Label::textColourId, juce::Colours::red);
     addAndMakeVisible(statusLabel);
 }

@@ -9,6 +9,7 @@ class MIDITestingPanel;
 class PerformanceMonitorPanel;
 class ClockSyncPanel;
 class JSONMIDIIntegrationPanel;
+class MIDIManager;
 
 //==============================================================================
 class MainComponent : public juce::Component
@@ -19,8 +20,14 @@ public:
 
     void paint (juce::Graphics&) override;
     void resized() override;
+    
+    // Provide access to MIDI manager for child components
+    MIDIManager& getMIDIManager() { return *midiManager; }
 
 private:
+    // MIDI I/O System
+    std::unique_ptr<MIDIManager> midiManager;
+    
     // UI Components
     std::unique_ptr<TransportController> transportController;
     std::unique_ptr<NetworkConnectionPanel> networkPanel;

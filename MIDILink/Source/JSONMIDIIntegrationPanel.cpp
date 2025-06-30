@@ -1,5 +1,18 @@
 #include "JSONMIDIIntegrationPanel.h"
 
+// Helper function for emoji-compatible font setup
+static juce::Font getEmojiCompatibleFont(float size = 12.0f)
+{
+    // On macOS, prefer system fonts that support emoji
+    #if JUCE_MAC
+        return juce::Font(juce::FontOptions().withName("SF Pro Text").withHeight(size));
+    #elif JUCE_WINDOWS
+        return juce::Font(juce::FontOptions().withName("Segoe UI Emoji").withHeight(size));
+    #else
+        return juce::Font(juce::FontOptions().withName("Noto Color Emoji").withHeight(size));
+    #endif
+}
+
 JSONMIDIIntegrationPanel::JSONMIDIIntegrationPanel()
     : titleLabel("titleLabel", "JSONMIDI Framework Integration")
     , statusLabel("statusLabel", "Ready")
@@ -19,17 +32,17 @@ JSONMIDIIntegrationPanel::JSONMIDIIntegrationPanel()
     // profiler = std::make_unique<JSONMIDI::PerformanceProfiler>();
     
     // Set up title
-    titleLabel.setFont(juce::Font(16.0f, juce::Font::bold));
+    titleLabel.setFont(juce::Font(juce::FontOptions(16.0f).withStyle("bold")));
     titleLabel.setJustificationType(juce::Justification::centred);
     addAndMakeVisible(titleLabel);
     
     // Set up status
-    statusLabel.setFont(juce::Font(12.0f));
+    statusLabel.setFont(getEmojiCompatibleFont(12.0f));
     statusLabel.setJustificationType(juce::Justification::centredLeft);
     addAndMakeVisible(statusLabel);
     
-    // Set up performance
-    performanceLabel.setFont(juce::Font(11.0f));
+    // Set up performance label
+    performanceLabel.setFont(getEmojiCompatibleFont(11.0f));
     performanceLabel.setJustificationType(juce::Justification::centredLeft);
     addAndMakeVisible(performanceLabel);
     
@@ -85,7 +98,7 @@ JSONMIDIIntegrationPanel::JSONMIDIIntegrationPanel()
     jsonDisplay.setPopupMenuEnabled(true);
     jsonDisplay.setColour(juce::TextEditor::backgroundColourId, juce::Colour(0xff2d2d30));
     jsonDisplay.setColour(juce::TextEditor::textColourId, juce::Colours::lightgreen);
-    jsonDisplay.setFont(juce::Font(juce::Font::getDefaultMonospacedFontName(), 11.0f, juce::Font::plain));
+    jsonDisplay.setFont(juce::FontOptions().withName(juce::Font::getDefaultMonospacedFontName()).withHeight(11.0f));
     addAndMakeVisible(jsonDisplay);
     
     logDisplay.setMultiLine(true);
@@ -96,7 +109,7 @@ JSONMIDIIntegrationPanel::JSONMIDIIntegrationPanel()
     logDisplay.setPopupMenuEnabled(true);
     logDisplay.setColour(juce::TextEditor::backgroundColourId, juce::Colour(0xff1e1e1e));
     logDisplay.setColour(juce::TextEditor::textColourId, juce::Colours::white);
-    logDisplay.setFont(juce::Font(juce::Font::getDefaultMonospacedFontName(), 10.0f, juce::Font::plain));
+    logDisplay.setFont(getEmojiCompatibleFont(10.0f));
     addAndMakeVisible(logDisplay);
     
     performanceDisplay.setMultiLine(true);
@@ -107,7 +120,7 @@ JSONMIDIIntegrationPanel::JSONMIDIIntegrationPanel()
     performanceDisplay.setPopupMenuEnabled(true);
     performanceDisplay.setColour(juce::TextEditor::backgroundColourId, juce::Colour(0xff2d2d30));
     performanceDisplay.setColour(juce::TextEditor::textColourId, juce::Colours::cyan);
-    performanceDisplay.setFont(juce::Font(juce::Font::getDefaultMonospacedFontName(), 10.0f, juce::Font::plain));
+    performanceDisplay.setFont(getEmojiCompatibleFont(10.0f));
     addAndMakeVisible(performanceDisplay);
     
     // Start timer for updates

@@ -34,6 +34,7 @@ target_sources(MIDILink PRIVATE
     Source/TransportController.cpp
     Source/NetworkConnectionPanel.cpp
     Source/MIDITestingPanel.cpp
+    Source/MIDIManager.cpp
     Source/PerformanceMonitorPanel.cpp
     Source/ClockSyncPanel.cpp
     Source/JSONMIDIIntegrationPanel.cpp

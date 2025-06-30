@@ -2,6 +2,19 @@
 #include <chrono>
 #include <thread>
 
+// Helper function for emoji-compatible font setup
+static juce::Font getEmojiCompatibleFont(float size = 12.0f)
+{
+    // On macOS, prefer system fonts that support emoji
+    #if JUCE_MAC
+        return juce::Font(juce::FontOptions().withName("SF Pro Text").withHeight(size));
+    #elif JUCE_WINDOWS
+        return juce::Font(juce::FontOptions().withName("Segoe UI Emoji").withHeight(size));
+    #else
+        return juce::Font(juce::FontOptions().withName("Noto Color Emoji").withHeight(size));
+    #endif
+}
+
 PerformanceMonitorPanel::PerformanceMonitorPanel()
 {
     // Set up title
@@ -9,20 +22,25 @@ PerformanceMonitorPanel::PerformanceMonitorPanel()
     titleLabel.setFont(juce::Font(16.0f, juce::Font::bold));
     addAndMakeVisible(titleLabel);
     
-    // Set up metric labels
+    // Set up metric labels with emoji-compatible fonts
     latencyLabel.setText("Latency: 0.0ms", juce::dontSendNotification);
+    latencyLabel.setFont(getEmojiCompatibleFont(12.0f));
     addAndMakeVisible(latencyLabel);
     
     cpuUsageLabel.setText("CPU Usage: 0%", juce::dontSendNotification);
+    cpuUsageLabel.setFont(getEmojiCompatibleFont(12.0f));
     addAndMakeVisible(cpuUsageLabel);
     
     memoryUsageLabel.setText("Memory: 0MB", juce::dontSendNotification);
+    memoryUsageLabel.setFont(getEmojiCompatibleFont(12.0f));
     addAndMakeVisible(memoryUsageLabel);
     
     networkStatsLabel.setText("Network: 0 Kb/s", juce::dontSendNotification);
+    networkStatsLabel.setFont(getEmojiCompatibleFont(12.0f));
     addAndMakeVisible(networkStatsLabel);
     
     midiThroughputLabel.setText("MIDI Throughput: 0 msg/s", juce::dontSendNotification);
+    midiThroughputLabel.setFont(getEmojiCompatibleFont(12.0f));
     addAndMakeVisible(midiThroughputLabel);
     
     // Start timer to update metrics

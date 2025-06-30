@@ -5,10 +5,14 @@
 #include "PerformanceMonitorPanel.h"
 #include "ClockSyncPanel.h"
 #include "JSONMIDIIntegrationPanel.h"
+#include "MIDIManager.h"
 
 //==============================================================================
 MainComponent::MainComponent()
 {
+    // Initialize MIDI I/O system first
+    midiManager = std::make_unique<MIDIManager>();
+    
     // Create and add child components
     transportController = std::make_unique<TransportController>();
     addAndMakeVisible(*transportController);
@@ -17,6 +21,7 @@ MainComponent::MainComponent()
     addAndMakeVisible(*networkPanel);
     
     midiPanel = std::make_unique<MIDITestingPanel>();
+    midiPanel->setMIDIManager(midiManager.get()); // Connect MIDI manager
     addAndMakeVisible(*midiPanel);
     
     performancePanel = std::make_unique<PerformanceMonitorPanel>();

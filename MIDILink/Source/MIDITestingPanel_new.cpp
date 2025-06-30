@@ -1,22 +1,9 @@
 #include "MIDITestingPanel.h"
 #include "MIDIManager.h"
-#include "JSONMIDIParser.h"
+#include "MessageFactory.h"
 #include <nlohmann/json.hpp>
 
 //==============================================================================
-// Helper function for emoji-compatible font setup
-juce::Font MIDITestingPanel::getEmojiCompatibleFont(float size)
-{
-    // On macOS, prefer system fonts that support emoji
-    #if JUCE_MAC
-        return juce::Font(juce::FontOptions().withName("SF Pro Text").withHeight(size));
-    #elif JUCE_WINDOWS
-        return juce::Font(juce::FontOptions().withName("Segoe UI Emoji").withHeight(size));
-    #else
-        return juce::Font(juce::FontOptions().withName("Noto Color Emoji").withHeight(size));
-    #endif
-}
-
 MIDITestingPanel::MIDITestingPanel()
 {
     // Initialize BassoonParser (stubbed for now)
@@ -29,7 +16,7 @@ MIDITestingPanel::MIDITestingPanel()
 
     // Title
     titleLabel.setText("MIDI Testing & Device Selection", juce::dontSendNotification);
-    titleLabel.setFont(juce::Font(juce::FontOptions(16.0f).withStyle("bold")));
+    titleLabel.setFont(juce::Font(16.0f, juce::Font::bold));
     titleLabel.setJustificationType(juce::Justification::centred);
     addAndMakeVisible(titleLabel);
 
@@ -63,45 +50,43 @@ MIDITestingPanel::MIDITestingPanel()
         midiChannelSelector.addItem(juce::String(i), i);
     midiChannelSelector.setSelectedId(1);
     addAndMakeVisible(midiChannelSelector);
-    
+
     noteLabel.setText("Note:", juce::dontSendNotification);
     addAndMakeVisible(noteLabel);
     
-    noteSlider.setSliderStyle(juce::Slider::LinearHorizontal);
     noteSlider.setRange(0, 127, 1);
     noteSlider.setValue(60); // Middle C
-    noteSlider.setTextBoxStyle(juce::Slider::TextBoxLeft, false, 60, 20);
+    noteSlider.setSliderStyle(juce::Slider::LinearHorizontal);
+    noteSlider.setTextBoxStyle(juce::Slider::TextBoxRight, false, 50);
     addAndMakeVisible(noteSlider);
-    
+
     velocityLabel.setText("Velocity:", juce::dontSendNotification);
     addAndMakeVisible(velocityLabel);
     
-    velocitySlider.setSliderStyle(juce::Slider::LinearHorizontal);
-    velocitySlider.setRange(1, 127, 1);
+    velocitySlider.setRange(0, 127, 1);
     velocitySlider.setValue(100);
-    velocitySlider.setTextBoxStyle(juce::Slider::TextBoxLeft, false, 60, 20);
+    velocitySlider.setSliderStyle(juce::Slider::LinearHorizontal);
+    velocitySlider.setTextBoxStyle(juce::Slider::TextBoxRight, false, 50);
     addAndMakeVisible(velocitySlider);
-    
-    sendTestNoteButton.setButtonText("Send Note");
+
+    sendTestNoteButton.setButtonText("Send Test Note");
     sendTestNoteButton.onClick = [this] { sendTestNoteClicked(); };
     addAndMakeVisible(sendTestNoteButton);
 
-    // MIDI log
-    logLabel.setText("MIDI Log:", juce::dontSendNotification);
-    addAndMakeVisible(logLabel);
-    
+    clearLogButton.setButtonText("Clear Log");
+    clearLogButton.onClick = [this] { clearLogClicked(); };
+    addAndMakeVisible(clearLogButton);
+
     logDisplay.setMultiLine(true);
+    logDisplay.setReturnKeyStartsNewLine(true);
     logDisplay.setReadOnly(true);
     logDisplay.setScrollbarsShown(true);
     logDisplay.setCaretVisible(false);
-    logDisplay.setFont(getEmojiCompatibleFont(10.0f)); // Use emoji-compatible font
+    logDisplay.setPopupMenuEnabled(false);
+    logDisplay.setColour(juce::TextEditor::backgroundColourId, juce::Colours::black);
+    logDisplay.setColour(juce::TextEditor::textColourId, juce::Colours::green);
+    logDisplay.setText("MIDI Log (ready for real I/O):\n");
     addAndMakeVisible(logDisplay);
-    
-    clearLogButton.setButtonText("Clear Log");
-    clearLogButton.onClick = [this] { logDisplay.clear(); };
-    addAndMakeVisible(clearLogButton);
-
-    startTimer(50); // Update display at 20 FPS
 }
 
 MIDITestingPanel::~MIDITestingPanel()
@@ -128,7 +113,6 @@ void MIDITestingPanel::setMIDIManager(MIDIManager* manager)
                 onMIDIMessageReceived(message);
             });
         
-        // Only refresh once on initial setup
         refreshDeviceLists();
     }
 }
@@ -136,14 +120,7 @@ void MIDITestingPanel::setMIDIManager(MIDIManager* manager)
 void MIDITestingPanel::changeListenerCallback(juce::ChangeBroadcaster* /*source*/)
 {
     // MIDI device list has changed, refresh our combo boxes
-    // This should only happen when devices are actually plugged/unplugged
     refreshDeviceLists();
-}
-
-void MIDITestingPanel::timerCallback()
-{
-    // This could be used for periodic updates if needed
-    // For now, it's just to maintain the timer functionality
 }
 
 //==============================================================================
@@ -202,8 +179,7 @@ void MIDITestingPanel::refreshDeviceLists()
     if (midiManager == nullptr)
         return;
     
-    // Only call refreshDeviceList when we actually need to update the UI
-    // This should be driven by real device change events, not polling
+    // Refresh the device lists
     midiManager->refreshDeviceList();
     
     // Update input device selector
@@ -220,7 +196,7 @@ void MIDITestingPanel::refreshDeviceLists()
     for (int i = 0; i < outputNames.size(); ++i)
         outputDeviceSelector.addItem(outputNames[i], i + 2);
     
-    logMessage("🔄 Device lists refreshed (event-driven)");
+    logMessage("🔄 Device lists refreshed");
 }
 
 void MIDITestingPanel::inputDeviceChanged()
