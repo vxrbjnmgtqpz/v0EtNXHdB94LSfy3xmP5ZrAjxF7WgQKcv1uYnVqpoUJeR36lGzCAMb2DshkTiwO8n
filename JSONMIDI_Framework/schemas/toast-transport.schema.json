@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "TOAST Transport Message Schema",
-  "description": "JSON Schema for TOAST transport layer messages and session management",
+  "description": "JSON Schema for TOAST (Transport Oriented Audio Synchronization Tunnel) transport layer messages and session management",
   "type": "object",
   "required": ["messageType", "timestamp", "sequenceNumber"],
   "properties": {

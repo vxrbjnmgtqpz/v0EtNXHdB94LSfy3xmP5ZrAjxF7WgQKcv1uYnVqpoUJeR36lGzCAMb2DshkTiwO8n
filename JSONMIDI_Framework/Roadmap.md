@@ -7,7 +7,7 @@
 
 ## Project Overview
 
-**MIDIp2p** is the core MIDI streaming framework that will serve as the foundation for **JamNet**, a comprehensive distributed audio collaboration platform. This roadmap focuses specifically on establishing robust, ultra-low-latency MIDI transfer capabilities using the JSONMIDI protocol over the TOAST (Transport Optimized Audio Synchronization Tunnel) network layer.
+**MIDIp2p** is the core MIDI streaming framework that will serve as the foundation for **JamNet**, a comprehensive distributed audio collaboration platform. This roadmap focuses specifically on establishing robust, ultra-low-latency MIDI transfer capabilities using the JSONMIDI protocol over the TOAST (Transport Oriented Audio Synchronization Tunnel) network layer.
 
 ### Current Scope: MIDI-Only Focus
 - ✅ JSON-based MIDI protocol specification (JSONMIDI)
@@ -324,7 +324,8 @@ TOAST Message Frame:
 ### User Experience
 - **Setup Time**: <5 minutes to establish connection
 - **Stability**: No user-perceivable glitches in normal operation
-- **Compatibility**: Works with major DAWs and MIDI hardware
+- **Compatibility**: Works with major DAWs via VST3 sync bridge + host app
+
 - **Latency Perception**: Indistinguishable from local MIDI at target latency
 
 ### Ecosystem Impact

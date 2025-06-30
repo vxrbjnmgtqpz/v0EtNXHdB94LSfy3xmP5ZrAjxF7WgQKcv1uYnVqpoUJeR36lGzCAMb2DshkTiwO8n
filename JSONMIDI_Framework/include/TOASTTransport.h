@@ -1,5 +1,12 @@
 #pragma once
 
+/*
+ * TOAST: Transport Oriented Audio Synchronization Tunnel
+ * 
+ * Ultra-low-latency TCP-based transport protocol for real-time MIDI streaming
+ * with distributed clock synchronization and sub-10ms network latency.
+ */
+
 #include "JSONMIDIMessage.h"
 #include "JSONMIDIParser.h"
 #include <string>

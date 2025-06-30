@@ -4,13 +4,13 @@
 
 ## Overview
 
-MIDIp2p is a comprehensive framework for streaming MIDI data over the internet using JSON, providing a 1:1 byte-level mapping of MIDI messages into a human-readable format. The project enables real-time MIDI collaboration over network connections using the TOAST (Transport Optimized Audio Synchronization Tunnel) protocol.
+MIDIp2p is a comprehensive framework for streaming MIDI data over the internet using JSON, providing a 1:1 byte-level mapping of MIDI messages into a human-readable format. The project enables real-time MIDI collaboration over network connections using the TOAST (Transport Oriented Audio Synchronization Tunnel) protocol.
 
 ### Key Components
 
 - **JSONMIDI Framework**: Complete MIDI 1.0/2.0 to JSON specification with lossless byte-level mapping
 - **Bassoon.js**: Ultra-low-latency JSON parsing engine with signal-driven architecture
-- **TOAST Protocol**: TCP-based network transport with distributed clock synchronization  
+- **TOAST Protocol**: Transport Oriented Audio Synchronization Tunnel - TCP-based network transport with distributed clock synchronization  
 - **ClockDriftArbiter**: Network timing synchronization for sub-10ms distributed audio
 - **MIDILink**: Native macOS testing application with VST3 bridge compatibility
 - **JUCE Integration**: Cross-platform audio plugin framework integration
