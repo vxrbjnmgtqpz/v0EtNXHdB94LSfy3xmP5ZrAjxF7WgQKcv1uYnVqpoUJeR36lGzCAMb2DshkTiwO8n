@@ -1,0 +1,3 @@
+# Benchmarks placeholder
+add_executable(performance_benchmark performance_benchmark.cpp)
+target_link_libraries(performance_benchmark jsonmidi_framework)

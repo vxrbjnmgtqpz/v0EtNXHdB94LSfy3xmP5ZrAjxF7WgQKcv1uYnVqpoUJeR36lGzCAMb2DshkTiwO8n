@@ -1,0 +1,124 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "TOAST Transport Message Schema",
+  "description": "JSON Schema for TOAST transport layer messages and session management",
+  "type": "object",
+  "required": ["messageType", "timestamp", "sequenceNumber"],
+  "properties": {
+    "messageType": {
+      "type": "string",
+      "enum": [
+        "midi", "clockSync", "sessionControl", "heartbeat", 
+        "connectionHandshake", "error", "metadata"
+      ],
+      "description": "TOAST message type"
+    },
+    "timestamp": {
+      "type": "number",
+      "description": "Master clock timestamp in microseconds"
+    },
+    "sequenceNumber": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Message sequence number for ordering and duplicate detection"
+    },
+    "sessionId": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$",
+      "description": "UUID for the MIDI session"
+    },
+    "sourceId": {
+      "type": "string",
+      "description": "Unique identifier for the message source"
+    },
+    "targetId": {
+      "type": "string",
+      "description": "Target identifier (optional, for directed messages)"
+    },
+    "payload": {
+      "description": "Message-specific payload data"
+    },
+    "checksum": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{8}$",
+      "description": "CRC32 checksum of the payload"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": { "messageType": { "const": "midi" } }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "jsonmidi-message.schema.json",
+            "description": "JSONMIDI message payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": { "messageType": { "const": "clockSync" } }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "type": "object",
+            "required": ["masterTimestamp", "networkLatency"],
+            "properties": {
+              "masterTimestamp": {
+                "type": "number",
+                "description": "Master clock timestamp"
+              },
+              "networkLatency": {
+                "type": "number",
+                "description": "Measured network latency in microseconds"
+              },
+              "clockDrift": {
+                "type": "number",
+                "description": "Clock drift compensation value"
+              },
+              "jitterBuffer": {
+                "type": "number",
+                "description": "Recommended jitter buffer size in microseconds"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": { "messageType": { "const": "sessionControl" } }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "type": "object",
+            "required": ["action"],
+            "properties": {
+              "action": {
+                "type": "string",
+                "enum": ["join", "leave", "start", "stop", "pause", "resume"],
+                "description": "Session control action"
+              },
+              "clientInfo": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "version": { "type": "string" },
+                  "capabilities": {
+                    "type": "array",
+                    "items": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}
