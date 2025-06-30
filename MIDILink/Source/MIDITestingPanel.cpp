@@ -1,8 +1,13 @@
 #include "MIDITestingPanel.h"
+#include <nlohmann/json.hpp>
+#include <chrono>
 
 MIDITestingPanel::MIDITestingPanel()
     : sendTestNoteButton("Send Test Note"), clearLogButton("Clear Log")
 {
+    // Initialize JSONMIDI Framework components
+    parser = std::make_unique<JSONMIDI::BassoonParser>();
+    
     // Set up title
     titleLabel.setText("MIDI Testing", juce::dontSendNotification);
     titleLabel.setFont(juce::Font(16.0f, juce::Font::bold));
@@ -95,14 +100,58 @@ void MIDITestingPanel::resized()
 
 void MIDITestingPanel::sendTestNoteClicked()
 {
-    auto note = (int)noteSlider.getValue();
-    auto velocity = (int)velocitySlider.getValue();
+    auto note = static_cast<int>(noteSlider.getValue());
+    auto velocity = static_cast<int>(velocitySlider.getValue());
     auto channel = midiChannelSelector.getSelectedId();
     
+    try {
+        // Create JSON data for note on message
+        nlohmann::json noteOnData;
+        noteOnData["type"] = "note_on";
+        noteOnData["channel"] = channel;
+        noteOnData["note"] = note;
+        noteOnData["velocity"] = velocity;
+        noteOnData["timestamp"] = std::chrono::duration_cast<std::chrono::microseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count();
+        
+        std::string json = noteOnData.dump();
+        
+        // Create JSONMIDI message using our framework
+        auto noteOnMessage = JSONMIDI::MessageFactory::createFromJSON(json);
+        
+        if (noteOnMessage) {
+            // Test parsing
+            auto parsedMessage = parser->parseMessage(json);
+            
+            if (parsedMessage) {
+                logMessage("✅ JSONMIDI Note On created and parsed successfully");
+                logMessage("Channel: " + juce::String(channel) + ", Note: " + juce::String(note) + ", Velocity: " + juce::String(velocity));
+                logMessage("JSON: " + juce::String(json.substr(0, 80)) + "...");
+                
+                // Convert to MIDI bytes for verification
+                auto midiBytes = noteOnMessage->toMIDIBytes();
+                juce::String midiHex = "MIDI bytes: ";
+                for (auto byte : midiBytes) {
+                    midiHex += juce::String::toHexString(byte) + " ";
+                }
+                logMessage(midiHex);
+            } else {
+                logMessage("❌ Failed to parse JSONMIDI message");
+            }
+        } else {
+            logMessage("❌ Failed to create JSONMIDI message");
+        }
+        
+    } catch (const std::exception& e) {
+        logMessage("❌ Exception: " + juce::String(e.what()));
+    }
+}
+
+void MIDITestingPanel::logMessage(const juce::String& message)
+{
+    auto timestamp = juce::Time::getCurrentTime().toString(true, true, true, true);
     auto logText = logDisplay.getText();
-    logText += "Sent Note On: Channel " + juce::String(channel) + 
-               ", Note " + juce::String(note) + 
-               ", Velocity " + juce::String(velocity) + "\n";
+    logText += "[" + timestamp + "] " + message + "\n";
     logDisplay.setText(logText);
     logDisplay.moveCaretToEnd();
 }

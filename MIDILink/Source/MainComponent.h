@@ -8,6 +8,7 @@ class NetworkConnectionPanel;
 class MIDITestingPanel;
 class PerformanceMonitorPanel;
 class ClockSyncPanel;
+class JSONMIDIIntegrationPanel;
 
 //==============================================================================
 class MainComponent : public juce::Component
@@ -26,6 +27,7 @@ private:
     std::unique_ptr<MIDITestingPanel> midiPanel;
     std::unique_ptr<PerformanceMonitorPanel> performancePanel;
     std::unique_ptr<ClockSyncPanel> clockSyncPanel;
+    std::unique_ptr<JSONMIDIIntegrationPanel> jsonmidiPanel;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
 };

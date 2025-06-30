@@ -4,6 +4,9 @@ project(MIDILink VERSION 1.0.0)
 
 set(CMAKE_CXX_STANDARD 17)
 
+# Add our JSONMIDI Framework
+add_subdirectory(../JSONMIDI_Framework jsonmidi_framework)
+
 # Add JUCE
 include(FetchContent)
 FetchContent_Declare(
@@ -33,12 +36,16 @@ target_sources(MIDILink PRIVATE
     Source/MIDITestingPanel.cpp
     Source/PerformanceMonitorPanel.cpp
     Source/ClockSyncPanel.cpp
+    Source/JSONMIDIIntegrationPanel.cpp
 )
 
 # Add header files
-target_include_directories(MIDILink PRIVATE Source)
+target_include_directories(MIDILink PRIVATE 
+    Source
+    ../JSONMIDI_Framework/include
+)
 
-# Link JUCE modules
+# Link JUCE modules and our framework
 target_link_libraries(MIDILink PRIVATE
     juce::juce_gui_basics
     juce::juce_gui_extra
@@ -51,6 +58,8 @@ target_link_libraries(MIDILink PRIVATE
     juce::juce_data_structures
     juce::juce_events
     juce::juce_graphics
+    jsonmidi_framework
+    nlohmann_json::nlohmann_json
 )
 
 # Compiler definitions

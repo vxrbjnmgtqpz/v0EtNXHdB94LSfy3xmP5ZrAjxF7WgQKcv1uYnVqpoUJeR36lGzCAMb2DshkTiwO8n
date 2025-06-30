@@ -4,6 +4,7 @@
 #include "MIDITestingPanel.h"
 #include "PerformanceMonitorPanel.h"
 #include "ClockSyncPanel.h"
+#include "JSONMIDIIntegrationPanel.h"
 
 //==============================================================================
 MainComponent::MainComponent()
@@ -24,8 +25,11 @@ MainComponent::MainComponent()
     clockSyncPanel = std::make_unique<ClockSyncPanel>();
     addAndMakeVisible(*clockSyncPanel);
     
-    // Set the main window size
-    setSize(800, 600);
+    jsonmidiPanel = std::make_unique<JSONMIDIIntegrationPanel>();
+    addAndMakeVisible(*jsonmidiPanel);
+    
+    // Set the main window size (increased for new panel)
+    setSize(1200, 800);
 }
 
 MainComponent::~MainComponent()
@@ -44,18 +48,19 @@ void MainComponent::resized()
     // Transport bar at the top (fixed height)
     transportController->setBounds(bounds.removeFromTop(50));
     
-    // Divide remaining space into quarters for the panels
+    // Divide remaining space into panels
     auto remainingBounds = bounds.reduced(10);
     auto panelHeight = remainingBounds.getHeight() / 2;
-    auto panelWidth = remainingBounds.getWidth() / 2;
+    auto panelWidth = remainingBounds.getWidth() / 3;
     
-    // Top row
+    // Top row - three panels
     auto topRow = remainingBounds.removeFromTop(panelHeight);
     networkPanel->setBounds(topRow.removeFromLeft(panelWidth).reduced(5));
-    midiPanel->setBounds(topRow.reduced(5));
+    midiPanel->setBounds(topRow.removeFromLeft(panelWidth).reduced(5));
+    jsonmidiPanel->setBounds(topRow.reduced(5)); // JSONMIDI panel gets remaining space
     
-    // Bottom row  
+    // Bottom row - two panels  
     auto bottomRow = remainingBounds;
-    performancePanel->setBounds(bottomRow.removeFromLeft(panelWidth).reduced(5));
+    performancePanel->setBounds(bottomRow.removeFromLeft(panelWidth * 1.5).reduced(5));
     clockSyncPanel->setBounds(bottomRow.reduced(5));
 }
