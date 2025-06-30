@@ -9,6 +9,24 @@
 namespace JSONMIDI {
 
 /**
+ * JSON Protocol Version for message format compatibility
+ */
+struct JSONProtocolVersion {
+    static constexpr uint16_t MAJOR = 1;
+    static constexpr uint16_t MINOR = 0;
+    static constexpr uint16_t PATCH = 0;
+    
+    static std::string toString() {
+        return std::to_string(MAJOR) + "." + std::to_string(MINOR) + "." + std::to_string(PATCH);
+    }
+    
+    static bool isCompatible(uint16_t major, uint16_t minor) {
+        // Major version must match, minor version can be backwards compatible
+        return major == MAJOR && minor <= MINOR;
+    }
+};
+
+/**
  * MIDI Protocol Version
  */
 enum class Protocol : uint8_t {
@@ -66,7 +84,10 @@ public:
     
     void setTimestamp(Timestamp timestamp) { timestamp_ = timestamp; }
     
-    // Convert to JSON string
+    // Get JSON protocol version
+    std::string getJSONProtocolVersion() const { return JSONProtocolVersion::toString(); }
+    
+    // Convert to JSON string (includes protocolVersion field)
     virtual std::string toJSON() const = 0;
     
     // Convert to raw MIDI bytes
@@ -74,6 +95,11 @@ public:
     
     // Get message size in bytes
     virtual size_t getByteSize() const = 0;
+    
+    // Utility to check if a JSON message version is compatible
+    static bool isJSONVersionCompatible(uint16_t major, uint16_t minor) {
+        return JSONProtocolVersion::isCompatible(major, minor);
+    }
 
 protected:
     MessageType type_;

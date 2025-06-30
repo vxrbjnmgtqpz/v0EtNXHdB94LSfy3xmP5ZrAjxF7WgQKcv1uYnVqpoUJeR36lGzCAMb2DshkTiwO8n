@@ -7,6 +7,7 @@
 #include <random>
 #include "JSONMIDIMessage.h"
 #include "JSONMIDIParser.h"
+#include "VersionNegotiator.h"
 
 using namespace JSONMIDI;
 
@@ -160,12 +161,61 @@ void demonstrateRealTimeScenario() {
     std::cout << "\n";
 }
 
+void demonstrateVersionNegotiation() {
+    std::cout << "🔗 Testing Protocol Version Negotiation...\n";
+    
+    try {
+        // Show current framework version
+        auto currentVersion = VersionNegotiator::getCurrentVersion();
+        std::cout << "   📋 Current Framework Version: " << currentVersion.toString() << "\n";
+        
+        // Test message with version info
+        auto timestamp = std::chrono::high_resolution_clock::now();
+        NoteOnMessage noteOn(1, 60, 127, timestamp);
+        std::string json = noteOn.toJSON();
+        
+        std::cout << "   📄 Sample JSON Message:\n";
+        std::cout << "      " << json.substr(0, 100) << "...\n";
+        
+        // Extract version from message
+        auto extractedVersion = VersionNegotiator::extractVersionFromMessage(json);
+        if (extractedVersion) {
+            std::cout << "   ✅ Extracted Version: " << extractedVersion->toString() << "\n";
+        }
+        
+        // Test compatibility
+        bool compatible = VersionNegotiator::isMessageCompatible(json);
+        std::cout << "   🔍 Message Compatible: " << (compatible ? "✅ YES" : "❌ NO") << "\n";
+        
+        // Test version negotiation scenario
+        std::vector<VersionNegotiator::Version> senderVersions = {
+            {1, 0, 0}, {1, 1, 0}
+        };
+        std::vector<VersionNegotiator::Version> receiverVersions = {
+            {1, 0, 0}, {1, 0, 1}
+        };
+        
+        auto negotiated = VersionNegotiator::negotiateVersion(senderVersions, receiverVersions);
+        if (negotiated) {
+            std::cout << "   🤝 Negotiated Version: " << negotiated->toString() << "\n";
+        } else {
+            std::cout << "   ⚠️  No compatible version found\n";
+        }
+        
+    } catch (const std::exception& e) {
+        std::cout << "   ❌ Error: " << e.what() << "\n";
+    }
+    
+    std::cout << "\n";
+}
+
 int main() {
     try {
         printHeader();
         
         demonstrateMessageCreation();
         demonstrateParsing();
+        demonstrateVersionNegotiation();
         demonstratePerformance();
         demonstrateRealTimeScenario();
         

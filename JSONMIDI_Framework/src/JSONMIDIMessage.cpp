@@ -53,6 +53,7 @@ void NoteOnMessage::validateVelocity(uint32_t velocity, Protocol protocol) {
 std::string NoteOnMessage::toJSON() const {
     std::stringstream json;
     json << "{";
+    json << "\"protocolVersion\":\"" << getJSONProtocolVersion() << "\",";
     json << "\"type\":\"noteOn\",";
     json << "\"timestamp\":" << formatTimestamp(timestamp_) << ",";
     json << "\"protocol\":\"" << protocolToString(protocol_) << "\",";
@@ -141,6 +142,7 @@ void NoteOffMessage::validateVelocity(uint32_t velocity, Protocol protocol) {
 std::string NoteOffMessage::toJSON() const {
     std::stringstream json;
     json << "{";
+    json << "\"protocolVersion\":\"" << getJSONProtocolVersion() << "\",";
     json << "\"type\":\"noteOff\",";
     json << "\"timestamp\":" << formatTimestamp(timestamp_) << ",";
     json << "\"protocol\":\"" << protocolToString(protocol_) << "\",";
@@ -220,6 +222,7 @@ void ControlChangeMessage::validateValue(uint32_t value, Protocol protocol) {
 std::string ControlChangeMessage::toJSON() const {
     std::stringstream json;
     json << "{";
+    json << "\"protocolVersion\":\"" << getJSONProtocolVersion() << "\",";
     json << "\"type\":\"controlChange\",";
     json << "\"timestamp\":" << formatTimestamp(timestamp_) << ",";
     json << "\"protocol\":\"" << protocolToString(protocol_) << "\",";
@@ -284,6 +287,7 @@ size_t ControlChangeMessage::getByteSize() const {
 std::string SystemExclusiveMessage::toJSON() const {
     std::stringstream json;
     json << "{";
+    json << "\"protocolVersion\":\"" << getJSONProtocolVersion() << "\",";
     json << "\"type\":\"systemExclusive\",";
     json << "\"timestamp\":" << formatTimestamp(timestamp_) << ",";
     json << "\"protocol\":\"" << protocolToString(protocol_) << "\",";

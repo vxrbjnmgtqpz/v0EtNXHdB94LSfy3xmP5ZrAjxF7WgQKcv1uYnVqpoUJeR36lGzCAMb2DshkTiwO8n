@@ -90,6 +90,7 @@ include_directories(
 # Source files
 set(JSONMIDI_SOURCES
     src/JSONMIDIMessage.cpp
+    src/VersionNegotiator.cpp
     src/JSONMIDIParser.cpp
     src/TOASTTransport.cpp
     src/BassoonParser.cpp
@@ -104,6 +105,7 @@ set(JSONMIDI_SOURCES
 # Header files
 set(JSONMIDI_HEADERS
     include/JSONMIDIMessage.h
+    include/VersionNegotiator.h
     include/JSONMIDIParser.h
     include/TOASTTransport.h
     include/LockFreeQueue.h
