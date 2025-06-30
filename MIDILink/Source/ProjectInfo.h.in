@@ -1,0 +1,7 @@
+#pragma once
+
+namespace ProjectInfo
+{
+    static const char* projectName = "MIDILink";
+    static const char* versionString = "1.0.0";
+}
