@@ -24,9 +24,9 @@ MIDIp2p/
 │   ├── memorymapandc++bridge.md  # Bassoon.js ultra-low-latency implementation
 │   ├── ClockDriftArbiter.h       # Network synchronization module
 │   └── Roadmap.md                # 16-week development timeline
-├── JUCE_JSON_Messenger/          # JUCE plugin foundation
-│   ├── PluginEditor.cpp          # Basic UI components
-│   └── index.html                # Web interface example
+├── MIDILink/                     # Main JUCE application
+│   ├── Source/                   # Application source code
+│   └── CMakeLists.txt           # Build configuration
 ├── nativemacapp.md               # MIDILink native app specification
 └── README.md                     # This file
 ```
