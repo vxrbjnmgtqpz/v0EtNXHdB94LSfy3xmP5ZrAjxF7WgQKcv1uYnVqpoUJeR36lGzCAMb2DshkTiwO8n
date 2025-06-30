@@ -30,11 +30,25 @@ target_link_libraries(test_round_trip
         nlohmann_json::nlohmann_json
 )
 
+# Phase 1.2 Performance Test
+add_executable(test_phase12_performance 
+    test_phase12_performance.cpp
+)
+
+target_link_libraries(test_phase12_performance
+    PRIVATE 
+    jsonmidi_framework
+    gtest 
+    gtest_main
+    Threads::Threads
+)
+
 # Add individual tests
 add_test(NAME basic_messages_test COMMAND test_basic_messages --test-basic)
 add_test(NAME validation_test COMMAND test_validation --test-validation)
 add_test(NAME performance_test COMMAND test_performance --test-performance)
 add_test(NAME round_trip_test COMMAND test_round_trip --test-round-trip)
+add_test(NAME Phase12Performance COMMAND test_phase12_performance)
 
 # Set test properties
 set_tests_properties(basic_messages_test PROPERTIES

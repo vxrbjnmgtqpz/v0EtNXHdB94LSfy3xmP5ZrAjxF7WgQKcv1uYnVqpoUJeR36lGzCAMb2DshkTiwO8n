@@ -40,6 +40,19 @@ if(NOT simdjson_FOUND)
     FetchContent_MakeAvailable(simdjson)
 endif()
 
+# Check for nlohmann/json-schema (JSON schema validation)
+find_package(nlohmann_json_schema_validator QUIET)
+if(NOT nlohmann_json_schema_validator_FOUND)
+    message(STATUS "nlohmann_json_schema_validator not found, will use FetchContent")
+    include(FetchContent)
+    FetchContent_Declare(
+        nlohmann_json_schema_validator
+        GIT_REPOSITORY https://github.com/pboettch/json-schema-validator.git
+        GIT_TAG 2.3.0
+    )
+    FetchContent_MakeAvailable(nlohmann_json_schema_validator)
+endif()
+
 # Threading support
 find_package(Threads REQUIRED)
 
@@ -93,6 +106,7 @@ set(JSONMIDI_HEADERS
     include/JSONMIDIMessage.h
     include/JSONMIDIParser.h
     include/TOASTTransport.h
+    include/LockFreeQueue.h
 )
 
 # Create the main library

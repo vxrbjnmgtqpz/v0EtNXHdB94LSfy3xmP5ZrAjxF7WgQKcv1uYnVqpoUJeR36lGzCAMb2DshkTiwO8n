@@ -1,6 +1,7 @@
 #pragma once
 
 #include "JSONMIDIMessage.h"
+#include "LockFreeQueue.h"
 #include <memory>
 #include <functional>
 #include <queue>
@@ -115,35 +116,6 @@ private:
     static std::unique_ptr<SystemExclusiveMessage> createSysEx(
         const nlohmann::json& data);
 };
-
-/**
- * Lock-free message queue for real-time audio thread safety
- */
-template<typename T>
-class LockFreeQueue {
-public:
-    explicit LockFreeQueue(size_t capacity = 1024);
-    ~LockFreeQueue();
-    
-    // Non-blocking operations for audio thread
-    bool tryPush(T&& item);
-    bool tryPop(T& item);
-    
-    // Blocking operations for non-audio threads
-    void push(T&& item);
-    bool pop(T& item, std::chrono::milliseconds timeout = std::chrono::milliseconds(100));
-    
-    size_t size() const;
-    bool empty() const;
-    bool full() const;
-
-private:
-    class Impl;
-    std::unique_ptr<Impl> impl_;
-};
-
-// Specialization for MIDI messages
-using MIDIMessageQueue = LockFreeQueue<std::unique_ptr<MIDIMessage>>;
 
 /**
  * Performance profiler for parsing operations
