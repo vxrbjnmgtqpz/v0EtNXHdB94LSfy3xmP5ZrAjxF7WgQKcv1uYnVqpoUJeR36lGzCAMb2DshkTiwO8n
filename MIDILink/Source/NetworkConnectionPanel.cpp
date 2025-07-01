@@ -32,7 +32,7 @@ NetworkConnectionPanel::NetworkConnectionPanel()
     sessionManager = std::make_unique<TOAST::SessionManager>();
     
     // Set up title
-    titleLabel.setText("🌐 TOAST Network Connection", juce::dontSendNotification);
+    titleLabel.setText("TOAST Network Connection", juce::dontSendNotification);
     titleLabel.setFont(getEmojiCompatibleFont(16.0f));
     addAndMakeVisible(titleLabel);
     
@@ -68,12 +68,12 @@ NetworkConnectionPanel::NetworkConnectionPanel()
     addAndMakeVisible(joinSessionButton);
     
     // Set up status labels
-    statusLabel.setText("🔴 Disconnected", juce::dontSendNotification);
-    statusLabel.setFont(getEmojiCompatibleFont(12.0f));
+    statusLabel.setText("Disconnected", juce::dontSendNotification);
+    statusLabel.setColour(juce::Label::textColourId, juce::Colours::lightcoral);
     addAndMakeVisible(statusLabel);
     
     sessionInfoLabel.setText("No active session", juce::dontSendNotification);
-    sessionInfoLabel.setFont(getEmojiCompatibleFont(10.0f));
+    sessionInfoLabel.setColour(juce::Label::textColourId, juce::Colours::lightgrey);
     addAndMakeVisible(sessionInfoLabel);
     
     performanceLabel.setText("", juce::dontSendNotification);
@@ -137,21 +137,21 @@ void NetworkConnectionPanel::connectButtonClicked()
         std::string ip = ipAddressEditor.getText().toStdString();
         int port = portEditor.getText().getIntValue();
         
-        // Initialize TOAST connection (simplified for now)
-        if (toastHandler) {
+        if (connectionManager && connectionManager->connectToServer(ip, port)) {
             isConnected = true;
+            statusLabel.setText("Connected to " + ip + ":" + std::to_string(port), juce::dontSendNotification);
+            statusLabel.setColour(juce::Label::textColourId, juce::Colours::lightgreen);
             connectButton.setEnabled(false);
             disconnectButton.setEnabled(true);
             createSessionButton.setEnabled(true);
             joinSessionButton.setEnabled(true);
-            
-            statusLabel.setText("🟡 Connected to " + ip + ":" + std::to_string(port), 
-                              juce::dontSendNotification);
         } else {
-            statusLabel.setText("🔴 Connection failed", juce::dontSendNotification);
+            statusLabel.setText("Connection failed", juce::dontSendNotification);
+            statusLabel.setColour(juce::Label::textColourId, juce::Colours::lightcoral);
         }
     } catch (const std::exception& e) {
-        statusLabel.setText("🔴 Error: " + std::string(e.what()), juce::dontSendNotification);
+        statusLabel.setText("Error: " + std::string(e.what()), juce::dontSendNotification);
+        statusLabel.setColour(juce::Label::textColourId, juce::Colours::lightcoral);
     }
 }
 
@@ -170,63 +170,73 @@ void NetworkConnectionPanel::disconnectButtonClicked()
         createSessionButton.setEnabled(false);
         joinSessionButton.setEnabled(false);
         
-        statusLabel.setText("🔴 Disconnected", juce::dontSendNotification);
+        statusLabel.setText("Disconnected", juce::dontSendNotification);
+        statusLabel.setColour(juce::Label::textColourId, juce::Colours::lightcoral);
         sessionInfoLabel.setText("No active session", juce::dontSendNotification);
         performanceLabel.setText("", juce::dontSendNotification);
     } catch (const std::exception& e) {
-        statusLabel.setText("🔴 Disconnect error: " + std::string(e.what()), 
+        statusLabel.setText("Disconnect error: " + std::string(e.what()), 
                           juce::dontSendNotification);
+        statusLabel.setColour(juce::Label::textColourId, juce::Colours::lightcoral);
     }
 }
 
 void NetworkConnectionPanel::createSessionClicked()
 {
-    if (!isConnected) return;
-    
     try {
         std::string sessionName = sessionNameEditor.getText().toStdString();
-        currentSessionId = sessionManager->createSession(sessionName);
         
-        sessionInfoLabel.setText("📡 Created session: " + currentSessionId, 
-                                juce::dontSendNotification);
-        
-        // Join our own session
-        TOAST::ClientInfo clientInfo;
-        clientInfo.clientId = clientId;
-        clientInfo.capabilities = {"MIDI_IN", "MIDI_OUT", "CLOCK_SYNC"};
-        
-        if (sessionManager->joinSession(currentSessionId, clientInfo)) {
-            sessionInfoLabel.setText("✅ Hosting session: " + sessionName, 
-                                    juce::dontSendNotification);
+        if (sessionManager) {
+            currentSessionId = sessionManager->createSession(sessionName);
+            if (!currentSessionId.empty()) {
+                sessionInfoLabel.setText("Created session: " + currentSessionId, juce::dontSendNotification);
+                sessionInfoLabel.setColour(juce::Label::textColourId, juce::Colours::lightgreen);
+                
+                // Update performance info
+                performanceLabel.setText("Ready", juce::dontSendNotification);
+            } else {
+                sessionInfoLabel.setText("Session creation failed", juce::dontSendNotification);
+                sessionInfoLabel.setColour(juce::Label::textColourId, juce::Colours::lightcoral);
+            }
+        } else {
+            sessionInfoLabel.setText("Session manager not available", juce::dontSendNotification);
+            sessionInfoLabel.setColour(juce::Label::textColourId, juce::Colours::lightcoral);
         }
     } catch (const std::exception& e) {
-        sessionInfoLabel.setText("❌ Session creation failed: " + std::string(e.what()), 
-                                juce::dontSendNotification);
+        sessionInfoLabel.setText("Session creation failed: " + std::string(e.what()), juce::dontSendNotification);
+        sessionInfoLabel.setColour(juce::Label::textColourId, juce::Colours::lightcoral);
     }
 }
 
 void NetworkConnectionPanel::joinSessionClicked()
 {
-    if (!isConnected) return;
-    
     try {
         std::string sessionName = sessionNameEditor.getText().toStdString();
-        // For demo purposes, assume session ID matches session name
-        currentSessionId = sessionName;
         
-        TOAST::ClientInfo clientInfo;
-        clientInfo.clientId = clientId;
-        clientInfo.capabilities = {"MIDI_IN", "MIDI_OUT", "CLOCK_SYNC"};
-        
-        if (sessionManager->joinSession(currentSessionId, clientInfo)) {
-            sessionInfoLabel.setText("✅ Joined session: " + sessionName, 
-                                    juce::dontSendNotification);
+        if (sessionManager) {
+            // Create client info for joining session
+            TOAST::ClientInfo clientInfo;
+            clientInfo.clientId = "MIDILink_" + std::to_string(std::chrono::system_clock::now().time_since_epoch().count());
+            clientInfo.name = "MIDILink Client";
+            clientInfo.version = "1.0.0";
+            clientInfo.capabilities = {"MIDI_IN", "MIDI_OUT", "CLOCK_SYNC"};
+            clientInfo.connectTime = std::chrono::duration_cast<std::chrono::milliseconds>(
+                std::chrono::system_clock::now().time_since_epoch()).count();
+            
+            if (sessionManager->joinSession(sessionName, clientInfo)) {
+                currentSessionId = sessionName;
+                sessionInfoLabel.setText("Joined session: " + sessionName, juce::dontSendNotification);
+                sessionInfoLabel.setColour(juce::Label::textColourId, juce::Colours::lightgreen);
+            } else {
+                sessionInfoLabel.setText("Failed to join session: " + sessionName, juce::dontSendNotification);
+                sessionInfoLabel.setColour(juce::Label::textColourId, juce::Colours::lightcoral);
+            }
         } else {
-            sessionInfoLabel.setText("❌ Failed to join session: " + sessionName, 
-                                    juce::dontSendNotification);
+            sessionInfoLabel.setText("Session manager not available", juce::dontSendNotification);
+            sessionInfoLabel.setColour(juce::Label::textColourId, juce::Colours::lightcoral);
         }
     } catch (const std::exception& e) {
-        sessionInfoLabel.setText("❌ Join failed: " + std::string(e.what()), 
-                                juce::dontSendNotification);
+        sessionInfoLabel.setText("Join failed: " + std::string(e.what()), juce::dontSendNotification);
+        sessionInfoLabel.setColour(juce::Label::textColourId, juce::Colours::lightcoral);
     }
 }

@@ -137,5 +137,9 @@ settings.local.*
 *.pem
 *.p12
 secrets.json
+
+# Framework-specific build and cache directories
 JSONMIDI_Framework/build_phase12/
 JSONMIDI_Framework/build_phase2/
+JSONMIDI_Framework/build_standalone/
+JSONMIDI_Framework/.cache/

@@ -16,18 +16,19 @@ public:
     void timerCallback() override;
 
 private:
-    void enableSyncClicked();
+    void toggleSync();
+    void toggleForceMaster();
     void calibrateClicked();
     void updateDisplay();
     
     // UI Components
     juce::GroupComponent syncGroup;
-    juce::ToggleButton enableSyncButton;
-    juce::ToggleButton masterModeButton;
+    juce::ToggleButton enableSyncToggle;
+    juce::ToggleButton forceMasterToggle;
     juce::Label roleLabel;
     juce::Label syncStatusLabel;
     juce::Label networkOffsetLabel;
-    juce::Label qualityLabel;
+    juce::Label syncQualityLabel;
     juce::Label rttLabel;
     
     juce::GroupComponent settingsGroup;

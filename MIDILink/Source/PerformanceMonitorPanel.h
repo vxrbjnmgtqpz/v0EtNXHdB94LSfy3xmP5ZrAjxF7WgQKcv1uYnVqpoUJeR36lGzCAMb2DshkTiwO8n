@@ -4,6 +4,12 @@
 #include "JSONMIDIParser.h"
 #include <memory>
 
+// Forward declarations for framework components
+namespace TOAST {
+    class ClockDriftArbiter;
+    class ConnectionManager;
+}
+
 //==============================================================================
 class PerformanceMonitorPanel : public juce::Component, private juce::Timer
 {
@@ -13,6 +19,14 @@ public:
 
     void paint (juce::Graphics&) override;
     void resized() override;
+    
+    // Methods to receive real data from other components
+    void setConnectionState(bool connected, int activeConnections = 0);
+    void setNetworkLatency(double latencyMs);
+    void setClockAccuracy(double accuracyUs);
+    void setMessageProcessingRate(int messagesPerSecond);
+    void setMIDIThroughput(int midiMessagesPerSecond);
+    void updateMemoryUsage();
 
 private:
     void updateMetrics();
@@ -26,6 +40,19 @@ private:
     juce::Label midiThroughputLabel;
     juce::Label connectionStatsLabel;
     juce::Label memoryUsageLabel;
+    
+    // Real data storage
+    bool isConnected = false;
+    int activeConnections = 0;
+    double networkLatency = 0.0;
+    double clockAccuracy = 0.0;
+    int messageProcessingRate = 0;
+    int midiThroughput = 0;
+    double memoryUsage = 0.0;
+    
+    // Framework latency tracking
+    std::chrono::high_resolution_clock::time_point lastFrameworkTest;
+    double frameworkLatency = 0.0;
     
     // Framework integration
     // std::unique_ptr<JSONMIDI::PerformanceProfiler> profiler; // Not implemented yet

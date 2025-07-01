@@ -33,12 +33,16 @@ MainComponent::MainComponent()
     jsonmidiPanel = std::make_unique<JSONMIDIIntegrationPanel>();
     addAndMakeVisible(*jsonmidiPanel);
     
+    // Start timer to coordinate state updates between panels
+    startTimer(250); // Update 4 times per second
+    
     // Set the main window size (increased for new panel)
     setSize(1200, 800);
 }
 
 MainComponent::~MainComponent()
 {
+    stopTimer();
 }
 
 void MainComponent::paint (juce::Graphics& g)
@@ -68,4 +72,48 @@ void MainComponent::resized()
     auto bottomRow = remainingBounds;
     performancePanel->setBounds(bottomRow.removeFromLeft(panelWidth * 1.5).reduced(5));
     clockSyncPanel->setBounds(bottomRow.reduced(5));
+}
+
+void MainComponent::timerCallback()
+{
+    // Update shared state timestamp
+    appState.lastUpdate = std::chrono::high_resolution_clock::now();
+    
+    // Push current state to all panels
+    performancePanel->setConnectionState(appState.isNetworkConnected, appState.activeConnections);
+    performancePanel->setNetworkLatency(appState.networkLatency);
+    performancePanel->setClockAccuracy(appState.clockAccuracy);
+    performancePanel->setMessageProcessingRate(appState.messageProcessingRate);
+    performancePanel->setMIDIThroughput(appState.midiThroughput);
+}
+
+void MainComponent::updateNetworkState(bool connected, int connections, const std::string& ip, int port)
+{
+    appState.isNetworkConnected = connected;
+    appState.activeConnections = connections;
+    appState.connectedIP = ip;
+    appState.connectedPort = port;
+    appState.lastUpdate = std::chrono::high_resolution_clock::now();
+}
+
+void MainComponent::updateNetworkLatency(double latencyMs)
+{
+    appState.networkLatency = latencyMs;
+    appState.lastUpdate = std::chrono::high_resolution_clock::now();
+}
+
+void MainComponent::updateClockSync(bool enabled, double accuracy, double offset, uint64_t rtt)
+{
+    appState.isClockSyncEnabled = enabled;
+    appState.clockAccuracy = accuracy;
+    appState.clockOffset = offset;
+    appState.roundTripTime = rtt;
+    appState.lastUpdate = std::chrono::high_resolution_clock::now();
+}
+
+void MainComponent::updatePerformanceMetrics(int msgRate, int midiRate)
+{
+    appState.messageProcessingRate = msgRate;
+    appState.midiThroughput = midiRate;
+    appState.lastUpdate = std::chrono::high_resolution_clock::now();
 }

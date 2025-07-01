@@ -48,12 +48,12 @@ void TransportButton::paintButton(juce::Graphics& g, bool shouldDrawButtonAsHigh
     {
         if (getToggleState()) // recording
         {
-            bgColor = juce::Colours::red;
+            bgColor = juce::Colours::hotpink;
             symbolColor = juce::Colours::white;
         }
         else
         {
-            bgColor = juce::Colours::maroon;
+            bgColor = juce::Colours::purple.darker(0.3f);
         }
     }
     
@@ -71,26 +71,72 @@ void TransportButton::paintButton(juce::Graphics& g, bool shouldDrawButtonAsHigh
     g.setColour(juce::Colours::black);
     g.drawRoundedRectangle(bounds, 4.0f, 1.0f);
     
-    // Draw the symbol
+    // Draw the symbol using geometric shapes
     g.setColour(symbolColor);
-    auto symbolBounds = bounds.reduced(6.0f);
-    g.setFont(getEmojiCompatibleFont(symbolBounds.getHeight() * 0.6f, true));
+    auto symbolBounds = bounds.reduced(8.0f);
+    auto centerX = symbolBounds.getCentreX();
+    auto centerY = symbolBounds.getCentreY();
     
-    juce::String symbol;
     if (buttonType == Play)
     {
-        symbol = getToggleState() ? "⏸" : "▶";
+        if (getToggleState()) // Pause - draw two vertical rectangles
+        {
+            auto pauseWidth = symbolBounds.getWidth() * 0.25f;
+            auto pauseHeight = symbolBounds.getHeight() * 0.7f;
+            auto spacing = symbolBounds.getWidth() * 0.15f;
+            
+            auto leftRect = juce::Rectangle<float>(
+                centerX - spacing - pauseWidth, 
+                centerY - pauseHeight * 0.5f, 
+                pauseWidth, 
+                pauseHeight
+            );
+            auto rightRect = juce::Rectangle<float>(
+                centerX + spacing, 
+                centerY - pauseHeight * 0.5f, 
+                pauseWidth, 
+                pauseHeight
+            );
+            
+            g.fillRect(leftRect);
+            g.fillRect(rightRect);
+        }
+        else // Play - draw right-pointing triangle
+        {
+            auto triangleSize = symbolBounds.getHeight() * 0.6f;
+            juce::Path triangle;
+            triangle.addTriangle(
+                centerX - triangleSize * 0.3f, centerY - triangleSize * 0.5f,  // top left
+                centerX - triangleSize * 0.3f, centerY + triangleSize * 0.5f,  // bottom left  
+                centerX + triangleSize * 0.4f, centerY                         // right point
+            );
+            g.fillPath(triangle);
+        }
     }
     else if (buttonType == Stop)
     {
-        symbol = "⏹";
+        // Stop - draw square
+        auto squareSize = symbolBounds.getHeight() * 0.6f;
+        auto square = juce::Rectangle<float>(
+            centerX - squareSize * 0.5f, 
+            centerY - squareSize * 0.5f, 
+            squareSize, 
+            squareSize
+        );
+        g.fillRect(square);
     }
     else if (buttonType == Record)
     {
-        symbol = "⏺";
+        // Record - draw circle
+        auto circleSize = symbolBounds.getHeight() * 0.6f;
+        auto circle = juce::Rectangle<float>(
+            centerX - circleSize * 0.5f, 
+            centerY - circleSize * 0.5f, 
+            circleSize, 
+            circleSize
+        );
+        g.fillEllipse(circle);
     }
-    
-    g.drawText(symbol, symbolBounds, juce::Justification::centred);
 }
 
 //==============================================================================
