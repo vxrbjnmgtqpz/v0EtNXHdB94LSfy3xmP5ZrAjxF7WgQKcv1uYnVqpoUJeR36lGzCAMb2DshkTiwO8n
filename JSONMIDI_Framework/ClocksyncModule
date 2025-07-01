@@ -1,0 +1,111 @@
+// ClockDriftArbiter.h
+#pragma once
+
+#include <vector>
+#include <functional>
+
+class ClockDriftArbiter
+{
+public:
+    struct ClockSource
+    {
+        int id;
+        double lastTimestamp;
+        double offsetEstimate;
+        double driftEstimate;
+        bool isLeader;
+    };
+
+    ClockDriftArbiter();
+
+    // Add a clock source (slave)
+    void addClock(int id);
+
+    // Receive clock pulse (timestamp from source)
+    void receivePulse(int id, double timestamp);
+
+    // Set current leader
+    void setLeader(int id);
+
+    // Called periodically to update estimates
+    void update(double currentTime);
+
+    // Connect output callback (pushes corrected timebase)
+    void onCorrectedPulse(std::function<void(int, double)> cb);
+
+private:
+    std::vector<ClockSource> clocks;
+    int leaderId = -1;
+    std::function<void(int, double)> correctedPulseCb;
+
+    void correctClocks(double currentTime);
+};
+
+// ClockDriftArbiter.cpp
+#include "ClockDriftArbiter.h"
+
+ClockDriftArbiter::ClockDriftArbiter() {}
+
+void ClockDriftArbiter::addClock(int id)
+{
+    clocks.push_back({ id, 0.0, 0.0, 0.0, false });
+}
+
+void ClockDriftArbiter::receivePulse(int id, double timestamp)
+{
+    for (auto& c : clocks)
+    {
+        if (c.id == id)
+        {
+            double delta = timestamp - c.lastTimestamp;
+            if (delta > 0)
+            {
+                // Simple drift estimation (could be replaced by Kalman)
+                double error = (timestamp + c.offsetEstimate) - timestamp;
+                c.offsetEstimate -= 0.1 * error; // smoothing
+                c.driftEstimate = delta;
+            }
+            c.lastTimestamp = timestamp;
+            break;
+        }
+    }
+}
+
+void ClockDriftArbiter::setLeader(int id)
+{
+    leaderId = id;
+    for (auto& c : clocks)
+        c.isLeader = (c.id == id);
+}
+
+void ClockDriftArbiter::update(double currentTime)
+{
+    correctClocks(currentTime);
+}
+
+void ClockDriftArbiter::onCorrectedPulse(std::function<void(int, double)> cb)
+{
+    correctedPulseCb = cb;
+}
+
+void ClockDriftArbiter::correctClocks(double currentTime)
+{
+    // assume leader clock is reference
+    ClockSource* leader = nullptr;
+    for (auto& c : clocks)
+        if (c.isLeader)
+            leader = &c;
+
+    if (!leader)
+        return;
+
+    for (auto& c : clocks)
+    {
+        if (c.id != leader->id)
+        {
+            double correctedTime = currentTime + (leader->offsetEstimate - c.offsetEstimate);
+            if (correctedPulseCb)
+                correctedPulseCb(c.id, correctedTime);
+        }
+    }
+}

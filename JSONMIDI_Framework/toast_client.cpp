@@ -12,7 +12,7 @@ int main(int argc, char* argv[]) {
         serverIP = argv[1];
     }
     
-    std::cout << "💻 TOAST TCP Client - Connecting to MIDILink Server" << std::endl;
+    std::cout << "💻 TOAST TCP Client - Connecting to TOASTer Server" << std::endl;
     std::cout << "===================================================" << std::endl;
     std::cout << "🔗 Connecting to: " << serverIP << ":8080" << std::endl;
     

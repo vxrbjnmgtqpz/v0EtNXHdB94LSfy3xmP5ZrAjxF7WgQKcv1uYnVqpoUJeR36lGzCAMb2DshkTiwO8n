@@ -75,7 +75,7 @@ MIDIp2p/
 │   ├── tests/                    # Comprehensive test suite
 │   └── build_phase2/             # Working build (gitignored)
 │
-├── MIDILink/                     # JUCE application 
+├── TOASTer/                      # JUCE application 
 │   ├── Source/                   # Phase 1 UI complete
 │   │   ├── ClockDriftArbiter.*   # Untracked files
 │   │   ├── TOASTNetworkManager.* # Untracked files  
@@ -85,7 +85,7 @@ MIDIp2p/
 └── Documentation/                # Comprehensive docs ✅
     ├── README.md                 # Updated with TOAST acronym
     ├── Roadmap.md               # Phase 2 marked complete
-    └── nativemacapp.md          # MIDILink specifications
+    └── nativemacapp.md          # TOASTer specifications
 ```
 
 ---
@@ -103,8 +103,8 @@ MIDIp2p/
 - Comprehensive test suite
 - Performance benchmarks
 
-### **Untracked Files** (MIDILink):
-- **Total**: 15 untracked files in MIDILink directory
+### **Untracked Files** (TOASTer):
+- **Total**: 15 untracked files in TOASTer directory
 - **Type**: JUCE application integration files 
 - **Status**: Need review and integration for Phase 3
 - **Action**: Will add in Phase 3 when integrating network layer
@@ -117,7 +117,7 @@ MIDIp2p/
 |-------|-----------|---------|-------|
 | **1.1** | JSON Schema | ✅ Complete | Validated & tested |
 | **1.2** | Bassoon.js Concept | ✅ Complete | Architecture defined |
-| **1.3** | JUCE Integration | ✅ Complete | MIDILink UI working |
+| **1.3** | JUCE Integration | ✅ Complete | TOASTer UI working |
 | **2.1** | ClockDriftArbiter | ✅ Complete | Production ready |
 | **2.2** | TOAST TCP Tunnel | ✅ Complete | Protocol implemented |
 | **2.3** | Distributed Sync Engine | 🔄 **NEXT** | Ready to start |

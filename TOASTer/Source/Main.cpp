@@ -3,10 +3,10 @@
 #include "ProjectInfo.h"
 
 //==============================================================================
-class MIDILinkApplication : public juce::JUCEApplication
+class TOASTerApplication : public juce::JUCEApplication
 {
 public:
-    MIDILinkApplication() {}
+    TOASTerApplication() {}
 
     const juce::String getApplicationName() override       { return ProjectInfo::projectName; }
     const juce::String getApplicationVersion() override    { return ProjectInfo::versionString; }
@@ -70,4 +70,4 @@ private:
 };
 
 //==============================================================================
-START_JUCE_APPLICATION (MIDILinkApplication)
+START_JUCE_APPLICATION (TOASTerApplication)

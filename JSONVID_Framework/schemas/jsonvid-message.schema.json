@@ -1,0 +1,433 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://jsonvid.org/schemas/jsonvid-message.schema.json",
+  "title": "JSONVID Message Schema",
+  "description": "Schema for JSONVID ultra-low latency video streaming messages",
+  "type": "object",
+  "required": [
+    "timestamp_us",
+    "sequence_number",
+    "session_id",
+    "video_info",
+    "frame_data",
+    "timing_info"
+  ],
+  "properties": {
+    "timestamp_us": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Microsecond timestamp for synchronization"
+    },
+    "sequence_number": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Frame sequence number for ordering"
+    },
+    "session_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "description": "Session identifier for stream correlation"
+    },
+    "video_info": {
+      "type": "object",
+      "required": [
+        "resolution",
+        "quality",
+        "format",
+        "frame_width",
+        "frame_height",
+        "fps_target"
+      ],
+      "properties": {
+        "resolution": {
+          "type": "integer",
+          "enum": [0, 1, 2, 3],
+          "description": "Video resolution preset (0=72p, 1=144p, 2=240p, 3=360p)"
+        },
+        "quality": {
+          "type": "integer",
+          "enum": [0, 1, 2, 3],
+          "description": "Video quality level (0=ultra_fast, 1=fast, 2=balanced, 3=high_quality)"
+        },
+        "format": {
+          "type": "integer",
+          "enum": [0, 1, 2, 3],
+          "description": "Frame encoding format (0=base64_jpeg, 1=base64_webp, 2=pixel_array, 3=differential)"
+        },
+        "frame_width": {
+          "type": "integer",
+          "minimum": 64,
+          "maximum": 3840,
+          "description": "Actual frame width in pixels"
+        },
+        "frame_height": {
+          "type": "integer",
+          "minimum": 36,
+          "maximum": 2160,
+          "description": "Actual frame height in pixels"
+        },
+        "fps_target": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 120,
+          "description": "Target framerate"
+        },
+        "is_keyframe": {
+          "type": "boolean",
+          "description": "True for I-frames, false for P-frames"
+        },
+        "stream_id": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 255,
+          "description": "Stream identifier for multi-camera setups"
+        }
+      }
+    },
+    "frame_data": {
+      "type": "object",
+      "properties": {
+        "frame_base64": {
+          "type": "string",
+          "description": "Base64-encoded compressed frame data"
+        },
+        "pixel_data": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 255
+          },
+          "description": "Raw pixel data for PIXEL_ARRAY format"
+        },
+        "compressed_size": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Size of compressed data in bytes"
+        },
+        "original_size": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Uncompressed frame size in bytes"
+        },
+        "compression_ratio": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Achieved compression ratio"
+        },
+        "motion_vectors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["dx", "dy", "block_x", "block_y"],
+            "properties": {
+              "dx": {
+                "type": "integer",
+                "minimum": -32768,
+                "maximum": 32767,
+                "description": "Horizontal displacement"
+              },
+              "dy": {
+                "type": "integer",
+                "minimum": -32768,
+                "maximum": 32767,
+                "description": "Vertical displacement"
+              },
+              "block_x": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 65535,
+                "description": "Block position X"
+              },
+              "block_y": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 65535,
+                "description": "Block position Y"
+              }
+            }
+          },
+          "description": "Motion vector data for differential encoding"
+        }
+      }
+    },
+    "timing_info": {
+      "type": "object",
+      "required": [
+        "capture_timestamp_us",
+        "encode_timestamp_us",
+        "send_timestamp_us"
+      ],
+      "properties": {
+        "capture_timestamp_us": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "When frame was captured (microseconds)"
+        },
+        "encode_timestamp_us": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "When encoding started (microseconds)"
+        },
+        "send_timestamp_us": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "When frame was sent (microseconds)"
+        },
+        "encode_duration_us": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100000,
+          "description": "Time taken to encode (microseconds)"
+        },
+        "expected_decode_us": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10000,
+          "description": "Expected decode time (microseconds)"
+        },
+        "audio_sync_timestamp": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Corresponding audio timestamp for A/V sync"
+        }
+      }
+    },
+    "integrity": {
+      "type": "object",
+      "properties": {
+        "checksum": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4294967295,
+          "description": "CRC32 checksum of frame data"
+        },
+        "is_predicted": {
+          "type": "boolean",
+          "description": "True if frame was PNTBTR predicted"
+        },
+        "prediction_confidence": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 255,
+          "description": "Prediction confidence (0-255)"
+        },
+        "reference_frame_seq": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Sequence of reference frame used for prediction"
+        }
+      }
+    },
+    "jamcam_features": {
+      "type": "object",
+      "properties": {
+        "face_detection_enabled": {
+          "type": "boolean",
+          "description": "Face detection feature enabled"
+        },
+        "auto_framing_active": {
+          "type": "boolean",
+          "description": "Automatic framing is active"
+        },
+        "lighting_normalized": {
+          "type": "boolean",
+          "description": "Lighting normalization applied"
+        },
+        "face_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 255,
+          "description": "Number of detected faces"
+        },
+        "detected_faces": {
+          "type": "array",
+          "maxItems": 16,
+          "items": {
+            "type": "object",
+            "required": ["x", "y", "width", "height", "confidence"],
+            "properties": {
+              "x": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 65535,
+                "description": "Bounding box top-left X coordinate"
+              },
+              "y": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 65535,
+                "description": "Bounding box top-left Y coordinate"
+              },
+              "width": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 65535,
+                "description": "Bounding box width"
+              },
+              "height": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 65535,
+                "description": "Bounding box height"
+              },
+              "confidence": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 255,
+                "description": "Detection confidence (0-255)"
+              }
+            }
+          },
+          "description": "Array of detected face bounding boxes"
+        },
+        "lighting_params": {
+          "type": "object",
+          "properties": {
+            "brightness_adjust": {
+              "type": "number",
+              "minimum": 0.1,
+              "maximum": 5.0,
+              "description": "Brightness adjustment factor"
+            },
+            "contrast_adjust": {
+              "type": "number",
+              "minimum": 0.1,
+              "maximum": 5.0,
+              "description": "Contrast adjustment factor"
+            },
+            "gamma_adjust": {
+              "type": "number",
+              "minimum": 0.1,
+              "maximum": 5.0,
+              "description": "Gamma adjustment factor"
+            },
+            "auto_exposure": {
+              "type": "boolean",
+              "description": "Automatic exposure enabled"
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "video_resolution": {
+      "type": "integer",
+      "enum": [0, 1, 2, 3],
+      "description": "Video resolution presets",
+      "examples": [
+        { "value": 0, "description": "ULTRA_LOW_72P (128x72)" },
+        { "value": 1, "description": "LOW_144P (256x144)" },
+        { "value": 2, "description": "MEDIUM_240P (426x240)" },
+        { "value": 3, "description": "HIGH_360P (640x360)" }
+      ]
+    },
+    "video_quality": {
+      "type": "integer",
+      "enum": [0, 1, 2, 3],
+      "description": "Video quality levels",
+      "examples": [
+        { "value": 0, "description": "ULTRA_FAST (~200μs encoding)" },
+        { "value": 1, "description": "FAST (~500μs encoding)" },
+        { "value": 2, "description": "BALANCED (~1ms encoding)" },
+        { "value": 3, "description": "HIGH_QUALITY (~2ms encoding)" }
+      ]
+    },
+    "frame_format": {
+      "type": "integer",
+      "enum": [0, 1, 2, 3],
+      "description": "Frame encoding formats",
+      "examples": [
+        { "value": 0, "description": "BASE64_JPEG" },
+        { "value": 1, "description": "BASE64_WEBP" },
+        { "value": 2, "description": "PIXEL_ARRAY" },
+        { "value": 3, "description": "DIFFERENTIAL" }
+      ]
+    }
+  },
+  "examples": [
+    {
+      "description": "Ultra-low latency 72p frame",
+      "data": {
+        "timestamp_us": 1234567890123,
+        "sequence_number": 42,
+        "session_id": "jam_session_001",
+        "video_info": {
+          "resolution": 0,
+          "quality": 0,
+          "format": 0,
+          "frame_width": 128,
+          "frame_height": 72,
+          "fps_target": 15,
+          "is_keyframe": false,
+          "stream_id": 0
+        },
+        "frame_data": {
+          "frame_base64": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==",
+          "compressed_size": 85,
+          "original_size": 27648,
+          "compression_ratio": 325.3
+        },
+        "timing_info": {
+          "capture_timestamp_us": 1234567890000,
+          "encode_timestamp_us": 1234567890050,
+          "send_timestamp_us": 1234567890123,
+          "encode_duration_us": 73,
+          "expected_decode_us": 150
+        }
+      }
+    },
+    {
+      "description": "JAMCam frame with face detection",
+      "data": {
+        "timestamp_us": 1234567890456,
+        "sequence_number": 43,
+        "session_id": "jam_session_001",
+        "video_info": {
+          "resolution": 1,
+          "quality": 1,
+          "format": 0,
+          "frame_width": 256,
+          "frame_height": 144,
+          "fps_target": 15,
+          "is_keyframe": true,
+          "stream_id": 0
+        },
+        "frame_data": {
+          "frame_base64": "base64_encoded_frame_data_here...",
+          "compressed_size": 2048,
+          "original_size": 110592,
+          "compression_ratio": 54.0
+        },
+        "timing_info": {
+          "capture_timestamp_us": 1234567890400,
+          "encode_timestamp_us": 1234567890420,
+          "send_timestamp_us": 1234567890456,
+          "encode_duration_us": 420,
+          "expected_decode_us": 280
+        },
+        "jamcam_features": {
+          "face_detection_enabled": true,
+          "auto_framing_active": true,
+          "face_count": 1,
+          "detected_faces": [
+            {
+              "x": 64,
+              "y": 32,
+              "width": 128,
+              "height": 96,
+              "confidence": 220
+            }
+          ],
+          "lighting_params": {
+            "brightness_adjust": 1.2,
+            "contrast_adjust": 1.1,
+            "auto_exposure": true
+          }
+        }
+      }
+    }
+  ]
+}

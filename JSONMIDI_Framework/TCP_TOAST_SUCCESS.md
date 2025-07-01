@@ -35,7 +35,7 @@ The TOAST TCP implementation is now **fully functional** with:
 
 The TCP TOAST foundation is now **production-ready** for:
 
-1. **Two-computer testing** - MIDILink app network communication
+1. **Two-computer testing** - TOASTer app network communication
 2. **Real-time MIDI streaming** - Live musical performance over network
 3. **Multiple client sessions** - Band/ensemble network synchronization  
 4. **Integration testing** - Full MIDIp2p application testing
@@ -45,7 +45,7 @@ The TCP TOAST foundation is now **production-ready** for:
 **Before UDP + PNTBTR:**
 1. ✅ **TCP proven working** - COMPLETE!
 2. **Two-process testing** - Separate server/client programs
-3. **MIDILink integration** - Real app testing over network
+3. **TOASTer integration** - Real app testing over network
 4. **Performance validation** - Latency and throughput testing
 
 **Phase 2.3 Foundation:** TCP TOAST provides the solid base for UDP + PNTBTR development.

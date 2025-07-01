@@ -37,7 +37,7 @@
 ## 📋 Current Project State
 
 ### Core Integration (Previous)
-- ✅ MIDILink app successfully integrated with JSONMIDI_Framework
+- ✅ TOASTer app successfully integrated with JSONMIDI_Framework
 - ✅ TOASTTransport, ClockDriftArbiter, JSONMIDIParser integration complete
 - ✅ UI panels displaying framework metrics and features
 - ✅ CMake builds working for both framework and app

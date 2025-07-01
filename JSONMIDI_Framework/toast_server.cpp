@@ -7,7 +7,7 @@
 using namespace TOAST;
 
 int main() {
-    std::cout << "🖥️  TOAST TCP Server - Waiting for MIDILink connections" << std::endl;
+    std::cout << "🖥️  TOAST TCP Server - Waiting for TOASTer connections" << std::endl;
     std::cout << "========================================================" << std::endl;
     
     ConnectionManager server;

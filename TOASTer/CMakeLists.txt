@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.15)
 
-project(MIDILink VERSION 1.0.0)
+project(TOASTer VERSION 1.0.0)
 
 set(CMAKE_CXX_STANDARD 17)
 
@@ -17,10 +17,10 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(JUCE)
 
 # Create the main application target
-juce_add_gui_app(MIDILink
-    PRODUCT_NAME "MIDILink"
-    COMPANY_NAME "MIDIp2p"
-    BUNDLE_ID "com.midip2p.midilink"
+juce_add_gui_app(TOASTer
+    PRODUCT_NAME "TOASTer"
+    COMPANY_NAME "JAMNet"
+    BUNDLE_ID "com.jamnet.toaster"
     VERSION "1.0.0"
     MICROPHONE_PERMISSION_ENABLED TRUE
     NEEDS_MIDI_INPUT TRUE
@@ -28,7 +28,7 @@ juce_add_gui_app(MIDILink
 )
 
 # Add source files
-target_sources(MIDILink PRIVATE
+target_sources(TOASTer PRIVATE
     Source/Main.cpp
     Source/MainComponent.cpp
     Source/TransportController.cpp
@@ -47,7 +47,7 @@ target_include_directories(MIDILink PRIVATE
 )
 
 # Link JUCE modules and our framework
-target_link_libraries(MIDILink PRIVATE
+target_link_libraries(TOASTer PRIVATE
     juce::juce_gui_basics
     juce::juce_gui_extra
     juce::juce_audio_basics
@@ -64,11 +64,11 @@ target_link_libraries(MIDILink PRIVATE
 )
 
 # Compiler definitions
-target_compile_definitions(MIDILink PRIVATE
+target_compile_definitions(TOASTer PRIVATE
     JUCE_WEB_BROWSER=0
     JUCE_USE_CURL=0
-    JUCE_APPLICATION_NAME_STRING="$<TARGET_PROPERTY:MIDILink,JUCE_PRODUCT_NAME>"
-    JUCE_APPLICATION_VERSION_STRING="$<TARGET_PROPERTY:MIDILink,JUCE_VERSION>"
+    JUCE_APPLICATION_NAME_STRING="$<TARGET_PROPERTY:TOASTer,JUCE_PRODUCT_NAME>"
+    JUCE_APPLICATION_VERSION_STRING="$<TARGET_PROPERTY:TOASTer,JUCE_VERSION>"
     JUCE_DISPLAY_SPLASH_SCREEN=0
 )
 
@@ -78,4 +78,4 @@ configure_file(
     "${CMAKE_CURRENT_BINARY_DIR}/Source/ProjectInfo.h"
 )
 
-target_include_directories(MIDILink PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/Source")
+target_include_directories(TOASTer PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/Source")
