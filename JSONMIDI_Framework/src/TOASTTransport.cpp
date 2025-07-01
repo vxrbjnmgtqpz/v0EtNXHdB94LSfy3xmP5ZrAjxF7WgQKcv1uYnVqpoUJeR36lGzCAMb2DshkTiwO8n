@@ -1,7 +1,14 @@
-// Placeholder TOAST Transport implementation
-// This will be fully implemented in Phase 2
+// TOAST Transport implementation
+// Phase 2.2: TCP Tunnel Implementation
 
 #include "TOASTTransport.h"
+#include <cstring>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <iostream>
 
 namespace TOAST {
 
@@ -17,112 +24,288 @@ TransportMessage::TransportMessage(MessageType type, const std::string& payload,
 }
 
 std::vector<uint8_t> TransportMessage::serialize() const {
-    // TODO: Implement message serialization
-    return {};
+    std::vector<uint8_t> data;
+    data.reserve(header_.frameLength);
+    
+    // Serialize frame header
+    data.insert(data.end(), reinterpret_cast<const uint8_t*>(&header_.frameLength), 
+                reinterpret_cast<const uint8_t*>(&header_.frameLength) + sizeof(header_.frameLength));
+    data.insert(data.end(), reinterpret_cast<const uint8_t*>(&header_.messageType), 
+                reinterpret_cast<const uint8_t*>(&header_.messageType) + sizeof(header_.messageType));
+    data.insert(data.end(), reinterpret_cast<const uint8_t*>(&header_.masterTimestamp), 
+                reinterpret_cast<const uint8_t*>(&header_.masterTimestamp) + sizeof(header_.masterTimestamp));
+    data.insert(data.end(), reinterpret_cast<const uint8_t*>(&header_.sequenceNumber), 
+                reinterpret_cast<const uint8_t*>(&header_.sequenceNumber) + sizeof(header_.sequenceNumber));
+    
+    // Serialize payload
+    data.insert(data.end(), payload_.begin(), payload_.end());
+    
+    // Serialize checksum
+    data.insert(data.end(), reinterpret_cast<const uint8_t*>(&header_.checksum), 
+                reinterpret_cast<const uint8_t*>(&header_.checksum) + sizeof(header_.checksum));
+    
+    return data;
 }
 
 std::unique_ptr<TransportMessage> TransportMessage::deserialize(const std::vector<uint8_t>& data) {
-    // TODO: Implement message deserialization
-    return nullptr;
+    if (data.size() < FrameHeader::HEADER_SIZE) {
+        return nullptr; // Insufficient data
+    }
+    
+    // Parse header
+    FrameHeader header;
+    size_t offset = 0;
+    
+    std::memcpy(&header.frameLength, data.data() + offset, sizeof(header.frameLength));
+    offset += sizeof(header.frameLength);
+    
+    std::memcpy(&header.messageType, data.data() + offset, sizeof(header.messageType));
+    offset += sizeof(header.messageType);
+    
+    std::memcpy(&header.masterTimestamp, data.data() + offset, sizeof(header.masterTimestamp));
+    offset += sizeof(header.masterTimestamp);
+    
+    std::memcpy(&header.sequenceNumber, data.data() + offset, sizeof(header.sequenceNumber));
+    offset += sizeof(header.sequenceNumber);
+    
+    // Validate frame length
+    if (data.size() < header.frameLength) {
+        return nullptr; // Incomplete frame
+    }
+    
+    // Extract payload
+    size_t payloadSize = header.frameLength - FrameHeader::HEADER_SIZE;
+    std::string payload(data.begin() + offset, data.begin() + offset + payloadSize);
+    offset += payloadSize;
+    
+    // Extract checksum
+    std::memcpy(&header.checksum, data.data() + offset, sizeof(header.checksum));
+    
+    // Create message and validate checksum
+    auto message = std::make_unique<TransportMessage>(
+        static_cast<MessageType>(header.messageType), 
+        payload, 
+        header.masterTimestamp, 
+        header.sequenceNumber
+    );
+    
+    if (!message->validateChecksum()) {
+        return nullptr; // Checksum validation failed
+    }
+    
+    return message;
 }
 
 bool TransportMessage::validateChecksum() const {
-    // TODO: Implement checksum validation
-    return false;
+    uint32_t calculatedChecksum = calculateChecksum();
+    return calculatedChecksum == header_.checksum;
 }
 
 uint32_t TransportMessage::calculateChecksum() const {
-    // TODO: Implement CRC32 checksum
-    return 0;
+    // Simple CRC32 implementation for now
+    // In production, use a proper CRC32 library
+    uint32_t crc = 0xFFFFFFFF;
+    
+    // Hash header (excluding checksum field)
+    const uint8_t* headerBytes = reinterpret_cast<const uint8_t*>(&header_);
+    for (size_t i = 0; i < FrameHeader::HEADER_SIZE - sizeof(header_.checksum); ++i) {
+        crc ^= headerBytes[i];
+        for (int j = 0; j < 8; ++j) {
+            if (crc & 1) {
+                crc = (crc >> 1) ^ 0xEDB88320;
+            } else {
+                crc >>= 1;
+            }
+        }
+    }
+    
+    // Hash payload
+    for (char byte : payload_) {
+        crc ^= static_cast<uint8_t>(byte);
+        for (int j = 0; j < 8; ++j) {
+            if (crc & 1) {
+                crc = (crc >> 1) ^ 0xEDB88320;
+            } else {
+                crc >>= 1;
+            }
+        }
+    }
+    
+    return crc ^ 0xFFFFFFFF;
 }
 
-// ConnectionManager placeholder
+// ConnectionManager implementation
 class ConnectionManager::Impl {
 public:
-    // TODO: Implement TCP connection management
+    std::atomic<bool> running{false};
+    int serverSocket = -1;
+    uint16_t serverPort = 0;
+    std::thread acceptThread;
+    std::unordered_map<std::string, int> clientSockets;
+    std::mutex clientsMutex;
+    
+    bool startServer(uint16_t port) {
+        if (running.load()) {
+            return false; // Already running
+        }
+        
+        serverSocket = socket(AF_INET, SOCK_STREAM, 0);
+        if (serverSocket < 0) {
+            std::cerr << "❌ Failed to create server socket" << std::endl;
+            return false;
+        }
+        
+        // Set socket options
+        int opt = 1;
+        setsockopt(serverSocket, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+        
+        struct sockaddr_in serverAddr{};
+        serverAddr.sin_family = AF_INET;
+        serverAddr.sin_addr.s_addr = INADDR_ANY;
+        serverAddr.sin_port = htons(port);
+        
+        if (bind(serverSocket, reinterpret_cast<struct sockaddr*>(&serverAddr), sizeof(serverAddr)) < 0) {
+            std::cerr << "❌ Failed to bind server socket to port " << port << std::endl;
+            close(serverSocket);
+            return false;
+        }
+        
+        if (listen(serverSocket, 16) < 0) {  // 16+ concurrent clients as per roadmap
+            std::cerr << "❌ Failed to listen on server socket" << std::endl;
+            close(serverSocket);
+            return false;
+        }
+        
+        serverPort = port;
+        running.store(true);
+        
+        // Start accept thread
+        acceptThread = std::thread([this]() {
+            while (running.load()) {
+                struct sockaddr_in clientAddr{};
+                socklen_t clientLen = sizeof(clientAddr);
+                
+                int clientSocket = accept(serverSocket, reinterpret_cast<struct sockaddr*>(&clientAddr), &clientLen);
+                if (clientSocket >= 0) {
+                    std::string clientId = std::string(inet_ntoa(clientAddr.sin_addr)) + ":" + std::to_string(ntohs(clientAddr.sin_port));
+                    
+                    std::lock_guard<std::mutex> lock(clientsMutex);
+                    clientSockets[clientId] = clientSocket;
+                    
+                    std::cout << "🔗 TOAST client connected: " << clientId << std::endl;
+                }
+            }
+        });
+        
+        std::cout << "🚀 TOAST server started on port " << port << std::endl;
+        return true;
+    }
+    
+    bool connectToServer(const std::string& address, uint16_t port, const std::string& clientId) {
+        int sock = socket(AF_INET, SOCK_STREAM, 0);
+        if (sock < 0) {
+            return false;
+        }
+        
+        struct sockaddr_in serverAddr{};
+        serverAddr.sin_family = AF_INET;
+        serverAddr.sin_port = htons(port);
+        inet_pton(AF_INET, address.c_str(), &serverAddr.sin_addr);
+        
+        if (connect(sock, reinterpret_cast<struct sockaddr*>(&serverAddr), sizeof(serverAddr)) < 0) {
+            close(sock);
+            return false;
+        }
+        
+        std::lock_guard<std::mutex> lock(clientsMutex);
+        clientSockets[clientId] = sock;
+        
+        std::cout << "🔗 Connected to TOAST server: " << address << ":" << port << std::endl;
+        return true;
+    }
+    
+    void shutdown() {
+        running.store(false);
+        
+        if (serverSocket >= 0) {
+            close(serverSocket);
+            serverSocket = -1;
+        }
+        
+        if (acceptThread.joinable()) {
+            acceptThread.join();
+        }
+        
+        std::lock_guard<std::mutex> lock(clientsMutex);
+        for (auto& [clientId, socket] : clientSockets) {
+            close(socket);
+        }
+        clientSockets.clear();
+        
+        std::cout << "🛑 TOAST ConnectionManager shutdown complete" << std::endl;
+    }
 };
 
 ConnectionManager::ConnectionManager() : impl_(std::make_unique<Impl>()) {}
-ConnectionManager::~ConnectionManager() = default;
+ConnectionManager::~ConnectionManager() {
+    impl_->shutdown();
+}
 
 bool ConnectionManager::startServer(uint16_t port) {
-    // TODO: Implement server startup
-    return false;
+    return impl_->startServer(port);
 }
 
 bool ConnectionManager::connectToServer(const std::string& hostname, uint16_t port) {
-    // TODO: Implement client connection
-    return false;
+    return impl_->connectToServer(hostname, port, "default-client");
 }
 
 void ConnectionManager::disconnect() {
-    // TODO: Implement disconnection
+    impl_->shutdown();
 }
 
 bool ConnectionManager::sendMessage(std::unique_ptr<TransportMessage> message) {
-    // TODO: Implement message sending
-    return false;
+    // Send to all connected clients for now
+    auto clients = impl_->clientSockets;
+    bool success = true;
+    
+    for (const auto& [clientId, socket] : clients) {
+        auto serialized = message->serialize();
+        ssize_t sent = send(socket, serialized.data(), serialized.size(), 0);
+        if (sent != static_cast<ssize_t>(serialized.size())) {
+            success = false;
+        }
+    }
+    
+    return success;
 }
 
 std::vector<ClientInfo> ConnectionManager::getConnectedClients() const {
-    // TODO: Implement client enumeration
-    return {};
+    std::vector<ClientInfo> clients;
+    std::lock_guard<std::mutex> lock(impl_->clientsMutex);
+    
+    for (const auto& [clientId, socket] : impl_->clientSockets) {
+        ClientInfo info;
+        info.clientId = clientId;
+        info.name = "TOAST Client";
+        info.version = "1.0.0";
+        info.connectTime = 0; // TODO: Track actual connect time
+        clients.push_back(info);
+    }
+    
+    return clients;
 }
 
 bool ConnectionManager::isClient(const std::string& clientId) const {
-    // TODO: Implement client existence check
-    return false;
+    std::lock_guard<std::mutex> lock(impl_->clientsMutex);
+    return impl_->clientSockets.find(clientId) != impl_->clientSockets.end();
 }
 
 void ConnectionManager::resetNetworkStats() {
-    // TODO: Implement statistics reset
+    // TODO: Implement network statistics tracking and reset
+    std::cout << "📊 Network statistics reset" << std::endl;
 }
 
-// ClockDriftArbiter placeholder
-class ClockDriftArbiter::Impl {
-public:
-    // TODO: Implement clock synchronization algorithms
-};
-
-ClockDriftArbiter::ClockDriftArbiter() : impl_(std::make_unique<Impl>()) {}
-ClockDriftArbiter::~ClockDriftArbiter() = default;
-
-ClockDriftArbiter::Role ClockDriftArbiter::electTimingMaster(const std::vector<ClientInfo>& clients) {
-    // TODO: Implement master election
-    return Role::SLAVE;
-}
-
-void ClockDriftArbiter::synchronizeDistributedClocks() {
-    // TODO: Implement clock synchronization
-}
-
-uint64_t ClockDriftArbiter::compensateTimestamp(uint64_t rawTime) const {
-    // TODO: Implement timestamp compensation
-    return rawTime;
-}
-
-void ClockDriftArbiter::measureNetworkLatency(const std::string& targetId) {
-    // TODO: Implement latency measurement
-}
-
-double ClockDriftArbiter::getNetworkLatency(const std::string& targetId) const {
-    // TODO: Implement latency retrieval
-    return 0.0;
-}
-
-void ClockDriftArbiter::updateClockDrift(int64_t drift) {
-    clockDrift_.store(drift);
-}
-
-void ClockDriftArbiter::handleConnectionLoss(const std::string& clientId) {
-    // TODO: Implement connection loss handling
-}
-
-void ClockDriftArbiter::recoverFromNetworkJitter() {
-    // TODO: Implement jitter recovery
-}
-
-// ProtocolHandler placeholder
+// ProtocolHandler implementation
 ProtocolHandler::ProtocolHandler(ConnectionManager& connectionManager, ClockDriftArbiter& clockArbiter)
     : connectionManager_(connectionManager), clockArbiter_(clockArbiter) {}
 

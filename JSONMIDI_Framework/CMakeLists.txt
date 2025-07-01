@@ -93,6 +93,7 @@ set(JSONMIDI_SOURCES
     src/VersionNegotiator.cpp
     src/JSONMIDIParser.cpp
     src/TOASTTransport.cpp
+    src/ClockDriftArbiter.cpp
     src/BassoonParser.cpp
     src/SchemaValidator.cpp
     src/MessageFactory.cpp
@@ -108,6 +109,7 @@ set(JSONMIDI_HEADERS
     include/VersionNegotiator.h
     include/JSONMIDIParser.h
     include/TOASTTransport.h
+    include/ClockDriftArbiter.h
     include/LockFreeQueue.h
 )
 

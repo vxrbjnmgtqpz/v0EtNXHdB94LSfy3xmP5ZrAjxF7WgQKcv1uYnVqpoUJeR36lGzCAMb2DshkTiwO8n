@@ -166,57 +166,10 @@ private:
 };
 
 /**
- * Clock Drift Arbiter for distributed synchronization
+ * Forward declaration of ClockDriftArbiter
+ * Full implementation is in ClockDriftArbiter.h
  */
-class ClockDriftArbiter {
-public:
-    ClockDriftArbiter();
-    ~ClockDriftArbiter();
-    
-    enum class Role : uint8_t {
-        SLAVE = 0,
-        MASTER = 1
-    };
-    
-    // Master clock election
-    Role electTimingMaster(const std::vector<ClientInfo>& clients);
-    
-    // Synchronization
-    void synchronizeDistributedClocks();
-    uint64_t compensateTimestamp(uint64_t rawTime) const;
-    
-    // Network timing
-    void measureNetworkLatency(const std::string& targetId);
-    double getNetworkLatency(const std::string& targetId) const;
-    
-    // Drift compensation
-    void updateClockDrift(int64_t drift);
-    int64_t getCurrentDrift() const { return clockDrift_; }
-    
-    // Buffer management
-    void setJitterBufferSize(uint32_t microseconds) { jitterBufferSize_ = microseconds; }
-    uint32_t getJitterBufferSize() const { return jitterBufferSize_; }
-    
-    // Network failure handling
-    void handleConnectionLoss(const std::string& clientId);
-    void recoverFromNetworkJitter();
-    
-    // Performance targets
-    static constexpr double TARGET_SYNC_ACCURACY = 10000.0; // 10ms in microseconds
-    static constexpr double MAX_ACCEPTABLE_DRIFT = 25000.0; // 25ms in microseconds
-
-private:
-    class Impl;
-    std::unique_ptr<Impl> impl_;
-    
-    std::atomic<Role> role_{Role::SLAVE};
-    std::atomic<int64_t> clockDrift_{0};
-    std::atomic<uint32_t> jitterBufferSize_{5000}; // 5ms default
-    
-    // Clock election algorithm
-    Role performElection(const std::vector<ClientInfo>& clients);
-    double calculateClockQuality() const;
-};
+class ClockDriftArbiter;
 
 /**
  * TOAST Protocol Handler
