@@ -188,12 +188,19 @@ JAMNet Approach:  [ JSON ] → [ UDP ] → [ PNTBTR prediction ] → continuous 
 
 **PNTBTR (Predictive Network Temporal Buffered Transmission Recovery):**
 
-- **For MIDI**: Interpolates missing events, smooth CC curves
-- **For Audio**: Predicts waveform continuation, buffer smoothing
-- **For Video**: Motion-compensated frame prediction, temporal interpolation
-- **Core Principle**: Work with what you have, predict what you don't, never stop the flow
-- **Philosophy**: Prediction over retransmission, continuity over perfection
-- **Result**: Professional multimedia quality maintained even with packet loss
+**Primary Strategy - Redundancy & Dynamic Throttling:**
+- **Always start at 192kHz + redundancy streams** for maximum headroom
+- **Dynamic throttling sequence**: 192kHz → 96kHz → 48kHz → 44.1kHz as network conditions change
+- **Redundancy-first recovery**: Multiple parallel streams provide instant failover without prediction
+- **Prediction as last resort**: Only activates if stream quality falls below 44.1kHz threshold
+
+**Domain-Specific Applications:**
+- **For MIDI**: Interpolates missing events, smooth CC curves (prediction backup only)
+- **For Audio**: Maintains waveform through throttling first, predicts only below 44.1kHz
+- **For Video**: Frame rate adaptation before motion prediction kicks in
+- **Core Principle**: Redundancy over prediction, throttling over interpolation, never stop the flow
+- **Philosophy**: High sample rate + backup streams beats prediction every time
+- **Result**: Professional quality maintained through intelligent bandwidth management, not guesswork
 
 ## JAMNet Protocol Evolution
 

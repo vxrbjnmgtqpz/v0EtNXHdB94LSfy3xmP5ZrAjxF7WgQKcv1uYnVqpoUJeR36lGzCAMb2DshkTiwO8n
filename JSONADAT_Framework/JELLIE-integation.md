@@ -586,7 +586,7 @@ public:
 #include "JSONMIDIParser.h"
 #include "ClockDriftArbiter.h"
 
-class MIDIp2pWithAudio {
+class JAMNetSession {
 public:
     bool initialize() {
         // Initialize shared transport

@@ -175,9 +175,9 @@ The framework structure is complete. Next steps:
 - **Extensible**: Easy to add new fields and message types
 - **Efficient**: Optimized for UDP transmission
 
-## 🔗 Integration with MIDIp2p
+## 🔗 Integration with JAMNet
 
-The JSONADAT framework is designed to work alongside the existing JSONMIDI framework:
+The JSONADAT framework is designed to work alongside the JSONMIDI framework as part of the complete JAMNet multimedia ecosystem:
 
 ### Shared Components
 
@@ -188,10 +188,10 @@ The JSONADAT framework is designed to work alongside the existing JSONMIDI frame
 
 ### Parallel Operation
 
-- Both frameworks can run simultaneously
-- Shared network resources
-- Coordinated timing
-- Unified control interface
+- Both frameworks run simultaneously in JAMNet
+- Shared network resources and timing coordination
+- Unified control interface through TOASTer app
+- Complete audio+MIDI+video streaming capability
 
 ## 📊 Expected Performance Characteristics
 
@@ -219,7 +219,7 @@ The JSONADAT framework foundation is now **COMPLETE** and ready for implementati
 3. ✅ **Build System**: CMake configuration ready
 4. ✅ **Example Code**: Template applications for testing
 5. ✅ **Schema Definitions**: JSON validation ready
-6. ✅ **Integration Path**: Clear connection to MIDIp2p
+6. ✅ **Integration Path**: Clear connection to JAMNet ecosystem
 
 The framework is structured to support the innovative 192kHz ADAT strategy while maintaining the JSON-based, human-readable approach that makes JSONADAT unique in the audio streaming landscape.
 

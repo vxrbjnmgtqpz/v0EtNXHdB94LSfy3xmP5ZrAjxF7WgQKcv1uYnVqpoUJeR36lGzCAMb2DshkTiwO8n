@@ -308,18 +308,18 @@ make test
 - [ ] Multi-channel support
 - [ ] Hardware acceleration
 
-## 🤝 Integration with MIDIp2p
+## 🤝 Integration with JAMNet
 
-JSONADAT works alongside the MIDIp2p framework:
+JSONADAT is a core component of the JAMNet multimedia streaming ecosystem:
 
 | Component       | MIDI Stack      | Audio Stack        |
 | --------------- | --------------- | ------------------ |
 | **Protocol**    | JSONMIDI        | JSONADAT           |
 | **Transport**   | TOAST/UDP       | TOAST/UDP          |
 | **Recovery**    | PNTBTR (events) | PNTBTR (waveforms) |
-| **Application** | MIDIp2p         | JELLIE             |
+| **Application** | TOASTer         | JELLIE             |
 
-Both systems can run simultaneously for complete audio+MIDI streaming.
+Both systems run simultaneously in JAMNet for complete audio+MIDI streaming.
 
 ## 📄 License
 
