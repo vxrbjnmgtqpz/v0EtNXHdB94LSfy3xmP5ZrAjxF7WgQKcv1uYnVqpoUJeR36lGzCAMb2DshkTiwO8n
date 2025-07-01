@@ -1,8 +1,11 @@
 #pragma once
 
 #include <juce_gui_basics/juce_gui_basics.h>
+#include "ClockDriftArbiter.h"
+#include <memory>
 
-class ClockSyncPanel : public juce::Component
+class ClockSyncPanel : public juce::Component, 
+                      public juce::Timer
 {
 public:
     ClockSyncPanel();
@@ -10,22 +13,36 @@ public:
 
     void paint(juce::Graphics&) override;
     void resized() override;
+    void timerCallback() override;
 
 private:
     void enableSyncClicked();
     void calibrateClicked();
+    void updateDisplay();
     
+    // UI Components
     juce::GroupComponent syncGroup;
+    juce::ToggleButton enableSyncButton;
     juce::ToggleButton masterModeButton;
+    juce::Label roleLabel;
     juce::Label syncStatusLabel;
     juce::Label networkOffsetLabel;
     juce::Label qualityLabel;
+    juce::Label rttLabel;
     
     juce::GroupComponent settingsGroup;
     juce::Label syncRateLabel;
     juce::Slider syncRateSlider;
+    juce::TextButton calibrateButton;
+    
+    // Clock Sync Integration
+    std::unique_ptr<TOAST::ClockDriftArbiter> clockArbiter;
     
     bool syncEnabled = false;
+    TOAST::ClockRole currentRole = TOAST::ClockRole::UNINITIALIZED;
+    double currentQuality = 0.0;
+    double currentOffset = 0.0;
+    uint64_t currentRTT = 0;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ClockSyncPanel)
 };
