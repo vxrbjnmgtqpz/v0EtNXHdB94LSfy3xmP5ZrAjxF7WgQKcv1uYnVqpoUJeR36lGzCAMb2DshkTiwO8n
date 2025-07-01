@@ -132,7 +132,7 @@ public:
     
     // Message handling
     using MessageHandler = std::function<void(std::unique_ptr<TransportMessage>)>;
-    void setMessageHandler(MessageHandler handler) { messageHandler_ = handler; }
+    void setMessageHandler(MessageHandler handler);
     
     // Send message
     bool sendMessage(std::unique_ptr<TransportMessage> message);

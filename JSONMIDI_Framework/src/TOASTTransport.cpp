@@ -27,22 +27,25 @@ std::vector<uint8_t> TransportMessage::serialize() const {
     std::vector<uint8_t> data;
     data.reserve(header_.frameLength);
     
-    // Serialize frame header
+    // Serialize frame header in correct order
     data.insert(data.end(), reinterpret_cast<const uint8_t*>(&header_.frameLength), 
                 reinterpret_cast<const uint8_t*>(&header_.frameLength) + sizeof(header_.frameLength));
     data.insert(data.end(), reinterpret_cast<const uint8_t*>(&header_.messageType), 
                 reinterpret_cast<const uint8_t*>(&header_.messageType) + sizeof(header_.messageType));
+    
+    // Add reserved bytes (padding)
+    uint8_t reserved[3] = {0, 0, 0};
+    data.insert(data.end(), reserved, reserved + 3);
+    
     data.insert(data.end(), reinterpret_cast<const uint8_t*>(&header_.masterTimestamp), 
                 reinterpret_cast<const uint8_t*>(&header_.masterTimestamp) + sizeof(header_.masterTimestamp));
     data.insert(data.end(), reinterpret_cast<const uint8_t*>(&header_.sequenceNumber), 
                 reinterpret_cast<const uint8_t*>(&header_.sequenceNumber) + sizeof(header_.sequenceNumber));
+    data.insert(data.end(), reinterpret_cast<const uint8_t*>(&header_.checksum), 
+                reinterpret_cast<const uint8_t*>(&header_.checksum) + sizeof(header_.checksum));
     
     // Serialize payload
     data.insert(data.end(), payload_.begin(), payload_.end());
-    
-    // Serialize checksum
-    data.insert(data.end(), reinterpret_cast<const uint8_t*>(&header_.checksum), 
-                reinterpret_cast<const uint8_t*>(&header_.checksum) + sizeof(header_.checksum));
     
     return data;
 }
@@ -52,7 +55,7 @@ std::unique_ptr<TransportMessage> TransportMessage::deserialize(const std::vecto
         return nullptr; // Insufficient data
     }
     
-    // Parse header
+    // Parse header in correct order
     FrameHeader header;
     size_t offset = 0;
     
@@ -62,38 +65,49 @@ std::unique_ptr<TransportMessage> TransportMessage::deserialize(const std::vecto
     std::memcpy(&header.messageType, data.data() + offset, sizeof(header.messageType));
     offset += sizeof(header.messageType);
     
+    // Skip reserved bytes
+    offset += 3;
+    
     std::memcpy(&header.masterTimestamp, data.data() + offset, sizeof(header.masterTimestamp));
     offset += sizeof(header.masterTimestamp);
     
     std::memcpy(&header.sequenceNumber, data.data() + offset, sizeof(header.sequenceNumber));
     offset += sizeof(header.sequenceNumber);
     
+    std::memcpy(&header.checksum, data.data() + offset, sizeof(header.checksum));
+    offset += sizeof(header.checksum);
+    
     // Validate frame length
     if (data.size() < header.frameLength) {
         return nullptr; // Incomplete frame
     }
     
-    // Extract payload
+    // Extract payload (after header)
     size_t payloadSize = header.frameLength - FrameHeader::HEADER_SIZE;
-    std::string payload(data.begin() + offset, data.begin() + offset + payloadSize);
-    offset += payloadSize;
-    
-    // Extract checksum
-    std::memcpy(&header.checksum, data.data() + offset, sizeof(header.checksum));
-    
-    // Create message and validate checksum
-    auto message = std::make_unique<TransportMessage>(
-        static_cast<MessageType>(header.messageType), 
-        payload, 
-        header.masterTimestamp, 
-        header.sequenceNumber
-    );
-    
-    if (!message->validateChecksum()) {
-        return nullptr; // Checksum validation failed
+    if (payloadSize > 0 && data.size() >= FrameHeader::HEADER_SIZE + payloadSize) {
+        std::string payload(data.begin() + FrameHeader::HEADER_SIZE, 
+                           data.begin() + FrameHeader::HEADER_SIZE + payloadSize);
+        
+        // Create message
+        auto message = std::make_unique<TransportMessage>(
+            static_cast<MessageType>(header.messageType), 
+            payload, 
+            header.masterTimestamp, 
+            header.sequenceNumber
+        );
+        
+        // Set the received header data
+        message->header_ = header;
+        
+        if (!message->validateChecksum()) {
+            std::cerr << "⚠️ Checksum validation failed" << std::endl;
+            return nullptr; // Checksum validation failed
+        }
+        
+        return message;
     }
     
-    return message;
+    return nullptr;
 }
 
 bool TransportMessage::validateChecksum() const {
@@ -142,7 +156,9 @@ public:
     uint16_t serverPort = 0;
     std::thread acceptThread;
     std::unordered_map<std::string, int> clientSockets;
+    std::unordered_map<std::string, std::thread> readerThreads;
     std::mutex clientsMutex;
+    std::function<void(std::unique_ptr<TransportMessage>)> messageHandler;
     
     bool startServer(uint16_t port) {
         if (running.load()) {
@@ -192,6 +208,11 @@ public:
                     std::lock_guard<std::mutex> lock(clientsMutex);
                     clientSockets[clientId] = clientSocket;
                     
+                    // Start reader thread for this client
+                    readerThreads[clientId] = std::thread([this, clientSocket, clientId]() {
+                        readMessagesFromClient(clientSocket, clientId);
+                    });
+                    
                     std::cout << "🔗 TOAST client connected: " << clientId << std::endl;
                 }
             }
@@ -220,6 +241,11 @@ public:
         std::lock_guard<std::mutex> lock(clientsMutex);
         clientSockets[clientId] = sock;
         
+        // Start reader thread for client connection
+        readerThreads[clientId] = std::thread([this, sock, clientId]() {
+            readMessagesFromClient(sock, clientId);
+        });
+        
         std::cout << "🔗 Connected to TOAST server: " << address << ":" << port << std::endl;
         return true;
     }
@@ -236,6 +262,14 @@ public:
             acceptThread.join();
         }
         
+        // Join all reader threads
+        for (auto& [clientId, thread] : readerThreads) {
+            if (thread.joinable()) {
+                thread.join();
+            }
+        }
+        readerThreads.clear();
+        
         std::lock_guard<std::mutex> lock(clientsMutex);
         for (auto& [clientId, socket] : clientSockets) {
             close(socket);
@@ -243,6 +277,57 @@ public:
         clientSockets.clear();
         
         std::cout << "🛑 TOAST ConnectionManager shutdown complete" << std::endl;
+    }
+    
+    void readMessagesFromClient(int socket, const std::string& clientId) {
+        std::vector<uint8_t> buffer(4096);
+        std::vector<uint8_t> messageBuffer;
+        
+        while (running.load()) {
+            ssize_t bytesRead = recv(socket, buffer.data(), buffer.size(), 0);
+            if (bytesRead <= 0) {
+                // Connection closed or error
+                std::cout << "🔌 Client disconnected: " << clientId << std::endl;
+                break;
+            }
+            
+            // Add received data to message buffer
+            messageBuffer.insert(messageBuffer.end(), buffer.begin(), buffer.begin() + bytesRead);
+            
+            // Try to parse complete messages
+            while (messageBuffer.size() >= FrameHeader::HEADER_SIZE) {
+                // Read frame length from the first 4 bytes
+                uint32_t frameLength;
+                std::memcpy(&frameLength, messageBuffer.data(), sizeof(frameLength));
+                
+                if (messageBuffer.size() >= frameLength) {
+                    // We have a complete message
+                    std::vector<uint8_t> messageData(messageBuffer.begin(), messageBuffer.begin() + frameLength);
+                    messageBuffer.erase(messageBuffer.begin(), messageBuffer.begin() + frameLength);
+                    
+                    // Deserialize and handle the message
+                    auto message = TransportMessage::deserialize(messageData);
+                    if (message && messageHandler) {
+                        messageHandler(std::move(message));
+                    }
+                } else {
+                    // Wait for more data
+                    break;
+                }
+            }
+        }
+    }
+    
+    bool sendToSocket(int socket, const std::vector<uint8_t>& data) {
+        size_t totalSent = 0;
+        while (totalSent < data.size()) {
+            ssize_t sent = send(socket, data.data() + totalSent, data.size() - totalSent, 0);
+            if (sent <= 0) {
+                return false;
+            }
+            totalSent += sent;
+        }
+        return true;
     }
 };
 
@@ -263,15 +348,18 @@ void ConnectionManager::disconnect() {
     impl_->shutdown();
 }
 
+void ConnectionManager::setMessageHandler(MessageHandler handler) {
+    impl_->messageHandler = handler;
+}
+
 bool ConnectionManager::sendMessage(std::unique_ptr<TransportMessage> message) {
-    // Send to all connected clients for now
-    auto clients = impl_->clientSockets;
+    auto serialized = message->serialize();
     bool success = true;
     
-    for (const auto& [clientId, socket] : clients) {
-        auto serialized = message->serialize();
-        ssize_t sent = send(socket, serialized.data(), serialized.size(), 0);
-        if (sent != static_cast<ssize_t>(serialized.size())) {
+    std::lock_guard<std::mutex> lock(impl_->clientsMutex);
+    for (const auto& [clientId, socket] : impl_->clientSockets) {
+        if (!impl_->sendToSocket(socket, serialized)) {
+            std::cout << "⚠️ Failed to send message to client: " << clientId << std::endl;
             success = false;
         }
     }
