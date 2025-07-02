@@ -1,867 +1,1783 @@
 {
   "database_info": {
-    "version": "1.0",
-    "description": "Complete emotion-to-mode-to-progression mapping database",
-    "total_emotions": 12,
-    "progressions_per_emotion": 12,
-    "total_progressions": 144,
-    "created": "2025-07-01",
-    "architecture_notes": [
-      "This database serves as the foundation for PyTorch chord progression generation",
-      "Each emotion maps to a specific musical mode with 12 genre-weighted progressions",
-      "Progressions are used for both training data and real-time lookup/blending",
-      "Genre weights enable probabilistic selection and style-aware generation",
-      "Future: Can be extended with MIDI data, voice leading rules, and rhythm patterns"
-    ]
+    "version": "3.0",
+    "description": "Complete comprehensive emotion database with 22 core emotions for advanced AI music generation",
+    "total_emotions": 22,
+    "total_sub_emotions": 85,
+    "created": "2025-07-02",
+    "updated": "2025-07-02",
+    "expansion_phase": "FINAL - Complete emotion system with interpolation ready"
   },
   "emotions": {
     "Joy": {
       "mode": "Ionian",
-      "description": "Bright, balanced, uplifting; evokes happiness and warmth.",
-      "characteristics": ["resolved", "complete", "safe"],
-      "progression_pool": [
-        {
-          "chords": ["I", "IV", "V", "I"],
-          "genres": { "Pop": 0.9, "Rock": 0.8, "Country": 0.7 },
-          "progression_id": "joy_001"
+      "description": "Bright, uplifting emotions",
+      "sub_emotions": {
+        "Excitement": {
+          "mode": "Ionian with secondary dominant (II7)",
+          "description": "Using II7 chord creates expectant build-up fitting for excitement",
+          "progression_pool": [
+            {
+              "chords": ["I", "II7", "V", "I"],
+              "genres": {
+                "Pop": 0.9,
+                "Gospel": 0.8
+              },
+              "progression_id": "excitement_001"
+            },
+            {
+              "chords": ["I", "vi", "II7", "V"],
+              "genres": {
+                "Pop": 0.8,
+                "Jazz": 0.7
+              },
+              "progression_id": "excitement_002"
+            }
+          ]
         },
-        {
-          "chords": ["I", "vi", "IV", "V"],
-          "genres": { "Pop": 1.0, "EDM": 0.7, "Anime": 0.6 },
-          "progression_id": "joy_002"
-        },
-        {
-          "chords": ["I", "V", "vi", "IV"],
-          "genres": { "Pop": 1.0, "Folk": 0.6, "Soft Rock": 0.5 },
-          "progression_id": "joy_003"
-        },
-        {
-          "chords": ["I", "ii", "V", "I"],
-          "genres": { "Jazz": 0.9, "Bossa": 0.6, "Lounge": 0.5 },
-          "progression_id": "joy_004"
-        },
-        {
-          "chords": ["IV", "I", "V", "I"],
-          "genres": { "Gospel": 1.0, "Soul": 0.8, "Country": 0.6 },
-          "progression_id": "joy_005"
-        },
-        {
-          "chords": ["I", "IV", "I", "V"],
-          "genres": { "Blues": 0.7, "Rock": 0.6, "Funk": 0.5 },
-          "progression_id": "joy_006"
-        },
-        {
-          "chords": ["I", "V", "I", "IV"],
-          "genres": { "Reggae": 0.8, "Pop": 0.5, "Folk": 0.4 },
-          "progression_id": "joy_007"
-        },
-        {
-          "chords": ["I", "iii", "IV", "V"],
-          "genres": { "Classic Rock": 0.7, "Pop": 0.6, "Orchestral": 0.5 },
-          "progression_id": "joy_008"
-        },
-        {
-          "chords": ["I", "V", "vi", "iii", "IV", "I", "ii", "V"],
-          "genres": { "Disney": 0.9, "Broadway": 0.7, "Orchestral": 0.6 },
-          "progression_id": "joy_009"
-        },
-        {
-          "chords": ["I", "IV", "vi", "V"],
-          "genres": { "Pop Punk": 0.8, "J-Rock": 0.7, "Indie": 0.6 },
-          "progression_id": "joy_010"
-        },
-        {
-          "chords": ["I", "vi", "ii", "V"],
-          "genres": { "Jazz": 0.8, "R&B": 0.6, "Soul": 0.5 },
-          "progression_id": "joy_011"
-        },
-        {
-          "chords": ["I", "V", "I", "V"],
-          "genres": { "Children": 1.0, "Marching Band": 0.8, "Folk": 0.5 },
-          "progression_id": "joy_012"
+        "Contentment": {
+          "mode": "Ionian",
+          "description": "Simple major chords avoid strong cadences, producing soothing atmosphere",
+          "progression_pool": [
+            {
+              "chords": ["I", "IV", "V", "IV"],
+              "genres": {
+                "Ambient": 0.9,
+                "New Age": 0.8
+              },
+              "progression_id": "contentment_001"
+            },
+            {
+              "chords": ["I", "IV", "I", "IV"],
+              "genres": {
+                "Folk": 0.8,
+                "Acoustic": 0.7
+              },
+              "progression_id": "contentment_002"
+            }
+          ]
         }
-      ]
+      }
     },
     "Sadness": {
       "mode": "Aeolian",
-      "description": "Soft despair, introspective loss, emotional gravity.",
-      "characteristics": ["melancholy", "reflective", "low energy"],
-      "progression_pool": [
-        {
-          "chords": ["i", "iv", "i", "v"],
-          "genres": { "Folk": 0.8, "Indie": 0.7, "Singer-Songwriter": 0.6 },
-          "progression_id": "sad_001"
+      "description": "Melancholic emotions",
+      "sub_emotions": {
+        "Melancholy": {
+          "mode": "Aeolian",
+          "description": "Rise from minor i to major III creates melancholic sound",
+          "progression_pool": [
+            {
+              "chords": ["i", "♭VI", "♭III", "♭VII"],
+              "genres": {
+                "Ballad": 0.9,
+                "Classical": 0.8
+              },
+              "progression_id": "melancholy_001"
+            },
+            {
+              "chords": ["i", "♭III", "♭VI", "♭VII"],
+              "genres": {
+                "Post-Rock": 0.8,
+                "Cinematic": 0.9
+              },
+              "progression_id": "melancholy_002"
+            }
+          ]
         },
-        {
-          "chords": ["i", "♭VI", "♭III", "♭VII"],
-          "genres": { "Cinematic": 0.9, "Rock": 0.6, "Metal": 0.4 },
-          "progression_id": "sad_002"
-        },
-        {
-          "chords": ["i", "♭VII", "♭VI", "♭VII"],
-          "genres": { "Lo-fi": 0.8, "Indie Pop": 0.7, "Dream Pop": 0.5 },
-          "progression_id": "sad_003"
-        },
-        {
-          "chords": ["i", "iv", "♭VI", "v"],
-          "genres": { "Alt Rock": 0.8, "Pop": 0.6, "Soundtrack": 0.5 },
-          "progression_id": "sad_004"
-        },
-        {
-          "chords": ["i", "v", "i", "♭VI"],
-          "genres": { "Blues": 0.9, "Jazz": 0.6, "Trip-hop": 0.5 },
-          "progression_id": "sad_005"
-        },
-        {
-          "chords": ["i", "♭VI", "iv", "v"],
-          "genres": { "Indie": 0.9, "Alternative": 0.6, "Lo-fi": 0.5 },
-          "progression_id": "sad_006"
-        },
-        {
-          "chords": ["i", "iv", "i", "♭VII"],
-          "genres": { "Grunge": 0.7, "Post-Rock": 0.6, "Shoegaze": 0.4 },
-          "progression_id": "sad_007"
-        },
-        {
-          "chords": ["i", "♭III", "iv", "i"],
-          "genres": { "Orchestral": 0.8, "Film Score": 0.7, "Piano Ballad": 0.5 },
-          "progression_id": "sad_008"
-        },
-        {
-          "chords": ["i", "♭VI", "♭III", "iv"],
-          "genres": { "Darkwave": 0.8, "Industrial": 0.6, "Synthwave": 0.5 },
-          "progression_id": "sad_009"
-        },
-        {
-          "chords": ["i", "iv", "v", "i"],
-          "genres": { "Blues": 0.9, "Slow Rock": 0.7, "Country Ballad": 0.5 },
-          "progression_id": "sad_010"
-        },
-        {
-          "chords": ["i", "♭VII", "iv", "i"],
-          "genres": { "Singer-Songwriter": 0.8, "Acoustic": 0.6, "Indie Rock": 0.6 },
-          "progression_id": "sad_011"
-        },
-        {
-          "chords": ["i", "♭VI", "♭VII", "i"],
-          "genres": { "Lo-fi": 0.9, "Ambient": 0.7, "Neoclassical": 0.6 },
-          "progression_id": "sad_012"
+        "Longing": {
+          "mode": "Aeolian",
+          "description": "Alternating minor and major chords yields bittersweet yearning",
+          "progression_pool": [
+            {
+              "chords": ["i", "♭III", "♭VII", "iv"],
+              "genres": {
+                "Ballad": 0.9,
+                "Pop": 0.8
+              },
+              "progression_id": "longing_001"
+            },
+            {
+              "chords": ["i", "♭VI", "iv", "♭VII"],
+              "genres": {
+                "Indie": 0.8,
+                "Alternative": 0.7
+              },
+              "progression_id": "longing_002"
+            }
+          ]
         }
-      ]
+      }
     },
-    "Fear": {
-      "mode": "Phrygian",
-      "description": "Claustrophobic tension, inner dread, survival mode.",
-      "characteristics": ["dark", "compressed", "anxious"],
-      "progression_pool": [
-        {
-          "chords": ["i", "♭II", "i", "v"],
-          "genres": { "Horror Score": 1.0, "Metal": 0.7, "Dark Trap": 0.6 },
-          "progression_id": "fear_001"
-        },
-        {
-          "chords": ["♭II", "i", "iv", "i"],
-          "genres": { "Suspense": 0.9, "Cinematic": 0.7, "Orchestral": 0.6 },
-          "progression_id": "fear_002"
-        },
-        {
-          "chords": ["i", "♭II", "♭VII", "i"],
-          "genres": { "Industrial": 0.9, "EDM": 0.6, "Dark Ambient": 0.6 },
-          "progression_id": "fear_003"
-        },
-        {
-          "chords": ["♭II", "i", "♭III", "iv"],
-          "genres": { "Horror": 1.0, "Post-Rock": 0.5, "Metal": 0.4 },
-          "progression_id": "fear_004"
-        },
-        {
-          "chords": ["i", "♭II", "♭VI", "♭VII"],
-          "genres": { "Thriller": 0.9, "Film Score": 0.7, "Trap": 0.5 },
-          "progression_id": "fear_005"
-        },
-        {
-          "chords": ["iv", "i", "♭II", "i"],
-          "genres": { "Horror": 1.0, "Experimental": 0.8, "Noise": 0.5 },
-          "progression_id": "fear_006"
-        },
-        {
-          "chords": ["i", "♭III", "♭II", "i"],
-          "genres": { "Drone": 0.9, "Minimal": 0.6, "Sound Design": 0.5 },
-          "progression_id": "fear_007"
-        },
-        {
-          "chords": ["♭II", "iv", "i", "♭VII"],
-          "genres": { "EDM": 0.7, "Cyberpunk": 0.6, "Game OST": 0.6 },
-          "progression_id": "fear_008"
-        },
-        {
-          "chords": ["i", "♭II", "i", "♭V"],
-          "genres": { "Modern Classical": 0.8, "Dark Jazz": 0.5, "Score": 0.6 },
-          "progression_id": "fear_009"
-        },
-        {
-          "chords": ["i", "♭VI", "♭VII", "i"],
-          "genres": { "Orchestral": 0.7, "Suspense": 0.6, "Underscore": 0.6 },
-          "progression_id": "fear_010"
-        },
-        {
-          "chords": ["♭II", "♭VI", "i", "v"],
-          "genres": { "Post-Rock": 0.6, "Doom": 0.5, "Cinematic": 0.5 },
-          "progression_id": "fear_011"
-        },
-        {
-          "chords": ["i", "♭VII", "♭II", "i"],
-          "genres": { "Psych Thriller": 0.8, "Trailer Music": 0.7, "Score": 0.6 },
-          "progression_id": "fear_012"
-        }
-      ]
-    },
-    "Anger": {
-      "mode": "Phrygian Dominant",
-      "description": "Explosive aggression, energized instability.",
-      "characteristics": ["volatile", "forceful", "dominant"],
-      "progression_pool": [
-        {
-          "chords": ["I", "♭II", "iv°", "I"],
-          "genres": { "Metal": 1.0, "Flamenco": 0.9, "EDM": 0.6 },
-          "progression_id": "anger_001"
-        },
-        {
-          "chords": ["I", "♭II", "♭VI", "I"],
-          "genres": { "Trailer": 1.0, "Cinematic": 0.8, "Industrial": 0.7 },
-          "progression_id": "anger_002"
-        },
-        {
-          "chords": ["I", "V", "♭II", "I"],
-          "genres": { "Orchestral": 0.9, "Game OST": 0.7, "Dark Fusion": 0.6 },
-          "progression_id": "anger_003"
-        },
-        {
-          "chords": ["I", "♭II", "♭vii°", "I"],
-          "genres": { "Djent": 0.9, "Prog Metal": 0.8, "Middle Eastern": 0.6 },
-          "progression_id": "anger_004"
-        },
-        {
-          "chords": ["I", "iv°", "♭II", "I"],
-          "genres": { "Rock": 0.8, "Hardstyle": 0.6, "Flamenco": 0.6 },
-          "progression_id": "anger_005"
-        },
-        {
-          "chords": ["I", "♭III", "♭II", "I"],
-          "genres": { "Industrial": 0.9, "Hard EDM": 0.7, "Aggrotech": 0.6 },
-          "progression_id": "anger_006"
-        },
-        {
-          "chords": ["I", "iv°", "♭VI", "♭II"],
-          "genres": { "Score": 0.8, "Metal": 0.7, "Symphonic Rock": 0.6 },
-          "progression_id": "anger_007"
-        },
-        {
-          "chords": ["I", "♭II", "V", "I"],
-          "genres": { "Flamenco": 1.0, "Arabic Pop": 0.8, "Psytrance": 0.5 },
-          "progression_id": "anger_008"
-        },
-        {
-          "chords": ["I", "♭II", "iv°", "♭VI"],
-          "genres": { "Sludge": 0.7, "Post-Metal": 0.6, "Film Trailer": 0.8 },
-          "progression_id": "anger_009"
-        },
-        {
-          "chords": ["I", "V", "♭VI", "♭II"],
-          "genres": { "Trailer": 0.9, "Orchestral Hybrid": 0.7, "Cinematic": 0.6 },
-          "progression_id": "anger_010"
-        },
-        {
-          "chords": ["I", "♭II", "I", "♭II"],
-          "genres": { "Electronic Hardcore": 0.8, "Aggro Trap": 0.6, "Industrial": 0.5 },
-          "progression_id": "anger_011"
-        },
-        {
-          "chords": ["I", "♭II", "I", "♭vii°"],
-          "genres": { "Death Metal": 0.8, "Middle Eastern Metal": 0.7, "Prog": 0.6 },
-          "progression_id": "anger_012"
-        }
-      ]
-    },
-    "Disgust": {
+    "Malice": {
       "mode": "Locrian",
-      "description": "Hollow, broken, disoriented. Harmonic collapse.",
-      "characteristics": ["unresolved", "dissonant", "repelling"],
-      "progression_pool": [
-        {
-          "chords": ["i°", "♭II", "♭v", "i°"],
-          "genres": { "Horror": 1.0, "Experimental": 0.9, "Modern Classical": 0.7 },
-          "progression_id": "disgust_001"
+      "description": "Dark, malevolent emotions with intent to harm or destroy",
+      "sub_emotions": {
+        "Cruelty": {
+          "mode": "Neapolitan minor",
+          "description": "Built on the minor scale with a flattened second, the Neapolitan minor mode produces a uniquely haunting and unsettling dissonance. Using the ♭II (Neapolitan) chord as a predominant before a powerful V–i resolution creates a harsh, ominous atmosphere that evokes deliberate cruelty.",
+          "progression_pool": [
+            {
+              "chords": ["i", "♭II", "V", "i"],
+              "genres": {
+                "Classical": 0.9,
+                "Gothic": 0.8,
+                "Film Score": 0.9
+              },
+              "progression_id": "cruelty_001"
+            },
+            {
+              "chords": ["i", "♭II", "♭VI", "V", "i"],
+              "genres": {
+                "Orchestral": 0.8,
+                "Dark Ambient": 0.7
+              },
+              "progression_id": "cruelty_002"
+            }
+          ]
         },
-        {
-          "chords": ["i°", "♭v", "♭II", "♭v"],
-          "genres": { "Dark Ambient": 0.8, "Doom Jazz": 0.7, "Noise": 0.6 },
-          "progression_id": "disgust_002"
+        "Sadism": {
+          "mode": "Phrygian dominant",
+          "description": "Phrygian dominant features a major tonic with a flattened second, giving it a menacingly exotic sound. The I–♭II–I progression highlights the unnaturally close, dissonant semitone gap, creating a sense of evil glee and sadistic pleasure.",
+          "progression_pool": [
+            {
+              "chords": ["I", "♭II", "I"],
+              "genres": {
+                "Metal": 0.9,
+                "Horror": 0.8,
+                "Flamenco": 0.7
+              },
+              "progression_id": "sadism_001"
+            },
+            {
+              "chords": ["I", "♭II", "♭VII", "I"],
+              "genres": {
+                "Symphonic Metal": 0.8,
+                "Dark Folk": 0.6
+              },
+              "progression_id": "sadism_002"
+            }
+          ]
         },
-        {
-          "chords": ["♭II", "♭v", "♭vii°", "i°"],
-          "genres": { "Industrial": 0.9, "Avant-Garde": 0.8, "Scoring": 0.6 },
-          "progression_id": "disgust_003"
+        "Vengefulness": {
+          "mode": "Harmonic minor",
+          "description": "The harmonic minor scale's raised 7th creates an intense pull to the tonic, fitting a vengeful drive toward resolution. The augmented mediant creates obsessive intensity, while the emphatic V–i cadence delivers decisive vindication.",
+          "progression_pool": [
+            {
+              "chords": ["i", "♯III+", "iv", "V", "i"],
+              "genres": {
+                "Neoclassical": 0.9,
+                "Dramatic": 0.8,
+                "Opera": 0.7
+              },
+              "progression_id": "vengefulness_001"
+            },
+            {
+              "chords": ["i", "iv", "♯III+", "V7", "i"],
+              "genres": {
+                "Progressive Metal": 0.8,
+                "Soundtrack": 0.9
+              },
+              "progression_id": "vengefulness_002"
+            }
+          ]
         },
-        {
-          "chords": ["♭v", "i°", "♭VI", "♭II"],
-          "genres": { "Cinematic Horror": 1.0, "Art Music": 0.7, "Underscore": 0.6 },
-          "progression_id": "disgust_004"
+        "Callousness": {
+          "mode": "Locrian",
+          "description": "Locrian's defining diminished tonic and lack of true dominant make it inherently unstable and cold. The oscillation between ♭II and i° exploits Locrian's unresolved tension, creating an impression of emotional void and lack of empathy.",
+          "progression_pool": [
+            {
+              "chords": ["♭II", "i°", "♭II", "i°"],
+              "genres": {
+                "Extreme Metal": 0.9,
+                "Avant-garde": 0.8,
+                "Psychological Thriller": 0.7
+              },
+              "progression_id": "callousness_001"
+            },
+            {
+              "chords": ["i°", "♭VII", "♭II", "i°"],
+              "genres": {
+                "Dissonant": 0.8,
+                "Experimental": 0.7
+              },
+              "progression_id": "callousness_002"
+            }
+          ]
         },
-        {
-          "chords": ["i°", "♭v", "♭II", "♭vii°"],
-          "genres": { "Jazz Noir": 0.8, "Free Jazz": 0.6, "Sound Design": 0.6 },
-          "progression_id": "disgust_005"
+        "Manipulation": {
+          "mode": "Minor with modal interchange",
+          "description": "Employs a minor mode base but cleverly borrows chords to mislead the ear. The raised leading tone V followed by deceptive resolution to ♭VI creates musical trickery and cunning, capturing bait-and-switch progressions.",
+          "progression_pool": [
+            {
+              "chords": ["i", "V", "♭VI", "iv", "i"],
+              "genres": {
+                "Suspense": 0.9,
+                "Thriller": 0.8,
+                "Progressive Rock": 0.7
+              },
+              "progression_id": "manipulation_001"
+            },
+            {
+              "chords": ["i", "♭III", "V", "♭VI", "iv"],
+              "genres": {
+                "Film Noir": 0.8,
+                "Jazz Fusion": 0.6
+              },
+              "progression_id": "manipulation_002"
+            }
+          ]
         },
-        {
-          "chords": ["♭vii°", "♭v", "♭II", "i°"],
-          "genres": { "Darkwave": 0.7, "Drone": 0.6, "Score": 0.6 },
-          "progression_id": "disgust_006"
+        "Domination": {
+          "mode": "Double harmonic major (Byzantine)",
+          "description": "The double harmonic major scale contains both a ♭2 and ♭6, yielding an imperial, oppressive sound. The major I signifies authority and triumph, while sudden shifts to minor subdominant and Neapolitan chord inject fear and tension.",
+          "progression_pool": [
+            {
+              "chords": ["I", "iv", "♭II", "I"],
+              "genres": {
+                "Imperial": 0.9,
+                "Symphonic Metal": 0.8,
+                "Epic Fantasy": 0.7
+              },
+              "progression_id": "domination_001"
+            },
+            {
+              "chords": ["I", "♭II", "iv", "V", "I"],
+              "genres": {
+                "Orchestral": 0.8,
+                "Dark Fantasy": 0.9
+              },
+              "progression_id": "domination_002"
+            }
+          ]
         },
-        {
-          "chords": ["♭II", "♭v", "♭VI", "i°"],
-          "genres": { "Serialism": 0.9, "Postmodern": 0.7, "Jazz Fusion": 0.5 },
-          "progression_id": "disgust_007"
+        "Narcissism": {
+          "mode": "Double Harmonic Major (Byzantine)",
+          "description": "The double harmonic major scale is intensely exotic and dramatic with bold augmented seconds (♭2 and ♭6) creating regal yet unsettling sound, befitting grandiosity and menace of malignant narcissism. I–♭II progression introduces startling clash while V–I provides triumphant, authoritative cadence.",
+          "progression_pool": [
+            {
+              "chords": ["I", "♭II", "V", "I"],
+              "genres": {
+                "Neoclassical Metal": 0.9,
+                "Middle Eastern": 0.8,
+                "Dramatic": 0.7
+              },
+              "progression_id": "narcissism_001"
+            },
+            {
+              "chords": ["I", "♭II", "♭VI", "V", "I"],
+              "genres": {
+                "Byzantine": 0.8,
+                "Epic": 0.7
+              },
+              "progression_id": "narcissism_002"
+            }
+          ]
         },
-        {
-          "chords": ["i°", "♭II", "i°", "♭v"],
-          "genres": { "Film Score": 0.8, "Tension Cue": 0.7, "Techno Horror": 0.5 },
-          "progression_id": "disgust_008"
+        "Machiavellianism": {
+          "mode": "Octatonic (Diminished)",
+          "description": "The diminished/octatonic scale produces creepy, tension-filled atmosphere well-suited to scheming and intrigue. Its symmetry and abundance of diminished chords create sense of constant calculation with no comfortable resolution, just as Machiavellian plot is always in motion.",
+          "progression_pool": [
+            {
+              "chords": ["i°", "♭iii°", "♭v°", "♭vii°"],
+              "genres": {
+                "Spy/Espionage": 0.9,
+                "Film Noir": 0.8,
+                "Suspense": 0.9
+              },
+              "progression_id": "machiavellianism_001"
+            },
+            {
+              "chords": ["i°", "♭iii°", "♭v°", "i°"],
+              "genres": {
+                "Black Metal": 0.8,
+                "Avant-garde": 0.7
+              },
+              "progression_id": "machiavellianism_002"
+            }
+          ]
         },
-        {
-          "chords": ["♭v", "♭II", "♭VI", "i°"],
-          "genres": { "Industrial Noise": 1.0, "Electronic Avant": 0.6, "Death Ambient": 0.5 },
-          "progression_id": "disgust_009"
+        "Psychopathy": {
+          "mode": "Locrian",
+          "description": "Locrian is most unstable and evil-sounding of modes. Its diminished tonic chord and lowered 5th refuse to provide resolution or warmth - fitting parallel to psychopath's moral void and lack of emotional center. Creates hollow, unnerving loop mirroring callousness and emptiness.",
+          "progression_pool": [
+            {
+              "chords": ["i°", "♭II", "♭VII", "i°"],
+              "genres": {
+                "Horror": 0.9,
+                "Thriller": 0.8,
+                "Death Metal": 0.8
+              },
+              "progression_id": "psychopathy_001"
+            },
+            {
+              "chords": ["i°", "♭V", "♭II", "i°"],
+              "genres": {
+                "Psychological Horror": 0.9,
+                "Dark Ambient": 0.7
+              },
+              "progression_id": "psychopathy_002"
+            }
+          ]
         },
-        {
-          "chords": ["♭II", "♭vii°", "i°", "♭v"],
-          "genres": { "Weird Jazz": 0.8, "Sci-Fi": 0.6, "Post-Rock": 0.4 },
-          "progression_id": "disgust_010"
+        "Spite": {
+          "mode": "Hungarian Minor",
+          "description": "Hungarian minor has exaggerated, sharp-edged quality with two augmented seconds fitting spite's mix of bitterness and perversity. The raised 4th alongside minor third produces sneaky, piquant dissonance. Use of augmented chord highlights unnaturally heightened tension.",
+          "progression_pool": [
+            {
+              "chords": ["i", "♭III+", "V", "i"],
+              "genres": {
+                "Eastern European": 0.9,
+                "Klezmer": 0.8,
+                "Theatrical": 0.7
+              },
+              "progression_id": "spite_001"
+            },
+            {
+              "chords": ["i", "♯iv°", "♭III+", "V", "i"],
+              "genres": {
+                "Folk Horror": 0.8,
+                "Quirky Dark": 0.7
+              },
+              "progression_id": "spite_002"
+            }
+          ]
         },
-        {
-          "chords": ["i°", "♭VI", "♭II", "♭v"],
-          "genres": { "Horror": 1.0, "Dissonant Jazz": 0.7, "Psycho-thriller": 0.6 },
-          "progression_id": "disgust_011"
+        "Hatred": {
+          "mode": "Locrian",
+          "description": "Locrian's tonal instability with diminished tonic and flatted fifth effectively conveys seething animosity. Lack of perfect fifth means no musical rest, just as pure hatred offers no peace. Grotesque contrast of major chords that collapse back into diminished tonic.",
+          "progression_pool": [
+            {
+              "chords": ["i°", "♭V", "♭VI", "i°"],
+              "genres": {
+                "Horror": 0.9,
+                "Dark Suspense": 0.8,
+                "Extreme Metal": 0.8
+              },
+              "progression_id": "hatred_001"
+            },
+            {
+              "chords": ["i°", "♭II", "♭V", "♭VI", "i°"],
+              "genres": {
+                "Diabolical": 0.9,
+                "Black Metal": 0.8
+              },
+              "progression_id": "hatred_002"
+            }
+          ]
         },
-        {
-          "chords": ["♭v", "♭II", "♭III", "♭vii°"],
-          "genres": { "Sound Art": 0.9, "Free Improvisation": 0.7, "Postmodern Score": 0.6 },
-          "progression_id": "disgust_012"
+        "Malicious_Envy": {
+          "mode": "Neapolitan Minor",
+          "description": "Neapolitan minor provides excellent analog to malicious envy's mix of yearning and ill-will. Contains tense half-step between 1–♭2 (resentment) alongside driving leading tone (desire/urgency). ♭II chord strikes with bold, jealous dissonance against minor tonic.",
+          "progression_pool": [
+            {
+              "chords": ["i", "♭II", "V", "i"],
+              "genres": {
+                "Romantic Classical": 0.9,
+                "Gothic": 0.8,
+                "Dramatic Film": 0.8
+              },
+              "progression_id": "malicious_envy_001"
+            },
+            {
+              "chords": ["i", "♭II", "♭VI", "V", "i"],
+              "genres": {
+                "Opera": 0.8,
+                "Tragic": 0.9
+              },
+              "progression_id": "malicious_envy_002"
+            }
+          ]
+        },
+        "Contempt": {
+          "mode": "Harmonic Major",
+          "description": "Harmonic major has bright major I but introduces unexpected minor subdominant due to flattened 6th. This juxtaposition encapsulates condescension musically. Major chord asserts superiority while minor iv injects dark, disapproving tone - literally looking down with disdain.",
+          "progression_pool": [
+            {
+              "chords": ["I", "iv", "V", "I"],
+              "genres": {
+                "Pompous": 0.9,
+                "Classical": 0.8,
+                "Judicial Drama": 0.7
+              },
+              "progression_id": "contempt_001"
+            },
+            {
+              "chords": ["I", "iv", "♭VI", "V", "I"],
+              "genres": {
+                "Stately": 0.8,
+                "Disapproving": 0.9
+              },
+              "progression_id": "contempt_002"
+            }
+          ]
+        },
+        "Schadenfreude": {
+          "mode": "Mixolydian",
+          "description": "Mixolydian mode being major but with lowered 7th conveys rowdy, sly cheerfulness - think mischievous grin. Upbeat, anthemic quality represents pleasure component, but ♭VII chord gives slightly off-kilter, less innocent tone hinting at moral twist.",
+          "progression_pool": [
+            {
+              "chords": ["I", "♭VII", "IV", "I"],
+              "genres": {
+                "Comedic": 0.9,
+                "Ironic": 0.8,
+                "Blues/Rock": 0.7
+              },
+              "progression_id": "schadenfreude_001"
+            },
+            {
+              "chords": ["I", "♭VII", "♭III", "IV", "I"],
+              "genres": {
+                "Mocking": 0.9,
+                "Cheeky": 0.8
+              },
+              "progression_id": "schadenfreude_002"
+            }
+          ]
+        },
+        "Treachery": {
+          "mode": "Whole Tone",
+          "description": "Whole tone scale's dreamlike, ambiguous quality is ideal for portraying deceit and unreality. Because all intervals are equal, it lacks tonal center - everything feels slippery. Cycling through augmented chords evokes illusive friendliness of traitor.",
+          "progression_pool": [
+            {
+              "chords": ["I+", "♭III+", "I+", "♭V+"],
+              "genres": {
+                "Hallucination": 0.9,
+                "Deceit": 0.9,
+                "Dream Sequence": 0.8
+              },
+              "progression_id": "treachery_001"
+            },
+            {
+              "chords": ["I+", "♭III+", "♭V+", "♭VII+"],
+              "genres": {
+                "Betrayal Scene": 0.9,
+                "Psychological": 0.8
+              },
+              "progression_id": "treachery_002"
+            }
+          ]
+        },
+        "Ruthlessness": {
+          "mode": "Harmonic Minor",
+          "description": "Harmonic minor's dramatic tension illustrates cold determination. Raised 7th in V chord creates forceful pull into resolution that feels like unrelenting drive. Leap from ♭VI down to dominant is stark and forceful, like ruthless decision cutting away warmth.",
+          "progression_pool": [
+            {
+              "chords": ["i", "♭VI", "V", "i"],
+              "genres": {
+                "Epic Soundtrack": 0.9,
+                "Action": 0.8,
+                "Warlord": 0.8
+              },
+              "progression_id": "ruthlessness_001"
+            },
+            {
+              "chords": ["i", "iv", "♭VI", "V", "i"],
+              "genres": {
+                "Iron Will": 0.9,
+                "Merciless": 0.8
+              },
+              "progression_id": "ruthlessness_002"
+            }
+          ]
+        },
+        "Wrath": {
+          "mode": "Altered Scale (Super Locrian)",
+          "description": "Altered scale is most tension-saturated scale in music - essentially all wrong notes over dominant chord, creating maximum dissonance before resolution. Perfectly matches wrath: explosion of tension and anger that demands release. Cycling represents waves of fury.",
+          "progression_pool": [
+            {
+              "chords": ["V7alt", "i", "V7alt", "i"],
+              "genres": {
+                "Modern Orchestral": 0.9,
+                "Metal": 0.8,
+                "Apocalyptic": 0.9
+              },
+              "progression_id": "wrath_001"
+            },
+            {
+              "chords": ["V7♭9♭13", "i", "V7♯11", "i"],
+              "genres": {
+                "Berserk": 0.9,
+                "Divine Wrath": 0.8
+              },
+              "progression_id": "wrath_002"
+            }
+          ]
+        },
+        "Hostility": {
+          "mode": "Phrygian Dominant",
+          "description": "Phrygian dominant's inherent tension and fiery side illustrates constant aggression. Mode's clash of major I with ♭2 scale degree gives threatening, martial tone. Looping confrontation with semitone punch creates musical snarl, stuck in cycle of unresolved conflict.",
+          "progression_pool": [
+            {
+              "chords": ["I", "♭II", "♭VII", "♭II"],
+              "genres": {
+                "Battle Music": 0.9,
+                "Thrash Metal": 0.8,
+                "Combat": 0.8
+              },
+              "progression_id": "hostility_001"
+            },
+            {
+              "chords": ["I", "♭II", "V", "♭II"],
+              "genres": {
+                "Standoff": 0.9,
+                "Confrontation": 0.8
+              },
+              "progression_id": "hostility_002"
+            }
+          ]
+        },
+        "Resentment": {
+          "mode": "Aeolian (Natural Minor)",
+          "description": "Natural minor mode well-suited to sustained negative emotion. Lack of raised 7th avoids strong forward motion, conveying stagnation of resentment - feeling stuck in bitterness. Classic lament bass descent associated with sorrow and bitterness over centuries.",
+          "progression_pool": [
+            {
+              "chords": ["i", "♭VII", "♭VI", "i"],
+              "genres": {
+                "Melancholic": 0.9,
+                "Blues": 0.8,
+                "Tragic Film": 0.8
+              },
+              "progression_id": "resentment_001"
+            },
+            {
+              "chords": ["i", "♭VI", "♭VII", "♭VI", "i"],
+              "genres": {
+                "Brooding": 0.9,
+                "Ballad": 0.7
+              },
+              "progression_id": "resentment_002"
+            }
+          ]
+        },
+        "Jealousy": {
+          "mode": "Phrygian Dominant (Spanish)",
+          "description": "Phrygian dominant instantly evokes fiery passion and turmoil - fitting for jealousy's volatile mix of love and hate. Andalusian cadence strongly associated with Spanish flamenco drama. Mode has swirling, feverish quality embodying obsessive emotion.",
+          "progression_pool": [
+            {
+              "chords": ["i", "♭VII", "♭VI", "V"],
+              "genres": {
+                "Flamenco": 0.9,
+                "Tango": 0.8,
+                "Carmen": 0.9
+              },
+              "progression_id": "jealousy_001"
+            },
+            {
+              "chords": ["i", "♭VII", "♭VI", "V", "i"],
+              "genres": {
+                "Love Triangle": 0.9,
+                "Fatal Attraction": 0.8
+              },
+              "progression_id": "jealousy_002"
+            }
+          ]
+        },
+        "Misanthropy": {
+          "mode": "Phrygian",
+          "description": "Phrygian mode's gloomy, oppressive aura suits blanket disdain of misanthropy. Step from minor i to ♭II major is gut-punch of dissonance symbolizing disgust toward humanity. Music settles back into minor without leading tone - no uplift, confirming isolation and scorn.",
+          "progression_pool": [
+            {
+              "chords": ["i", "♭II", "♭VII", "i"],
+              "genres": {
+                "Dystopian": 0.9,
+                "Post-Apocalyptic": 0.8,
+                "Antiheroes": 0.8
+              },
+              "progression_id": "misanthropy_001"
+            },
+            {
+              "chords": ["i", "♭II", "♭VI", "♭VII", "i"],
+              "genres": {
+                "Isolation": 0.9,
+                "Cynical": 0.8
+              },
+              "progression_id": "misanthropy_002"
+            }
+          ]
         }
-      ]
+      }
     },
-    "Surprise": {
-      "mode": "Lydian",
-      "description": "Brightly unexpected; optimistic novelty.",
-      "characteristics": ["floating", "airy", "curious"],
-      "progression_pool": [
-        {
-          "chords": ["I", "II", "V", "I"],
-          "genres": { "Anime": 0.9, "Film Score": 0.8, "Fusion": 0.6 },
-          "progression_id": "surprise_001"
+    "Arousal": {
+      "mode": "Dorian + Mixolydian hybrid",
+      "description": "Instinctual activation and raw motivational drive states. Combines chromatic riffing with altered dominants to capture physiological emotional force.",
+      "sub_emotions": {
+        "Lust": {
+          "mode": "Chromatic Dorian",
+          "description": "Sensual desire with half-step tensions. Chromatic voice leading creates intimate harmonic friction.",
+          "progression_pool": [
+            {
+              "chords": ["i", "♭VII", "♭VI", "i"],
+              "progression_id": "lust_basic_001",
+              "description": "Sultry minor progression with chromatic bass movement"
+            },
+            {
+              "chords": ["i", "V7/♭VII", "♭VII", "i"],
+              "progression_id": "lust_secondary_002",
+              "description": "Secondary dominant adds tension and release"
+            }
+          ]
         },
-        {
-          "chords": ["I", "II", "iii", "♯iv°"],
-          "genres": { "Fantasy": 1.0, "Orchestral": 0.8, "Dream Pop": 0.6 },
-          "progression_id": "surprise_002"
+        "Drive": {
+          "mode": "Mixolydian Dominant",
+          "description": "Achievement motivation with dominant 7th energy. Persistent harmonic momentum.",
+          "progression_pool": [
+            {
+              "chords": ["I7", "IV7", "♭VII7", "I7"],
+              "progression_id": "drive_blues_001",
+              "description": "Blues-influenced drive progression with dominant motion"
+            },
+            {
+              "chords": ["I", "♭III", "IV", "I"],
+              "progression_id": "drive_modal_002",
+              "description": "Modal interchange creates forward momentum"
+            }
+          ]
         },
-        {
-          "chords": ["I", "V", "II", "I"],
-          "genres": { "Jazz Fusion": 0.9, "Prog Rock": 0.7, "Modern Jazz": 0.6 },
-          "progression_id": "surprise_003"
+        "Restlessness": {
+          "mode": "Altered Dorian",
+          "description": "Unstable harmonic movement with chromatic alterations suggesting constant motion.",
+          "progression_pool": [
+            {
+              "chords": ["i", "♭ii°", "i", "♭ii°"],
+              "progression_id": "restless_chromatic_001",
+              "description": "Half-step oscillation creates restless energy"
+            },
+            {
+              "chords": ["i", "VII", "♭VI", "VII"],
+              "progression_id": "restless_modal_002",
+              "description": "Unsettled modal movement avoiding resolution"
+            }
+          ]
         },
-        {
-          "chords": ["I", "II", "I", "V"],
-          "genres": { "Soundtrack": 0.8, "EDM": 0.7, "Game OST": 0.6 },
-          "progression_id": "surprise_004"
+        "Addiction": {
+          "mode": "Chromatic sequence",
+          "description": "Repetitive, compulsive harmonic patterns that cycle without resolution.",
+          "progression_pool": [
+            {
+              "chords": ["i", "♭VII", "i", "♭VII"],
+              "progression_id": "addiction_cycle_001",
+              "description": "Obsessive two-chord cycle representing compulsion"
+            },
+            {
+              "chords": ["i", "♭ii", "♭iii", "♭ii"],
+              "progression_id": "addiction_chromatic_002",
+              "description": "Chromatic descent and return, like addiction cycle"
+            }
+          ]
         },
-        {
-          "chords": ["I", "vi", "II", "V"],
-          "genres": { "Anime": 0.9, "Rom-Com Score": 0.7, "Pop": 0.6 },
-          "progression_id": "surprise_005"
-        },
-        {
-          "chords": ["I", "iii", "II", "V"],
-          "genres": { "Adventure Score": 0.8, "Fantasy": 0.7, "Orchestral": 0.6 },
-          "progression_id": "surprise_006"
-        },
-        {
-          "chords": ["I", "♯iv°", "II", "V"],
-          "genres": { "Dream Pop": 0.9, "Indie": 0.6, "Shoegaze": 0.5 },
-          "progression_id": "surprise_007"
-        },
-        {
-          "chords": ["I", "II", "V", "vi"],
-          "genres": { "TV Opening": 0.8, "Anime": 0.8, "Fusion": 0.5 },
-          "progression_id": "surprise_008"
-        },
-        {
-          "chords": ["I", "vi", "II", "I"],
-          "genres": { "EDM": 0.8, "Future Bass": 0.6, "Game Music": 0.5 },
-          "progression_id": "surprise_009"
-        },
-        {
-          "chords": ["I", "II", "V", "iii"],
-          "genres": { "Fantasy Score": 0.9, "Cinematic": 0.7, "Adventure": 0.6 },
-          "progression_id": "surprise_010"
-        },
-        {
-          "chords": ["I", "II", "♯iv°", "I"],
-          "genres": { "Orchestral": 0.9, "Soundtrack": 0.8, "Jazz": 0.6 },
-          "progression_id": "surprise_011"
-        },
-        {
-          "chords": ["I", "V", "II", "vi"],
-          "genres": { "Fusion": 0.8, "J-Pop": 0.7, "New Age": 0.6 },
-          "progression_id": "surprise_012"
+        "Mania": {
+          "mode": "Rapid modulation",
+          "description": "Frenzied harmonic movement with unexpected key changes and rhythm acceleration.",
+          "progression_pool": [
+            {
+              "chords": ["I", "III", "♭VI", "II"],
+              "progression_id": "mania_unstable_001",
+              "description": "Wildly unstable progression suggesting manic energy"
+            },
+            {
+              "chords": ["I", "♭II", "♯iv°", "V"],
+              "progression_id": "mania_chromatic_002",
+              "description": "Chromatic alterations create manic unpredictability"
+            }
+          ]
         }
-      ]
+      }
     },
-    "Trust": {
-      "mode": "Dorian",
-      "description": "Grounded and warm; minor with a ray of hope.",
-      "characteristics": ["intimate", "supportive", "softly hopeful"],
-      "progression_pool": [
-        {
-          "chords": ["i", "ii", "IV", "i"],
-          "genres": { "Jazz": 0.9, "Soul": 0.8, "R&B": 0.6 },
-          "progression_id": "trust_001"
+    "Guilt": {
+      "mode": "Harmonic Minor with soft voicings",
+      "description": "Internal moral conflict and self-reproach. Differs from shame by being private and sorrowful rather than public.",
+      "sub_emotions": {
+        "Remorse": {
+          "mode": "Neapolitan Harmonic Minor",
+          "description": "Deep regret with Neapolitan chord overlay suggesting reflection on past actions.",
+          "progression_pool": [
+            {
+              "chords": ["i", "♭II", "V", "i"],
+              "progression_id": "remorse_neapolitan_001",
+              "description": "Neapolitan progression expressing deep regret"
+            },
+            {
+              "chords": ["i", "iv", "♭II", "V"],
+              "progression_id": "remorse_subdominant_002",
+              "description": "Subdominant preparation enhances regretful character"
+            }
+          ]
         },
-        {
-          "chords": ["i", "IV", "v", "i"],
-          "genres": { "Acoustic": 0.9, "Indie": 0.7, "Chillhop": 0.6 },
-          "progression_id": "trust_002"
+        "Moral_Injury": {
+          "mode": "Dissonant Harmonic Minor",
+          "description": "Trauma from violating one's own values. Dissonant intervals suggest inner conflict.",
+          "progression_pool": [
+            {
+              "chords": ["i", "♭ii°", "V7", "i"],
+              "progression_id": "moral_injury_dissonance_001",
+              "description": "Diminished chord creates moral dissonance"
+            },
+            {
+              "chords": ["i", "VI+", "iv", "V"],
+              "progression_id": "moral_injury_augmented_002",
+              "description": "Augmented chord suggests psychological wounding"
+            }
+          ]
         },
-        {
-          "chords": ["i", "ii", "v", "i"],
-          "genres": { "Lo-fi": 1.0, "Neo-Soul": 0.8, "Fusion": 0.6 },
-          "progression_id": "trust_003"
+        "Self_Reproach": {
+          "mode": "Phrygian with minor ii",
+          "description": "Self-critical internal dialogue. Phrygian mode's ♭2 creates introspective character.",
+          "progression_pool": [
+            {
+              "chords": ["i", "♭ii", "♭III", "i"],
+              "progression_id": "self_reproach_phrygian_001",
+              "description": "Phrygian progression emphasizing self-criticism"
+            },
+            {
+              "chords": ["i", "♭vii°", "♭VI", "♭ii"],
+              "progression_id": "self_reproach_descent_002",
+              "description": "Descending sequence suggesting self-condemnation"
+            }
+          ]
         },
-        {
-          "chords": ["i", "IV", "ii", "♭VII"],
-          "genres": { "Jazz Fusion": 0.9, "Soul": 0.7, "R&B": 0.6 },
-          "progression_id": "trust_004"
-        },
-        {
-          "chords": ["i", "v", "ii", "i"],
-          "genres": { "Singer-Songwriter": 0.8, "Indie Folk": 0.6, "Pop Acoustic": 0.5 },
-          "progression_id": "trust_005"
-        },
-        {
-          "chords": ["i", "ii", "♭III", "IV"],
-          "genres": { "Bossa": 0.7, "Lounge": 0.6, "Jazz Ballad": 0.5 },
-          "progression_id": "trust_006"
-        },
-        {
-          "chords": ["i", "IV", "ii", "i"],
-          "genres": { "Lo-fi": 1.0, "Chill": 0.8, "R&B": 0.7 },
-          "progression_id": "trust_007"
-        },
-        {
-          "chords": ["i", "v", "IV", "i"],
-          "genres": { "Soul": 0.8, "Classic R&B": 0.7, "Jazz": 0.6 },
-          "progression_id": "trust_008"
-        },
-        {
-          "chords": ["i", "IV", "vi°", "ii"],
-          "genres": { "Acoustic": 0.9, "Dream Pop": 0.6, "Folk": 0.6 },
-          "progression_id": "trust_009"
-        },
-        {
-          "chords": ["i", "IV", "ii", "v"],
-          "genres": { "Neo-Soul": 1.0, "Fusion": 0.7, "Chillhop": 0.6 },
-          "progression_id": "trust_010"
-        },
-        {
-          "chords": ["i", "ii", "IV", "v"],
-          "genres": { "Jazz": 0.8, "Soul": 0.7, "Indie": 0.5 },
-          "progression_id": "trust_011"
-        },
-        {
-          "chords": ["i", "ii", "♭VII", "i"],
-          "genres": { "Folk": 0.9, "Alt Acoustic": 0.7, "World": 0.5 },
-          "progression_id": "trust_012"
+        "Ethical_Doubt": {
+          "mode": "Unstable Harmonic Minor",
+          "description": "Uncertainty about moral choices. Harmonic ambiguity reflects ethical confusion.",
+          "progression_pool": [
+            {
+              "chords": ["i", "VI", "♭VII", "V"],
+              "progression_id": "ethical_doubt_ambiguous_001",
+              "description": "Ambiguous progression avoiding clear resolution"
+            },
+            {
+              "chords": ["i", "♭iii°", "♭VI", "V"],
+              "progression_id": "ethical_doubt_diminished_002",
+              "description": "Diminished chord represents moral uncertainty"
+            }
+          ]
         }
-      ]
+      }
     },
-    "Anticipation": {
-      "mode": "Melodic Minor",
-      "description": "Forward-driving motion with unresolved hope.",
-      "characteristics": ["ascending", "longing", "tense but bright"],
-      "progression_pool": [
-        {
-          "chords": ["i", "ii°", "V", "i"],
-          "genres": { "Jazz": 1.0, "R&B": 0.8, "Fusion": 0.6 },
-          "progression_id": "anticipation_001"
+    "Reverence": {
+      "mode": "Lydian with open fifths",
+      "description": "Awe directed toward something higher or sacred. Lydian's raised 4th creates transcendent quality.",
+      "sub_emotions": {
+        "Humility": {
+          "mode": "Lydian with plagal cadences",
+          "description": "Humble submission to higher power. Plagal cadences evoke sacred music traditions.",
+          "progression_pool": [
+            {
+              "chords": ["I", "IV", "I", "IV"],
+              "progression_id": "humility_plagal_001",
+              "description": "Classic plagal progression expressing humility"
+            },
+            {
+              "chords": ["I", "ii", "IV", "I"],
+              "progression_id": "humility_gentle_002",
+              "description": "Gentle progression suggesting humble reverence"
+            }
+          ]
         },
-        {
-          "chords": ["i", "IV", "V", "i"],
-          "genres": { "Jazz Fusion": 0.9, "Film Score": 0.7, "Contemporary Classical": 0.6 },
-          "progression_id": "anticipation_002"
+        "Worship": {
+          "mode": "Lydian with suspended chords",
+          "description": "Active devotion and praise. Suspended chords create ethereal, worshipful atmosphere.",
+          "progression_pool": [
+            {
+              "chords": ["Isus4", "I", "IVsus2", "IV"],
+              "progression_id": "worship_suspended_001",
+              "description": "Suspended chords create worshipful atmosphere"
+            },
+            {
+              "chords": ["I", "V/vi", "vi", "IV"],
+              "progression_id": "worship_ascending_002",
+              "description": "Ascending progression suggesting spiritual elevation"
+            }
+          ]
         },
-        {
-          "chords": ["i", "ii°", "VII°", "V"],
-          "genres": { "Neo-Soul": 0.9, "Jazz": 0.8, "Alt R&B": 0.6 },
-          "progression_id": "anticipation_003"
+        "Faith": {
+          "mode": "Dorian with major VI",
+          "description": "Trust in divine or transcendent. Dorian's balance suggests faith's complexity.",
+          "progression_pool": [
+            {
+              "chords": ["i", "♭VI", "♭VII", "i"],
+              "progression_id": "faith_dorian_001",
+              "description": "Dorian progression expressing complex faith"
+            },
+            {
+              "chords": ["i", "IV", "♭VI", "♭VII"],
+              "progression_id": "faith_modal_002",
+              "description": "Modal interchange suggesting faith's mystery"
+            }
+          ]
         },
-        {
-          "chords": ["i", "V", "♭VI+", "i"],
-          "genres": { "Cinematic": 0.9, "Progressive Rock": 0.7, "Trailer": 0.6 },
-          "progression_id": "anticipation_004"
-        },
-        {
-          "chords": ["i", "♭VI+", "V", "i"],
-          "genres": { "Soundtrack": 0.9, "Jazz Ballad": 0.6, "Score": 0.6 },
-          "progression_id": "anticipation_005"
-        },
-        {
-          "chords": ["i", "ii°", "IV", "V"],
-          "genres": { "Jazz": 0.8, "Fusion": 0.6, "R&B": 0.5 },
-          "progression_id": "anticipation_006"
-        },
-        {
-          "chords": ["i", "♭VI+", "ii°", "V"],
-          "genres": { "Orchestral": 0.9, "Experimental": 0.6, "Alt Jazz": 0.5 },
-          "progression_id": "anticipation_007"
-        },
-        {
-          "chords": ["i", "V", "ii°", "i"],
-          "genres": { "Neo-Soul": 0.8, "Chill Jazz": 0.6, "Prog": 0.6 },
-          "progression_id": "anticipation_008"
-        },
-        {
-          "chords": ["i", "V", "♭VI+", "ii°"],
-          "genres": { "Film Score": 1.0, "Suspense": 0.7, "Modern Classical": 0.6 },
-          "progression_id": "anticipation_009"
-        },
-        {
-          "chords": ["i", "VII°", "IV", "V"],
-          "genres": { "R&B": 0.8, "Fusion": 0.7, "Jazz Pop": 0.6 },
-          "progression_id": "anticipation_010"
-        },
-        {
-          "chords": ["i", "♭VI+", "♭III", "V"],
-          "genres": { "Trailer": 0.9, "Orchestral": 0.8, "Sound Design": 0.6 },
-          "progression_id": "anticipation_011"
-        },
-        {
-          "chords": ["i", "ii°", "V", "♭VI+"],
-          "genres": { "Suspense": 0.8, "Alt Rock": 0.6, "Score": 0.5 },
-          "progression_id": "anticipation_012"
+        "Sacred_Peace": {
+          "mode": "Whole tone suspension",
+          "description": "Transcendent calm and spiritual serenity. Whole tone scales create otherworldly peace.",
+          "progression_pool": [
+            {
+              "chords": ["Imaj7", "♭IIImaj7", "♭VImaj7", "Imaj7"],
+              "progression_id": "sacred_peace_whole_tone_001",
+              "description": "Whole tone derived progression creating sacred atmosphere"
+            },
+            {
+              "chords": ["I", "♭V", "I", "♭V"],
+              "progression_id": "sacred_peace_tritone_002",
+              "description": "Tritone substitution creates mystical quality"
+            }
+          ]
         }
-      ]
+      }
     },
-    "Shame": {
-      "mode": "Harmonic Minor",
-      "description": "Tragic, raw, emotionally exposed.",
-      "characteristics": ["haunted", "heavy", "grief-stricken"],
-      "progression_pool": [
-        {
-          "chords": ["i", "iv", "V", "i"],
-          "genres": { "Classical": 1.0, "Film Score": 0.8, "Metal Ballad": 0.6 },
-          "progression_id": "shame_001"
+    "Wonder": {
+      "mode": "Lydian Augmented with sus2 overlays",
+      "description": "Sustained fascination and exploration drive. Lydian Augmented's unique intervals suggest discovery.",
+      "sub_emotions": {
+        "Intrigue": {
+          "mode": "Lydian with chromatic passing tones",
+          "description": "Mysterious fascination with subtle chromatic movement suggesting hidden knowledge.",
+          "progression_pool": [
+            {
+              "chords": ["I", "♯IV°", "V", "I"],
+              "progression_id": "intrigue_chromatic_001",
+              "description": "Chromatic passing tone creates mysterious intrigue"
+            },
+            {
+              "chords": ["I", "♭VII", "♭VI", "V"],
+              "progression_id": "intrigue_modal_002",
+              "description": "Modal mixture suggests hidden depths"
+            }
+          ]
         },
-        {
-          "chords": ["i", "♭VI", "V", "i"],
-          "genres": { "Gothic": 0.9, "Symphonic Rock": 0.7, "Epic": 0.6 },
-          "progression_id": "shame_002"
+        "Exploration": {
+          "mode": "Modulating Lydian",
+          "description": "Active discovery and adventure. Frequent modulations suggest exploring new territories.",
+          "progression_pool": [
+            {
+              "chords": ["I", "V/V", "V", "I"],
+              "progression_id": "exploration_modulation_001",
+              "description": "Secondary dominant suggests exploring new keys"
+            },
+            {
+              "chords": ["I", "♭III", "♭VI", "IV"],
+              "progression_id": "exploration_adventure_002",
+              "description": "Unexpected chord changes suggest adventure"
+            }
+          ]
         },
-        {
-          "chords": ["i", "iv", "♭II°", "i"],
-          "genres": { "Middle Eastern": 0.9, "Traditional": 0.8, "Flamenco": 0.6 },
-          "progression_id": "shame_003"
+        "Marvel": {
+          "mode": "Lydian with wide intervals",
+          "description": "Open-mouthed amazement with expansive harmonic intervals creating sense of vastness.",
+          "progression_pool": [
+            {
+              "chords": ["Imaj7", "IVmaj7♯11", "Vmaj7", "Imaj7"],
+              "progression_id": "marvel_expanded_001",
+              "description": "Extended chords create sense of marvel and wonder"
+            },
+            {
+              "chords": ["I", "♯IVdim", "vi", "IV"],
+              "progression_id": "marvel_chromatic_002",
+              "description": "Chromatic harmony suggests awe-inspiring complexity"
+            }
+          ]
         },
-        {
-          "chords": ["i", "V", "♭VI", "i"],
-          "genres": { "Cinematic": 0.9, "Tragic Score": 0.7, "Drama": 0.6 },
-          "progression_id": "shame_004"
-        },
-        {
-          "chords": ["i", "♭VI", "♭II°", "V"],
-          "genres": { "Symphonic Metal": 1.0, "Orchestral": 0.8, "Neo-Romantic": 0.7 },
-          "progression_id": "shame_005"
-        },
-        {
-          "chords": ["i", "V", "♭II°", "i"],
-          "genres": { "Dark Classical": 1.0, "Soundtrack": 0.7, "Score": 0.6 },
-          "progression_id": "shame_006"
-        },
-        {
-          "chords": ["i", "♭II°", "iv", "V"],
-          "genres": { "Tragic Drama": 0.9, "Operatic": 0.8, "Romantic Era": 0.7 },
-          "progression_id": "shame_007"
-        },
-        {
-          "chords": ["i", "♭VI", "ii°", "V"],
-          "genres": { "Flamenco": 0.9, "Gypsy Jazz": 0.7, "Folk-Classical": 0.6 },
-          "progression_id": "shame_008"
-        },
-        {
-          "chords": ["i", "V", "♭VI", "i"],
-          "genres": { "Metal": 0.9, "Symphonic Prog": 0.8, "Neo-Gothic": 0.6 },
-          "progression_id": "shame_009"
-        },
-        {
-          "chords": ["i", "♭III+", "iv", "V"],
-          "genres": { "Classical": 0.8, "Romantic": 0.7, "Melodramatic Score": 0.6 },
-          "progression_id": "shame_010"
-        },
-        {
-          "chords": ["i", "V", "♭VI", "♭II°"],
-          "genres": { "Eastern Fusion": 0.9, "Cinematic": 0.7, "Ethnic": 0.6 },
-          "progression_id": "shame_011"
-        },
-        {
-          "chords": ["i", "iv", "♭II°", "♭VI"],
-          "genres": { "Dramatic Film": 0.9, "Orchestral Tragedy": 0.8, "Dark Jazz": 0.6 },
-          "progression_id": "shame_012"
+        "Childlike_Wonder": {
+          "mode": "Simple Lydian with open voicings",
+          "description": "Pure, innocent amazement with simple but magical harmonic progressions.",
+          "progression_pool": [
+            {
+              "chords": ["I", "IV", "vi", "V"],
+              "progression_id": "childlike_simple_001",
+              "description": "Simple progression with innocent wonder"
+            },
+            {
+              "chords": ["I", "V6", "vi", "IV6"],
+              "progression_id": "childlike_inversion_002",
+              "description": "Inversions create playful, childlike quality"
+            }
+          ]
         }
-      ]
+      }
     },
-    "Love": {
-      "mode": "Mixolydian",
-      "description": "Nostalgic, soulful warmth with relaxed tension.",
-      "characteristics": ["friendly", "familiar", "tender"],
-      "progression_pool": [
-        {
-          "chords": ["I", "♭VII", "IV", "I"],
-          "genres": { "Country": 1.0, "Classic Rock": 0.9, "Soul": 0.7 },
-          "progression_id": "love_001"
+    "Dissociation": {
+      "mode": "Static cluster chords with polytonality",
+      "description": "Emotional numbness and disconnection. Polytonal structures suggest detachment from reality.",
+      "sub_emotions": {
+        "Numbness": {
+          "mode": "Static whole tone clusters",
+          "description": "Complete emotional shutdown with static, unresolved harmonic clusters.",
+          "progression_pool": [
+            {
+              "chords": ["C/D", "C/D", "C/D", "C/D"],
+              "progression_id": "numbness_static_001",
+              "description": "Static cluster chord representing emotional numbness"
+            },
+            {
+              "chords": ["Cmaj7/D", "Cmaj7/E♭", "Cmaj7/D", "Cmaj7/E♭"],
+              "progression_id": "numbness_polytonal_002",
+              "description": "Polytonal movement suggesting detachment"
+            }
+          ]
         },
-        {
-          "chords": ["I", "IV", "♭VII", "I"],
-          "genres": { "Gospel": 1.0, "R&B": 0.8, "Folk": 0.6 },
-          "progression_id": "love_002"
+        "Alienation": {
+          "mode": "Dissonant polytonality",
+          "description": "Social and emotional isolation with conflicting key centers representing disconnection.",
+          "progression_pool": [
+            {
+              "chords": ["C", "F♯", "C", "F♯"],
+              "progression_id": "alienation_tritone_001",
+              "description": "Tritone separated keys suggest complete alienation"
+            },
+            {
+              "chords": ["Cmaj7", "G♭maj7", "Cmaj7", "G♭maj7"],
+              "progression_id": "alienation_distant_002",
+              "description": "Distant key centers express social isolation"
+            }
+          ]
         },
-        {
-          "chords": ["I", "♭VII", "v", "I"],
-          "genres": { "Blues Rock": 0.9, "Alt Rock": 0.6, "Indie": 0.5 },
-          "progression_id": "love_003"
+        "Apathy": {
+          "mode": "Minimal modal drift",
+          "description": "Lack of emotional engagement with slow, indifferent harmonic movement.",
+          "progression_pool": [
+            {
+              "chords": ["i", "i", "♭VII", "♭VII"],
+              "progression_id": "apathy_minimal_001",
+              "description": "Minimal movement expressing complete apathy"
+            },
+            {
+              "chords": ["C", "C", "B♭", "B♭"],
+              "progression_id": "apathy_static_002",
+              "description": "Static progression with minimal emotional engagement"
+            }
+          ]
         },
-        {
-          "chords": ["I", "v", "♭VII", "IV"],
-          "genres": { "Country Pop": 0.9, "Soul": 0.7, "Adult Contemporary": 0.6 },
-          "progression_id": "love_004"
-        },
-        {
-          "chords": ["I", "♭VII", "IV", "v"],
-          "genres": { "Southern Rock": 1.0, "Classic Rock": 0.9, "Pop Rock": 0.6 },
-          "progression_id": "love_005"
-        },
-        {
-          "chords": ["I", "IV", "I", "♭VII"],
-          "genres": { "Americana": 0.9, "Folk": 0.8, "Country": 0.7 },
-          "progression_id": "love_006"
-        },
-        {
-          "chords": ["I", "♭VII", "ii", "I"],
-          "genres": { "Soul": 0.8, "Funk": 0.7, "Indie": 0.6 },
-          "progression_id": "love_007"
-        },
-        {
-          "chords": ["I", "ii", "♭VII", "IV"],
-          "genres": { "Neo-Soul": 0.9, "Jazz Funk": 0.7, "R&B": 0.6 },
-          "progression_id": "love_008"
-        },
-        {
-          "chords": ["I", "♭VII", "IV", "ii"],
-          "genres": { "Love Ballads": 0.8, "Gospel": 0.8, "Jazz Pop": 0.6 },
-          "progression_id": "love_009"
-        },
-        {
-          "chords": ["I", "IV", "♭VII", "ii"],
-          "genres": { "Singer-Songwriter": 0.9, "Soft Rock": 0.7, "Pop": 0.5 },
-          "progression_id": "love_010"
-        },
-        {
-          "chords": ["I", "v", "♭VII", "I"],
-          "genres": { "Blues": 0.9, "Jam Band": 0.7, "Alt Country": 0.6 },
-          "progression_id": "love_011"
-        },
-        {
-          "chords": ["I", "♭VII", "I", "v"],
-          "genres": { "Classic Soul": 0.8, "Country": 0.8, "Adult Pop": 0.6 },
-          "progression_id": "love_012"
+        "Depersonalization": {
+          "mode": "Fragmented chord structures",
+          "description": "Loss of self-identity with incomplete, fragmented harmonic structures.",
+          "progression_pool": [
+            {
+              "chords": ["C(no3)", "F(no5)", "G(no3)", "C(no5)"],
+              "progression_id": "depersonalization_incomplete_001",
+              "description": "Incomplete chords suggest fragmented identity"
+            },
+            {
+              "chords": ["C", "C/E", "C/G", "C"],
+              "progression_id": "depersonalization_inversion_002",
+              "description": "Same chord in different inversions suggests identity confusion"
+            }
+          ]
         }
-      ]
+      }
     },
-    "Envy": {
-      "mode": "Hungarian Minor",
-      "description": "Bitter elegance, twisted desire.",
-      "characteristics": ["exotic", "sharp", "intense"],
-      "progression_pool": [
-        {
-          "chords": ["i", "♯iv°", "V", "i"],
-          "genres": { "Eastern Folk": 1.0, "Dark Jazz": 0.8, "Film Noir": 0.7 },
-          "progression_id": "envy_001"
+    "Empowerment": {
+      "mode": "Major with modal shifts and Sus4 builds",
+      "description": "Positive self-realization and growth. Sus4 builds create sense of emerging strength.",
+      "sub_emotions": {
+        "Confidence": {
+          "mode": "Lydian Dominant with strong bass",
+          "description": "Self-assured strength with bold harmonic movement and strong root motion.",
+          "progression_pool": [
+            {
+              "chords": ["I", "IV", "V7", "I"],
+              "progression_id": "confidence_strong_001",
+              "description": "Strong authentic cadence expressing confidence"
+            },
+            {
+              "chords": ["I", "vi", "IV", "V"],
+              "progression_id": "confidence_circle_002",
+              "description": "Circle progression showing self-assurance"
+            }
+          ]
         },
-        {
-          "chords": ["i", "♭VI", "V", "♯iv°"],
-          "genres": { "Flamenco": 1.0, "Classical Fusion": 0.8, "Metal": 0.6 },
-          "progression_id": "envy_002"
+        "Inspiration": {
+          "mode": "Ascending modulations",
+          "description": "Uplifting creative energy with rising harmonic sequences suggesting aspiration.",
+          "progression_pool": [
+            {
+              "chords": ["I", "V/ii", "ii", "V"],
+              "progression_id": "inspiration_ascending_001",
+              "description": "Ascending sequence expressing inspiration"
+            },
+            {
+              "chords": ["I", "iii", "vi", "IV"],
+              "progression_id": "inspiration_upward_002",
+              "description": "Upward harmonic movement suggesting creative inspiration"
+            }
+          ]
         },
-        {
-          "chords": ["i", "♯iv°", "♭II", "i"],
-          "genres": { "Gothic": 0.9, "Cinematic": 0.7, "Middle Eastern": 0.6 },
-          "progression_id": "envy_003"
+        "Resilience": {
+          "mode": "Minor to Major progressions",
+          "description": "Strength through adversity with harmonic progressions that overcome difficulty.",
+          "progression_pool": [
+            {
+              "chords": ["i", "♭VI", "♭VII", "I"],
+              "progression_id": "resilience_minor_major_001",
+              "description": "Minor to major transformation showing resilience"
+            },
+            {
+              "chords": ["i", "iv", "V", "I"],
+              "progression_id": "resilience_overcome_002",
+              "description": "Overcoming progression from minor to major"
+            }
+          ]
         },
-        {
-          "chords": ["i", "♯iv°", "V", "♭VI"],
-          "genres": { "Symphonic Metal": 1.0, "Trailer": 0.8, "Folk Fusion": 0.6 },
-          "progression_id": "envy_004"
-        },
-        {
-          "chords": ["i", "♭III+", "♯iv°", "V"],
-          "genres": { "Dark Classical": 0.9, "Prog Metal": 0.8, "Score": 0.6 },
-          "progression_id": "envy_005"
-        },
-        {
-          "chords": ["i", "♭II", "V", "i"],
-          "genres": { "Arabic Fusion": 0.9, "Jazz Noir": 0.7, "World": 0.6 },
-          "progression_id": "envy_006"
-        },
-        {
-          "chords": ["i", "♯iv°", "♭vi", "i"],
-          "genres": { "Cinematic": 0.8, "Folk Noir": 0.7, "Metal Ballad": 0.6 },
-          "progression_id": "envy_007"
-        },
-        {
-          "chords": ["i", "♯iv°", "♭VI", "♭II"],
-          "genres": { "Horror Score": 0.9, "Orchestral": 0.7, "Darkwave": 0.6 },
-          "progression_id": "envy_008"
-        },
-        {
-          "chords": ["i", "V", "♭II", "♯iv°"],
-          "genres": { "Symphonic Rock": 0.9, "Eastern Jazz": 0.6, "Film Score": 0.6 },
-          "progression_id": "envy_009"
-        },
-        {
-          "chords": ["i", "♯iv°", "♭VI", "i"],
-          "genres": { "Dark Classical": 1.0, "Tango Noir": 0.7, "Gypsy Jazz": 0.6 },
-          "progression_id": "envy_010"
-        },
-        {
-          "chords": ["i", "V", "♯iv°", "V"],
-          "genres": { "Operatic Metal": 0.8, "Fantasy OST": 0.7, "Score": 0.6 },
-          "progression_id": "envy_011"
-        },
-        {
-          "chords": ["i", "♯iv°", "♭III+", "V"],
-          "genres": { "Neo-Classical": 0.9, "World Fusion": 0.7, "Tragic Romance": 0.6 },
-          "progression_id": "envy_012"
+        "Liberation": {
+          "mode": "Breaking free from cycle progressions",
+          "description": "Freedom from constraints with progressions that break expected patterns.",
+          "progression_pool": [
+            {
+              "chords": ["vi", "IV", "I", "V"],
+              "progression_id": "liberation_break_001",
+              "description": "Breaking free from conventional progression order"
+            },
+            {
+              "chords": ["I", "♭VII", "♭VI", "I"],
+              "progression_id": "liberation_modal_002",
+              "description": "Modal liberation from traditional harmony"
+            }
+          ]
         }
-      ]
+      }
     },
-    "Aesthetic Awe": {
-      "mode": "Lydian Augmented",
-      "description": "Transcendent beauty, vastness, the sublime.",
-      "characteristics": ["cosmic", "elevated", "reverent"],
-      "progression_pool": [
-        {
-          "chords": ["I", "II", "III+", "I"],
-          "genres": { "Film Score": 1.0, "Jazz Fusion": 0.8, "Orchestral": 0.7 },
-          "progression_id": "awe_001"
+    "Belonging": {
+      "mode": "Folk modal with simple shared rhythms",
+      "description": "Social cohesion and group harmony. Folk modes and simple rhythms suggest community.",
+      "sub_emotions": {
+        "Companionship": {
+          "mode": "Mixolydian with parallel motion",
+          "description": "Close friendship and fellowship with harmonies that move together.",
+          "progression_pool": [
+            {
+              "chords": ["I", "♭VII", "IV", "I"],
+              "progression_id": "companionship_folk_001",
+              "description": "Folk progression expressing warm companionship"
+            },
+            {
+              "chords": ["I", "vi", "♭VII", "IV"],
+              "progression_id": "companionship_circle_002",
+              "description": "Circular progression suggesting enduring friendship"
+            }
+          ]
         },
-        {
-          "chords": ["I", "♯iv°", "III+", "II"],
-          "genres": { "Sci-Fi": 0.9, "Experimental Classical": 0.7, "Synth": 0.6 },
-          "progression_id": "awe_002"
+        "Unity": {
+          "mode": "Unison and octave doubling",
+          "description": "Group solidarity with harmonic unison and simple, shared progressions.",
+          "progression_pool": [
+            {
+              "chords": ["I", "IV", "I", "V"],
+              "progression_id": "unity_simple_001",
+              "description": "Simple progression expressing group unity"
+            },
+            {
+              "chords": ["I", "V", "vi", "IV"],
+              "progression_id": "unity_together_002",
+              "description": "Familiar progression bringing people together"
+            }
+          ]
         },
-        {
-          "chords": ["I", "III+", "II", "I"],
-          "genres": { "Dream Sequence": 1.0, "Ambient": 0.7, "Fusion": 0.6 },
-          "progression_id": "awe_003"
+        "Acceptance": {
+          "mode": "Gentle Dorian with soft resolutions",
+          "description": "Being welcomed into community with gentle, accepting harmonic resolutions.",
+          "progression_pool": [
+            {
+              "chords": ["i", "♭VI", "♭VII", "i"],
+              "progression_id": "acceptance_dorian_001",
+              "description": "Dorian progression expressing gentle acceptance"
+            },
+            {
+              "chords": ["i", "iv", "♭VI", "♭VII"],
+              "progression_id": "acceptance_soft_002",
+              "description": "Soft progression suggesting warm acceptance"
+            }
+          ]
         },
-        {
-          "chords": ["I", "II", "♯iv°", "III+"],
-          "genres": { "Score": 0.9, "Fantasy": 0.8, "Neo-Classical": 0.6 },
-          "progression_id": "awe_004"
-        },
-        {
-          "chords": ["I", "vi", "III+", "I"],
-          "genres": { "Prog": 0.9, "Art Music": 0.7, "Film": 0.6 },
-          "progression_id": "awe_005"
-        },
-        {
-          "chords": ["I", "V", "II", "III+"],
-          "genres": { "Orchestral Ambient": 1.0, "Dream Jazz": 0.8, "Cinematic": 0.6 },
-          "progression_id": "awe_006"
-        },
-        {
-          "chords": ["I", "III+", "♯iv°", "I"],
-          "genres": { "Modern Jazz": 0.9, "Mystical Score": 0.8, "Space Opera": 0.6 },
-          "progression_id": "awe_007"
-        },
-        {
-          "chords": ["I", "II", "V", "III+"],
-          "genres": { "Fusion": 0.9, "Soundtrack": 0.7, "New Age": 0.6 },
-          "progression_id": "awe_008"
-        },
-        {
-          "chords": ["I", "III+", "II", "V"],
-          "genres": { "Game Music": 0.9, "Fantasy OST": 0.7, "Dream Pop": 0.6 },
-          "progression_id": "awe_009"
-        },
-        {
-          "chords": ["I", "vi", "II", "III+"],
-          "genres": { "Epic Score": 0.9, "Space Music": 0.7, "Film": 0.6 },
-          "progression_id": "awe_010"
-        },
-        {
-          "chords": ["I", "II", "♯iv°", "I"],
-          "genres": { "Mystery Score": 0.8, "Sci-Fi Ambient": 0.7, "Orchestral": 0.6 },
-          "progression_id": "awe_011"
-        },
-        {
-          "chords": ["I", "V", "III+", "I"],
-          "genres": { "Fusion": 0.9, "Synthwave": 0.8, "Soundscape": 0.6 },
-          "progression_id": "awe_012"
+        "Loyalty": {
+          "mode": "Stable bass with consistent harmony",
+          "description": "Steadfast devotion with stable harmonic progressions suggesting reliability.",
+          "progression_pool": [
+            {
+              "chords": ["I", "vi", "IV", "V"],
+              "progression_id": "loyalty_stable_001",
+              "description": "Stable progression expressing unwavering loyalty"
+            },
+            {
+              "chords": ["I", "IV", "vi", "V"],
+              "progression_id": "loyalty_steadfast_002",
+              "description": "Steadfast progression showing reliable loyalty"
+            }
+          ]
         }
-      ]
+      }
+    },
+    "Ideology": {
+      "mode": "Dorian + Phrygian with suspended cadences",
+      "description": "Purpose-driven conviction and belief-fueled passion. Modal mixture suggests complexity of belief.",
+      "sub_emotions": {
+        "Righteousness": {
+          "mode": "Phrygian Dominant with strong cadences",
+          "description": "Moral certainty and justified anger with powerful, decisive harmonic movement.",
+          "progression_pool": [
+            {
+              "chords": ["i", "♭II", "V", "i"],
+              "progression_id": "righteousness_phrygian_001",
+              "description": "Phrygian dominant expressing moral righteousness"
+            },
+            {
+              "chords": ["i", "♭vii°", "V", "i"],
+              "progression_id": "righteousness_strong_002",
+              "description": "Strong progression expressing moral conviction"
+            }
+          ]
+        },
+        "Conviction": {
+          "mode": "Minor with modal interchange",
+          "description": "Unshakeable belief with firm harmonic progressions showing resolve.",
+          "progression_pool": [
+            {
+              "chords": ["i", "IV", "♭VII", "i"],
+              "progression_id": "conviction_firm_001",
+              "description": "Firm progression expressing strong conviction"
+            },
+            {
+              "chords": ["i", "♭VI", "IV", "V"],
+              "progression_id": "conviction_resolve_002",
+              "description": "Resolute progression showing unwavering belief"
+            }
+          ]
+        },
+        "Zeal": {
+          "mode": "Rapid harmonic rhythm with intensity",
+          "description": "Passionate dedication with energetic, intense harmonic movement.",
+          "progression_pool": [
+            {
+              "chords": ["i", "VII", "♭VI", "VII"],
+              "progression_id": "zeal_intense_001",
+              "description": "Intense progression expressing passionate zeal"
+            },
+            {
+              "chords": ["i", "♭ii°", "V", "i"],
+              "progression_id": "zeal_passionate_002",
+              "description": "Passionate progression with diminished intensity"
+            }
+          ]
+        },
+        "Martyrdom": {
+          "mode": "Tragic Phrygian with ascending lines",
+          "description": "Self-sacrifice for cause with tragic yet elevated harmonic progressions.",
+          "progression_pool": [
+            {
+              "chords": ["i", "♭ii", "♭III", "iv"],
+              "progression_id": "martyrdom_tragic_001",
+              "description": "Tragic progression expressing noble sacrifice"
+            },
+            {
+              "chords": ["i", "♭VI", "♭ii", "V"],
+              "progression_id": "martyrdom_noble_002",
+              "description": "Noble progression suggesting heroic martyrdom"
+            }
+          ]
+        }
+      }
+    },
+    "Gratitude": {
+      "mode": "Major 7ths with Gospel cadences",
+      "description": "Deep thankfulness and grace with warm, embracing harmonic progressions.",
+      "sub_emotions": {
+        "Thankfulness": {
+          "mode": "Gospel progressions with added 9ths",
+          "description": "Heartfelt appreciation with rich, warm harmonic extensions.",
+          "progression_pool": [
+            {
+              "chords": ["Imaj7", "vi7", "IVmaj7", "V7"],
+              "progression_id": "thankfulness_gospel_001",
+              "description": "Gospel progression expressing heartfelt gratitude"
+            },
+            {
+              "chords": ["I", "iii", "vi", "IV"],
+              "progression_id": "thankfulness_warm_002",
+              "description": "Warm progression showing genuine appreciation"
+            }
+          ]
+        },
+        "Forgiveness": {
+          "mode": "Gentle resolutions with plagal motion",
+          "description": "Release of resentment with gentle, forgiving harmonic resolutions.",
+          "progression_pool": [
+            {
+              "chords": ["I", "IV", "I", "V"],
+              "progression_id": "forgiveness_plagal_001",
+              "description": "Plagal progression expressing gentle forgiveness"
+            },
+            {
+              "chords": ["I", "vi", "IV", "I"],
+              "progression_id": "forgiveness_gentle_002",
+              "description": "Gentle progression showing merciful forgiveness"
+            }
+          ]
+        },
+        "Closure": {
+          "mode": "Satisfying perfect cadences",
+          "description": "Peaceful completion and acceptance with harmonically complete progressions.",
+          "progression_pool": [
+            {
+              "chords": ["I", "IV", "V", "I"],
+              "progression_id": "closure_complete_001",
+              "description": "Complete progression expressing peaceful closure"
+            },
+            {
+              "chords": ["vi", "IV", "V", "I"],
+              "progression_id": "closure_resolution_002",
+              "description": "Resolving progression bringing emotional closure"
+            }
+          ]
+        },
+        "Peaceful_Reflection": {
+          "mode": "Suspended chords with slow resolution",
+          "description": "Contemplative serenity with suspended harmonies slowly resolving.",
+          "progression_pool": [
+            {
+              "chords": ["Isus4", "I", "Vsus4", "V"],
+              "progression_id": "peaceful_reflection_sus_001",
+              "description": "Suspended progression expressing peaceful contemplation"
+            },
+            {
+              "chords": ["Imaj7", "VImaj7", "IVmaj7", "Imaj7"],
+              "progression_id": "peaceful_reflection_maj7_002",
+              "description": "Major 7th progression creating reflective atmosphere"
+            }
+          ]
+        }
+      }
     }
   },
   "parser_rules": {
     "emotion_keywords": {
-      "Joy": ["happy", "joy", "excited", "cheerful", "uplifted", "bright", "celebratory", "euphoric", "blissful"],
-      "Sadness": ["sad", "depressed", "grieving", "blue", "mournful", "melancholy", "sorrowful", "dejected", "despondent"],
-      "Fear": ["afraid", "scared", "anxious", "nervous", "terrified", "worried", "tense", "apprehensive", "paranoid"],
-      "Anger": ["angry", "furious", "frustrated", "pissed", "irritated", "rage", "aggressive", "hostile", "wrathful"],
-      "Disgust": ["disgusted", "grossed out", "repulsed", "nauseated", "revolted", "sickened", "repelled"],
-      "Surprise": ["surprised", "shocked", "amazed", "startled", "unexpected", "wonder", "astonished", "bewildered"],
-      "Trust": ["trust", "safe", "secure", "supported", "bonded", "intimate", "comfortable", "confident", "assured"],
-      "Anticipation": ["anticipation", "expectation", "eager", "hopeful", "building", "yearning", "excitement", "suspense"],
-      "Shame": ["guilt", "shame", "regret", "embarrassed", "remorseful", "apologetic", "humiliated", "mortified"],
-      "Love": ["love", "romantic", "affection", "caring", "warm", "tender", "devoted", "passionate", "adoring"],
-      "Envy": ["jealous", "envious", "spiteful", "competitive", "bitter", "possessive", "resentful", "covetous"],
-      "Aesthetic Awe": ["awe", "wonder", "sublime", "inspired", "majestic", "transcendent", "beautiful", "breathtaking", "magnificent"]
-    },
-    "intensity_modifiers": {
-      "very": 1.5,
-      "extremely": 1.8,
-      "incredibly": 1.7,
-      "slightly": 0.5,
-      "a bit": 0.7,
-      "kind of": 0.8,
-      "somewhat": 0.6,
-      "really": 1.3,
-      "deeply": 1.4,
-      "mildly": 0.4
-    },
-    "conjunction_handling": {
-      "but": "contrast_blend",
-      "and": "additive_blend", 
-      "with": "additive_blend",
-      "yet": "contrast_blend",
-      "however": "contrast_blend",
-      "plus": "additive_blend"
+      "Joy": {
+        "primary": ["happy", "joy", "joyful", "elated", "cheerful"],
+        "sub_emotion_keywords": {
+          "Excitement": ["excited", "thrilled", "energetic", "pumped"],
+          "Contentment": ["content", "satisfied", "peaceful", "serene"]
+        }
+      },
+      "Sadness": {
+        "primary": ["sad", "depressed", "grieving", "melancholy"],
+        "sub_emotion_keywords": {
+          "Melancholy": ["melancholic", "bittersweet", "wistful"],
+          "Longing": ["yearning", "longing", "aching", "craving"]
+        }
+      },
+      "Malice": {
+        "primary": [
+          "malicious",
+          "evil",
+          "wicked",
+          "malevolent",
+          "sinister",
+          "dark",
+          "villainous"
+        ],
+        "sub_emotion_keywords": {
+          "Cruelty": [
+            "cruel",
+            "brutal",
+            "harsh",
+            "merciless",
+            "heartless",
+            "vicious"
+          ],
+          "Sadism": [
+            "sadistic",
+            "twisted",
+            "perverted",
+            "gleeful",
+            "taunting",
+            "torturous"
+          ],
+          "Vengefulness": [
+            "vengeful",
+            "vindictive",
+            "retaliatory",
+            "spiteful",
+            "revengeful"
+          ],
+          "Callousness": [
+            "callous",
+            "cold",
+            "indifferent",
+            "unfeeling",
+            "emotionless",
+            "void"
+          ],
+          "Manipulation": [
+            "manipulative",
+            "cunning",
+            "scheming",
+            "deceptive",
+            "crafty",
+            "calculating"
+          ],
+          "Domination": [
+            "dominating",
+            "tyrannical",
+            "oppressive",
+            "controlling",
+            "authoritarian",
+            "imperial"
+          ],
+          "Narcissism": [
+            "narcissistic",
+            "exotic",
+            "dramatic",
+            "regal",
+            "menacing"
+          ],
+          "Machiavellianism": [
+            "scheming",
+            "calculating",
+            "deceitful",
+            "treacherous",
+            "manipulative"
+          ],
+          "Psychopathy": [
+            "psychopathic",
+            "unstable",
+            "evil",
+            "malevolent",
+            "callous"
+          ],
+          "Spite": ["spiteful", "bitter", "unforgiving", "vindictive"],
+          "Hatred": ["hatred", "animosity", "resentment", "anger"],
+          "Malicious_Envy": ["envy", "jealous", "resentment", "bitterness"],
+          "Contempt": ["contemptuous", "disdainful", "derisive", "scornful"],
+          "Schadenfreude": ["schadenfreude", "pleasure", "delight", "joy"],
+          "Treachery": [
+            "treacherous",
+            "deceitful",
+            "untrustworthy",
+            "dishonest"
+          ],
+          "Ruthlessness": ["ruthless", "cold", "calculating", "merciless"],
+          "Wrath": ["wrathful", "angry", "furious", "vengeful"],
+          "Hostility": ["hostile", "aggressive", "threatening", "antagonistic"],
+          "Resentment": ["resentment", "bitterness", "anger", "frustration"],
+          "Jealousy": ["jealous", "envious", "covetous", "envying"],
+          "Misanthropy": [
+            "misanthropic",
+            "disgusted",
+            "disillusioned",
+            "dispassionate"
+          ]
+        }
+      },
+      "Arousal": {
+        "primary": [
+          "aroused",
+          "drive",
+          "driven",
+          "lust",
+          "lustful",
+          "restless",
+          "manic",
+          "addicted",
+          "compulsive"
+        ],
+        "sub_emotion_keywords": {
+          "Lust": [
+            "lustful",
+            "sensual",
+            "desire",
+            "craving",
+            "passionate",
+            "seductive"
+          ],
+          "Drive": [
+            "driven",
+            "motivated",
+            "ambitious",
+            "determined",
+            "focused",
+            "goal-oriented"
+          ],
+          "Restlessness": [
+            "restless",
+            "agitated",
+            "fidgety",
+            "unsettled",
+            "anxious",
+            "nervous"
+          ],
+          "Addiction": [
+            "addicted",
+            "compulsive",
+            "obsessed",
+            "dependent",
+            "hooked",
+            "craving"
+          ],
+          "Mania": [
+            "manic",
+            "frenzied",
+            "hyperactive",
+            "energetic",
+            "wild",
+            "uncontrolled"
+          ]
+        }
+      },
+      "Guilt": {
+        "primary": [
+          "guilty",
+          "guilt",
+          "remorseful",
+          "regretful",
+          "ashamed",
+          "sorry",
+          "repentant"
+        ],
+        "sub_emotion_keywords": {
+          "Remorse": [
+            "remorseful",
+            "regretful",
+            "penitent",
+            "contrite",
+            "apologetic",
+            "sorry"
+          ],
+          "Moral_Injury": [
+            "wounded",
+            "violated",
+            "compromised",
+            "betrayed",
+            "corrupted",
+            "tainted"
+          ],
+          "Self_Reproach": [
+            "self-critical",
+            "self-condemning",
+            "self-blaming",
+            "self-loathing",
+            "harsh"
+          ],
+          "Ethical_Doubt": [
+            "uncertain",
+            "conflicted",
+            "confused",
+            "questioning",
+            "torn",
+            "unsure"
+          ]
+        }
+      },
+      "Reverence": {
+        "primary": [
+          "reverent",
+          "sacred",
+          "holy",
+          "divine",
+          "spiritual",
+          "worship",
+          "humble"
+        ],
+        "sub_emotion_keywords": {
+          "Humility": [
+            "humble",
+            "modest",
+            "meek",
+            "submissive",
+            "deferential",
+            "unassuming"
+          ],
+          "Worship": [
+            "worshipful",
+            "devotional",
+            "praising",
+            "adoring",
+            "glorifying",
+            "exalting"
+          ],
+          "Faith": [
+            "faithful",
+            "believing",
+            "trusting",
+            "devout",
+            "pious",
+            "religious"
+          ],
+          "Sacred_Peace": [
+            "serene",
+            "transcendent",
+            "peaceful",
+            "calm",
+            "ethereal",
+            "mystical"
+          ]
+        }
+      },
+      "Wonder": {
+        "primary": [
+          "wonder",
+          "curious",
+          "fascinated",
+          "intrigued",
+          "amazed",
+          "marveling",
+          "exploring"
+        ],
+        "sub_emotion_keywords": {
+          "Intrigue": [
+            "intrigued",
+            "mysterious",
+            "puzzled",
+            "questioning",
+            "investigative",
+            "probing"
+          ],
+          "Exploration": [
+            "exploring",
+            "discovering",
+            "adventurous",
+            "seeking",
+            "searching",
+            "investigating"
+          ],
+          "Marvel": [
+            "marveling",
+            "amazed",
+            "astonished",
+            "impressed",
+            "awestruck",
+            "dazzled"
+          ],
+          "Childlike_Wonder": [
+            "innocent",
+            "naive",
+            "pure",
+            "simple",
+            "fresh",
+            "open-minded"
+          ]
+        }
+      },
+      "Dissociation": {
+        "primary": [
+          "dissociated",
+          "numb",
+          "detached",
+          "disconnected",
+          "empty",
+          "alienated",
+          "apathetic"
+        ],
+        "sub_emotion_keywords": {
+          "Numbness": [
+            "numb",
+            "emotionless",
+            "deadened",
+            "vacant",
+            "hollow",
+            "void"
+          ],
+          "Alienation": [
+            "alienated",
+            "isolated",
+            "estranged",
+            "foreign",
+            "outsider",
+            "excluded"
+          ],
+          "Apathy": [
+            "apathetic",
+            "indifferent",
+            "uncaring",
+            "listless",
+            "unmotivated",
+            "disinterested"
+          ],
+          "Depersonalization": [
+            "unreal",
+            "detached",
+            "observing",
+            "floating",
+            "dreamlike",
+            "surreal"
+          ]
+        }
+      },
+      "Empowerment": {
+        "primary": [
+          "empowered",
+          "confident",
+          "strong",
+          "inspired",
+          "resilient",
+          "liberated",
+          "free"
+        ],
+        "sub_emotion_keywords": {
+          "Confidence": [
+            "confident",
+            "self-assured",
+            "bold",
+            "assertive",
+            "certain",
+            "secure"
+          ],
+          "Inspiration": [
+            "inspired",
+            "motivated",
+            "uplifted",
+            "energized",
+            "creative",
+            "visionary"
+          ],
+          "Resilience": [
+            "resilient",
+            "tough",
+            "enduring",
+            "persevering",
+            "bouncing back",
+            "recovering"
+          ],
+          "Liberation": [
+            "liberated",
+            "free",
+            "released",
+            "unbound",
+            "unrestricted",
+            "independent"
+          ]
+        }
+      },
+      "Belonging": {
+        "primary": [
+          "belonging",
+          "connected",
+          "community",
+          "unity",
+          "acceptance",
+          "companionship",
+          "loyal"
+        ],
+        "sub_emotion_keywords": {
+          "Companionship": [
+            "companionable",
+            "friendly",
+            "social",
+            "fellowship",
+            "camaraderie",
+            "bonded"
+          ],
+          "Unity": [
+            "united",
+            "together",
+            "one",
+            "harmonious",
+            "synchronized",
+            "collective"
+          ],
+          "Acceptance": [
+            "accepted",
+            "welcomed",
+            "included",
+            "embraced",
+            "valued",
+            "appreciated"
+          ],
+          "Loyalty": [
+            "loyal",
+            "faithful",
+            "devoted",
+            "committed",
+            "steadfast",
+            "reliable"
+          ]
+        }
+      },
+      "Ideology": {
+        "primary": [
+          "ideological",
+          "righteous",
+          "convicted",
+          "zealous",
+          "principled",
+          "devoted",
+          "cause"
+        ],
+        "sub_emotion_keywords": {
+          "Righteousness": [
+            "righteous",
+            "just",
+            "moral",
+            "ethical",
+            "virtuous",
+            "noble"
+          ],
+          "Conviction": [
+            "convicted",
+            "certain",
+            "unwavering",
+            "firm",
+            "resolute",
+            "determined"
+          ],
+          "Zeal": [
+            "zealous",
+            "passionate",
+            "fervent",
+            "intense",
+            "dedicated",
+            "fanatical"
+          ],
+          "Martyrdom": [
+            "sacrificial",
+            "selfless",
+            "heroic",
+            "noble",
+            "martyrlike",
+            "self-sacrificing"
+          ]
+        }
+      },
+      "Gratitude": {
+        "primary": [
+          "grateful",
+          "thankful",
+          "appreciative",
+          "blessed",
+          "gracious",
+          "content",
+          "peaceful"
+        ],
+        "sub_emotion_keywords": {
+          "Thankfulness": [
+            "thankful",
+            "appreciative",
+            "grateful",
+            "blessed",
+            "indebted",
+            "obliged"
+          ],
+          "Forgiveness": [
+            "forgiving",
+            "merciful",
+            "understanding",
+            "compassionate",
+            "letting go",
+            "releasing"
+          ],
+          "Closure": [
+            "closure",
+            "complete",
+            "finished",
+            "resolved",
+            "settled",
+            "peaceful"
+          ],
+          "Peaceful_Reflection": [
+            "reflective",
+            "contemplative",
+            "meditative",
+            "serene",
+            "tranquil",
+            "calm"
+          ]
+        }
+      }
     }
-  },
-  "genre_catalog": [
-    "Pop", "Rock", "Jazz", "Classical", "Electronic", "Hip-Hop", "R&B", "Soul", "Country", "Folk",
-    "Blues", "Funk", "Reggae", "Metal", "Punk", "Indie", "Alternative", "Prog", "Ambient", "EDM",
-    "House", "Techno", "Trance", "Dubstep", "Trap", "Lo-fi", "Chillhop", "Bossa Nova", "Latin",
-    "World", "Cinematic", "Soundtrack", "Film Score", "Game OST", "Trailer", "Orchestral", "Chamber",
-    "Symphonic", "Opera", "Musical Theatre", "Gospel", "Spiritual", "New Age", "Meditation", "Drone",
-    "Noise", "Industrial", "Darkwave", "Synthwave", "Vaporwave", "Post-Rock", "Shoegaze", "Dream Pop"
-  ]
+  }
 }

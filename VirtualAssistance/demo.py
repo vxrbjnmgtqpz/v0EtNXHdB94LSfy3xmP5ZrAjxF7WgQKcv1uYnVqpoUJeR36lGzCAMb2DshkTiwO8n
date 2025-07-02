@@ -5,6 +5,7 @@ Showcases the complete pipeline: Text → Emotions → Modes → Chord Progressi
 
 import torch
 import json
+import os
 from chord_progression_model import ChordProgressionModel
 from train_model import ModelTrainer
 import time
@@ -17,12 +18,15 @@ class ChordProgressionDemo:
         print("🎵 Initializing Chord Progression Generator...")
         self.model = ChordProgressionModel()
         
-        if model_path and torch.path.exists(model_path):
+        if model_path and os.path.exists(model_path):
             print(f"Loading trained model from {model_path}")
             trainer = ModelTrainer(self.model)
             trainer.load_model(model_path)
+            self.model.enable_neural_generation()
+            print("🧠 Neural generation enabled")
         else:
             print("Using untrained model (database lookup mode)")
+            self.model.disable_neural_generation()
         
         print("✅ Model ready!\n")
     

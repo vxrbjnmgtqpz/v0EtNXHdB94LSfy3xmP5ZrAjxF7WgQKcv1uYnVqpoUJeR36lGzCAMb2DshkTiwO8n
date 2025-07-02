@@ -323,10 +323,10 @@ class EnhancedSolfegeTheoryEngine:
                 logger.error(f"Error from Wolfram: {result['error']}")
                 return {}
             elif "result" in result and isinstance(result["result"], dict):
-                return {style: [str(chord) for chord in progression] 
+                return {style: [str(chord).replace('Â°', '°').replace('â°', '°') for chord in progression] 
                        for style, progression in result["result"].items() if progression}
             elif isinstance(result, dict) and not "error" in result:
-                return {style: [str(chord) for chord in progression] 
+                return {style: [str(chord).replace('Â°', '°').replace('â°', '°') for chord in progression] 
                        for style, progression in result.items() if progression}
             else:
                 logger.warning(f"Unexpected result format from style comparison: {result}")

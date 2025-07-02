@@ -1,1 +1,3588 @@
-{}
+{
+    "session_1751474360_7095": {
+        "last_response": {
+            "message": "\ud83c\udfbc **ii\u00b0 \u2192 II \u2192 i \u2192 ii\u00b0**\n\n\ud83c\udfad Emotions: Joy (1.00), Sadness (0.00)\n\n\ud83c\udfb5 Mode: Lydian\n\n\ud83d\udd0d Individual chord emotions available - ask for details!\n\n\ud83c\udfb6 8 style alternatives available",
+            "chords": [
+                "ii\u00b0",
+                "II",
+                "i",
+                "ii\u00b0"
+            ],
+            "original_chords": [
+                "ii\u00b0",
+                "II",
+                "i",
+                "ii\u00b0"
+            ],
+            "chord_metadata": [
+                {
+                    "position": 0,
+                    "current_chord": "ii\u00b0",
+                    "original_chord": "I",
+                    "is_substitution": true,
+                    "source": "neural_substitution",
+                    "substitution_type": "added_diminished"
+                },
+                {
+                    "position": 1,
+                    "current_chord": "II",
+                    "original_chord": "vi",
+                    "is_substitution": true,
+                    "source": "neural_substitution",
+                    "substitution_type": "chord_substitution"
+                },
+                {
+                    "position": 2,
+                    "current_chord": "i",
+                    "original_chord": "II7",
+                    "is_substitution": true,
+                    "source": "neural_substitution",
+                    "substitution_type": "removed_seventh"
+                },
+                {
+                    "position": 3,
+                    "current_chord": "ii\u00b0",
+                    "original_chord": "V",
+                    "is_substitution": true,
+                    "source": "neural_substitution",
+                    "substitution_type": "added_diminished"
+                }
+            ],
+            "substitution_count": 4,
+            "generation_method": "unknown",
+            "has_substitutions": true,
+            "emotions": {
+                "Joy": 1.0,
+                "Sadness": 0.0,
+                "Fear": 0.0,
+                "Anger": 0.0,
+                "Disgust": 0.0,
+                "Surprise": 0.0,
+                "Trust": 0.0,
+                "Anticipation": 0.0,
+                "Shame": 0.0,
+                "Love": 0.0,
+                "Envy": 0.0,
+                "Aesthetic Awe": 0.0,
+                "Malice": 0.0
+            },
+            "primary_result": {
+                "progression_id": "generated_0",
+                "prompt": "happy",
+                "emotion_weights": {
+                    "Joy": 1.0,
+                    "Sadness": 0.0,
+                    "Fear": 0.0,
+                    "Anger": 0.0,
+                    "Disgust": 0.0,
+                    "Surprise": 0.0,
+                    "Trust": 0.0,
+                    "Anticipation": 0.0,
+                    "Shame": 0.0,
+                    "Love": 0.0,
+                    "Envy": 0.0,
+                    "Aesthetic Awe": 0.0,
+                    "Malice": 0.0
+                },
+                "detected_sub_emotion": "",
+                "primary_mode": "Lydian",
+                "mode_blend": {
+                    "Ionian": 0.0821073055267334,
+                    "Aeolian": 0.08119712769985199,
+                    "Phrygian": 0.08329813182353973,
+                    "Phrygian Dominant": 0.08259590715169907,
+                    "Locrian": 0.08407534658908844,
+                    "Lydian": 0.08824995160102844,
+                    "Dorian": 0.08199448883533478,
+                    "Melodic Minor": 0.08501022309064865,
+                    "Harmonic Minor": 0.08126574754714966,
+                    "Mixolydian": 0.08200473338365555,
+                    "Hungarian Minor": 0.08504629880189896,
+                    "Lydian Augmented": 0.08315478265285492
+                },
+                "chords": [
+                    "ii\u00b0",
+                    "II",
+                    "i",
+                    "ii\u00b0"
+                ],
+                "chord_metadata": [
+                    {
+                        "position": 0,
+                        "current_chord": "ii\u00b0",
+                        "original_chord": "I",
+                        "is_substitution": true,
+                        "source": "neural_substitution",
+                        "substitution_type": "added_diminished"
+                    },
+                    {
+                        "position": 1,
+                        "current_chord": "II",
+                        "original_chord": "vi",
+                        "is_substitution": true,
+                        "source": "neural_substitution",
+                        "substitution_type": "chord_substitution"
+                    },
+                    {
+                        "position": 2,
+                        "current_chord": "i",
+                        "original_chord": "II7",
+                        "is_substitution": true,
+                        "source": "neural_substitution",
+                        "substitution_type": "removed_seventh"
+                    },
+                    {
+                        "position": 3,
+                        "current_chord": "ii\u00b0",
+                        "original_chord": "V",
+                        "is_substitution": true,
+                        "source": "neural_substitution",
+                        "substitution_type": "added_diminished"
+                    }
+                ],
+                "substitution_count": 4,
+                "genre": "Pop",
+                "metadata": {
+                    "generation_method": "neural_generation",
+                    "timestamp": "2025-07-02T15:49:26.634385",
+                    "neural_mode": true,
+                    "has_substitutions": true
+                }
+            },
+            "alternatives": {
+                "Blues": [
+                    "I+",
+                    "V7",
+                    "IV7",
+                    "IV"
+                ],
+                "Jazz": [
+                    "I",
+                    "vii\u00b0",
+                    "V7alt",
+                    "I"
+                ],
+                "Classical": [
+                    "I",
+                    "V",
+                    "vi",
+                    "IV"
+                ],
+                "Pop": [
+                    "I",
+                    "V",
+                    "V",
+                    "IV"
+                ],
+                "Rock": [
+                    "I",
+                    "IV+",
+                    "viadd9",
+                    "Isus2"
+                ],
+                "Folk": [
+                    "I",
+                    "ii",
+                    "vi",
+                    "I"
+                ],
+                "RnB": [
+                    "I",
+                    "ii",
+                    "IM7",
+                    "IM7#5"
+                ],
+                "Cinematic": [
+                    "I",
+                    "iii",
+                    "IM7#5",
+                    "IM7#11"
+                ]
+            },
+            "individual_analysis": [
+                {
+                    "chord_id": "ionian_I",
+                    "prompt": "happy",
+                    "emotion_weights": {
+                        "Joy": 1.0,
+                        "Sadness": 0.0,
+                        "Fear": 0.0,
+                        "Anger": 0.0,
+                        "Disgust": 0.0,
+                        "Surprise": 0.0,
+                        "Trust": 0.0,
+                        "Anticipation": 0.0,
+                        "Shame": 0.0,
+                        "Love": 0.0,
+                        "Envy": 0.0,
+                        "Aesthetic Awe": 0.0,
+                        "Malice": 0.0
+                    },
+                    "chord_symbol": "C",
+                    "roman_numeral": "I",
+                    "mode_context": "Ionian",
+                    "style_context": "Classical",
+                    "emotional_score": 1.0,
+                    "key": "C",
+                    "metadata": {
+                        "generation_method": "emotion_weighted_selection",
+                        "timestamp": "2025-07-02T15:49:26.634520",
+                        "mode_filter": "Any",
+                        "style_filter": "Any"
+                    }
+                }
+            ],
+            "suggestions": [
+                "Try this in a different style",
+                "Show me individual chord emotions",
+                "Compare across musical styles",
+                "Explain the music theory"
+            ],
+            "intent": "emotional_progression",
+            "confidence": 0.3,
+            "models_used": [
+                "progression",
+                "individual",
+                "theory"
+            ],
+            "timestamp": 1751485767.944608
+        },
+        "last_progression": [
+            "ii\u00b0",
+            "II",
+            "i",
+            "ii\u00b0"
+        ],
+        "last_emotion": "Joy",
+        "last_style": "Pop",
+        "last_mode": "Lydian",
+        "timestamp": 1751485767.944746
+    },
+    "session_1751476782_6525": {
+        "last_response": {
+            "message": "\ud83c\udfbc **i \u2192 iv \u2192 i \u2192 v**\n\n\ud83c\udfad Emotions: Sadness (1.00), Joy (0.00)\n\n\ud83c\udfb5 Mode: Aeolian\n\n\ud83d\udd0d Individual chord emotions available - ask for details!\n\n\ud83c\udfb6 8 style alternatives available",
+            "chords": [
+                "i",
+                "iv",
+                "i",
+                "v"
+            ],
+            "emotions": {
+                "Joy": 0.0,
+                "Sadness": 1.0,
+                "Fear": 0.0,
+                "Anger": 0.0,
+                "Disgust": 0.0,
+                "Surprise": 0.0,
+                "Trust": 0.0,
+                "Anticipation": 0.0,
+                "Shame": 0.0,
+                "Love": 0.0,
+                "Envy": 0.0,
+                "Aesthetic Awe": 0.0
+            },
+            "primary_result": {
+                "progression_id": "generated_0",
+                "prompt": "sad",
+                "emotion_weights": {
+                    "Joy": 0.0,
+                    "Sadness": 1.0,
+                    "Fear": 0.0,
+                    "Anger": 0.0,
+                    "Disgust": 0.0,
+                    "Surprise": 0.0,
+                    "Trust": 0.0,
+                    "Anticipation": 0.0,
+                    "Shame": 0.0,
+                    "Love": 0.0,
+                    "Envy": 0.0,
+                    "Aesthetic Awe": 0.0
+                },
+                "primary_mode": "Aeolian",
+                "mode_blend": {
+                    "Ionian": 0.0,
+                    "Aeolian": 1.0,
+                    "Phrygian": 0.0,
+                    "Phrygian Dominant": 0.0,
+                    "Locrian": 0.0,
+                    "Lydian": 0.0,
+                    "Dorian": 0.0,
+                    "Melodic Minor": 0.0,
+                    "Harmonic Minor": 0.0,
+                    "Mixolydian": 0.0,
+                    "Hungarian Minor": 0.0,
+                    "Lydian Augmented": 0.0
+                },
+                "chords": [
+                    "i",
+                    "iv",
+                    "i",
+                    "v"
+                ],
+                "genre": "Pop",
+                "metadata": {
+                    "generation_method": "database_selection",
+                    "timestamp": "2025-07-02T13:19:42.226619",
+                    "neural_mode": false
+                }
+            },
+            "alternatives": {
+                "Blues": [
+                    "bVII7",
+                    "IV7",
+                    "IV",
+                    "IV7"
+                ],
+                "Jazz": [
+                    "I",
+                    "V",
+                    "V",
+                    "IM7"
+                ],
+                "Classical": [
+                    "I",
+                    "I",
+                    "ii",
+                    "ii"
+                ],
+                "Pop": [
+                    "I",
+                    "I",
+                    "vi",
+                    "I"
+                ],
+                "Rock": [
+                    "I",
+                    "V7",
+                    "iiadd9",
+                    "IVadd9"
+                ],
+                "Folk": [
+                    "I",
+                    "iii",
+                    "IV",
+                    "I"
+                ],
+                "RnB": [
+                    "I",
+                    "vi7",
+                    "ii7",
+                    "V7#5"
+                ],
+                "Cinematic": [
+                    "I",
+                    "V7#11",
+                    "ii7b5",
+                    "IM7#5"
+                ]
+            },
+            "individual_analysis": [
+                {
+                    "chord_id": "aeolian_i",
+                    "prompt": "sad",
+                    "emotion_weights": {
+                        "Joy": 0.0,
+                        "Sadness": 1.0,
+                        "Fear": 0.0,
+                        "Anger": 0.0,
+                        "Disgust": 0.0,
+                        "Surprise": 0.0,
+                        "Trust": 0.0,
+                        "Anticipation": 0.0,
+                        "Shame": 0.0,
+                        "Love": 0.0,
+                        "Envy": 0.0,
+                        "Aesthetic Awe": 0.0
+                    },
+                    "chord_symbol": "Am",
+                    "roman_numeral": "i",
+                    "mode_context": "Aeolian",
+                    "style_context": "Classical",
+                    "emotional_score": 1.0,
+                    "key": "C",
+                    "metadata": {
+                        "generation_method": "emotion_weighted_selection",
+                        "timestamp": "2025-07-02T13:19:42.226710",
+                        "mode_filter": "Any",
+                        "style_filter": "Any"
+                    }
+                }
+            ],
+            "suggestions": [
+                "Try this in a different style",
+                "Show me individual chord emotions",
+                "Compare across musical styles",
+                "Explain the music theory"
+            ],
+            "intent": "emotional_progression",
+            "confidence": 0.3,
+            "models_used": [
+                "progression",
+                "individual",
+                "theory"
+            ],
+            "timestamp": 1751476783.590484
+        },
+        "last_progression": [
+            "i",
+            "iv",
+            "i",
+            "v"
+        ],
+        "last_emotion": "Sadness",
+        "last_style": "Pop",
+        "last_mode": "Aeolian",
+        "timestamp": 1751476783.5906198
+    },
+    "session_1751476789_2811": {
+        "last_response": {
+            "message": "\ud83c\udfbc **vi7 \u2192 vi7 \u2192 vi7 \u2192 vi7**\n\n\ud83c\udfb5 Style: Blues | Mode: Ionian\n\n\ud83c\udfad Emotional character: Sadness (1.00)",
+            "chords": [
+                "vi7",
+                "vi7",
+                "vi7",
+                "vi7"
+            ],
+            "original_chords": [
+                "vi7",
+                "vi7",
+                "vi7",
+                "vi7"
+            ],
+            "style": "Blues",
+            "mode": "Ionian",
+            "primary_result": {
+                "progression": [
+                    "vi7",
+                    "vi7",
+                    "vi7",
+                    "vi7"
+                ],
+                "style": "Blues",
+                "mode": "Ionian"
+            },
+            "emotional_context": {
+                "progression_id": "generated_0",
+                "prompt": "blues progression with 7th chords",
+                "emotion_weights": {
+                    "Joy": 0.0,
+                    "Sadness": 1.0,
+                    "Fear": 0.0,
+                    "Anger": 0.0,
+                    "Disgust": 0.0,
+                    "Surprise": 0.0,
+                    "Trust": 0.0,
+                    "Anticipation": 0.0,
+                    "Shame": 0.0,
+                    "Love": 0.0,
+                    "Envy": 0.0,
+                    "Aesthetic Awe": 0.0
+                },
+                "primary_mode": "Aeolian",
+                "mode_blend": {
+                    "Ionian": 0.0,
+                    "Aeolian": 1.0,
+                    "Phrygian": 0.0,
+                    "Phrygian Dominant": 0.0,
+                    "Locrian": 0.0,
+                    "Lydian": 0.0,
+                    "Dorian": 0.0,
+                    "Melodic Minor": 0.0,
+                    "Harmonic Minor": 0.0,
+                    "Mixolydian": 0.0,
+                    "Hungarian Minor": 0.0,
+                    "Lydian Augmented": 0.0
+                },
+                "chords": [
+                    "i",
+                    "iv",
+                    "v",
+                    "i"
+                ],
+                "genre": "Blues",
+                "metadata": {
+                    "generation_method": "database_selection",
+                    "timestamp": "2025-07-02T13:39:35.665170",
+                    "neural_mode": false
+                }
+            },
+            "suggestions": [
+                "Add emotional context",
+                "Compare with other styles",
+                "Show me variations",
+                "Explain the harmonic functions"
+            ],
+            "intent": "theory_request",
+            "confidence": 0.3333333333333333,
+            "models_used": [
+                "theory",
+                "progression"
+            ],
+            "timestamp": 1751477977.000695
+        },
+        "last_progression": [
+            "vi7",
+            "vi7",
+            "vi7",
+            "vi7"
+        ],
+        "last_emotion": "Joy",
+        "last_style": "Pop",
+        "last_mode": "Ionian",
+        "timestamp": 1751477977.000774
+    },
+    "session_1751479720_4677": {
+        "last_response": {
+            "message": "\ud83c\udfbc **I \u2192 II7 \u2192 V \u2192 I**\n\n\ud83c\udfad Emotions: Joy (1.00), Sadness (0.00)\n\n\ud83c\udfaf Specific sub-emotion: Excitement (within Joy)\n\n\ud83c\udfb5 Mode: Ionian\n\n\ud83d\udd0d Individual chord emotions available - ask for details!\n\n\ud83c\udfb6 8 style alternatives available",
+            "chords": [
+                "I",
+                "II7",
+                "V",
+                "I"
+            ],
+            "original_chords": [
+                "I",
+                "II7",
+                "V",
+                "I"
+            ],
+            "chord_metadata": [
+                {
+                    "is_substitution": false,
+                    "original_chord": "I",
+                    "source": "database"
+                },
+                {
+                    "is_substitution": false,
+                    "original_chord": "II7",
+                    "source": "database"
+                },
+                {
+                    "is_substitution": false,
+                    "original_chord": "V",
+                    "source": "database"
+                },
+                {
+                    "is_substitution": false,
+                    "original_chord": "I",
+                    "source": "database"
+                }
+            ],
+            "substitution_count": 0,
+            "generation_method": "unknown",
+            "has_substitutions": false,
+            "emotions": {
+                "Joy": 1.0,
+                "Sadness": 0.0,
+                "Fear": 0.0,
+                "Anger": 0.0,
+                "Disgust": 0.0,
+                "Surprise": 0.0,
+                "Trust": 0.0,
+                "Anticipation": 0.0,
+                "Shame": 0.0,
+                "Love": 0.0,
+                "Envy": 0.0,
+                "Aesthetic Awe": 0.0
+            },
+            "primary_result": {
+                "progression_id": "generated_0",
+                "prompt": "I feel really excited and thrilled about this new opportunity",
+                "emotion_weights": {
+                    "Joy": 1.0,
+                    "Sadness": 0.0,
+                    "Fear": 0.0,
+                    "Anger": 0.0,
+                    "Disgust": 0.0,
+                    "Surprise": 0.0,
+                    "Trust": 0.0,
+                    "Anticipation": 0.0,
+                    "Shame": 0.0,
+                    "Love": 0.0,
+                    "Envy": 0.0,
+                    "Aesthetic Awe": 0.0
+                },
+                "detected_sub_emotion": "Joy:Excitement",
+                "primary_mode": "Ionian",
+                "mode_blend": {
+                    "Ionian": 1.0,
+                    "Aeolian": 0.0,
+                    "Phrygian": 0.0,
+                    "Phrygian Dominant": 0.0,
+                    "Locrian": 0.0,
+                    "Lydian": 0.0,
+                    "Dorian": 0.0,
+                    "Melodic Minor": 0.0,
+                    "Harmonic Minor": 0.0,
+                    "Mixolydian": 0.0,
+                    "Hungarian Minor": 0.0,
+                    "Lydian Augmented": 0.0
+                },
+                "chords": [
+                    "I",
+                    "II7",
+                    "V",
+                    "I"
+                ],
+                "chord_metadata": [
+                    {
+                        "is_substitution": false,
+                        "original_chord": "I",
+                        "source": "database"
+                    },
+                    {
+                        "is_substitution": false,
+                        "original_chord": "II7",
+                        "source": "database"
+                    },
+                    {
+                        "is_substitution": false,
+                        "original_chord": "V",
+                        "source": "database"
+                    },
+                    {
+                        "is_substitution": false,
+                        "original_chord": "I",
+                        "source": "database"
+                    }
+                ],
+                "substitution_count": 0,
+                "genre": "Pop",
+                "metadata": {
+                    "generation_method": "database_selection",
+                    "timestamp": "2025-07-02T14:08:41.000237",
+                    "neural_mode": false,
+                    "has_substitutions": false
+                }
+            },
+            "alternatives": {
+                "Blues": [
+                    "vi7",
+                    "IV",
+                    "vi7",
+                    "IV"
+                ],
+                "Jazz": [
+                    "I",
+                    "ii7",
+                    "ii7",
+                    "vii\u00c3\u00b87"
+                ],
+                "Classical": [
+                    "I",
+                    "vii\u00b0",
+                    "vii\u00b0",
+                    "V"
+                ],
+                "Pop": [
+                    "I",
+                    "vi",
+                    "I",
+                    "IV"
+                ],
+                "Rock": [
+                    "I",
+                    "visus4",
+                    "vi",
+                    "vi+"
+                ],
+                "Folk": [
+                    "I",
+                    "V",
+                    "vi",
+                    "vi"
+                ],
+                "RnB": [
+                    "I",
+                    "I",
+                    "vi7",
+                    "IM7"
+                ],
+                "Cinematic": [
+                    "I",
+                    "IM7#11",
+                    "V",
+                    "I"
+                ]
+            },
+            "individual_analysis": [
+                {
+                    "chord_id": "ionian_V",
+                    "prompt": "I feel really excited and thrilled about this new opportunity",
+                    "emotion_weights": {
+                        "Joy": 0.5,
+                        "Sadness": 0.0,
+                        "Fear": 0.0,
+                        "Anger": 0.0,
+                        "Disgust": 0.0,
+                        "Surprise": 0.0,
+                        "Trust": 0.0,
+                        "Anticipation": 0.5,
+                        "Shame": 0.0,
+                        "Love": 0.0,
+                        "Envy": 0.0,
+                        "Aesthetic Awe": 0.0
+                    },
+                    "chord_symbol": "G",
+                    "roman_numeral": "V",
+                    "mode_context": "Ionian",
+                    "style_context": "Classical",
+                    "emotional_score": 0.65,
+                    "key": "C",
+                    "metadata": {
+                        "generation_method": "emotion_weighted_selection",
+                        "timestamp": "2025-07-02T14:08:41.000337",
+                        "mode_filter": "Any",
+                        "style_filter": "Any"
+                    }
+                }
+            ],
+            "suggestions": [
+                "Try this in a different style",
+                "Show me individual chord emotions",
+                "Compare across musical styles",
+                "Explain the music theory"
+            ],
+            "intent": "emotional_progression",
+            "confidence": 0.3333333333333333,
+            "models_used": [
+                "progression",
+                "individual",
+                "theory"
+            ],
+            "timestamp": 1751479722.5299041
+        },
+        "last_progression": [
+            "I",
+            "II7",
+            "V",
+            "I"
+        ],
+        "last_emotion": "Joy",
+        "last_style": "Pop",
+        "last_mode": "Ionian",
+        "timestamp": 1751479722.530024
+    },
+    "session_1751479731_7383": {
+        "last_response": {
+            "message": "\ud83c\udfbc **i \u2192 \u266dVI \u2192 \u266dIII \u2192 \u266dVII**\n\n\ud83c\udfad Emotions: Sadness (1.00), Joy (0.00)\n\n\ud83c\udfaf Specific sub-emotion: Melancholy (within Sadness)\n\n\ud83c\udfb5 Mode: Aeolian\n\n\ud83d\udd0d Individual chord emotions available - ask for details!\n\n\ud83c\udfb6 8 style alternatives available",
+            "chords": [
+                "i",
+                "\u266dVI",
+                "\u266dIII",
+                "\u266dVII"
+            ],
+            "original_chords": [
+                "i",
+                "\u266dVI",
+                "\u266dIII",
+                "\u266dVII"
+            ],
+            "chord_metadata": [
+                {
+                    "is_substitution": false,
+                    "original_chord": "i",
+                    "source": "database"
+                },
+                {
+                    "is_substitution": false,
+                    "original_chord": "\u266dVI",
+                    "source": "database"
+                },
+                {
+                    "is_substitution": false,
+                    "original_chord": "\u266dIII",
+                    "source": "database"
+                },
+                {
+                    "is_substitution": false,
+                    "original_chord": "\u266dVII",
+                    "source": "database"
+                }
+            ],
+            "substitution_count": 0,
+            "generation_method": "unknown",
+            "has_substitutions": false,
+            "emotions": {
+                "Joy": 0.0,
+                "Sadness": 1.0,
+                "Fear": 0.0,
+                "Anger": 0.0,
+                "Disgust": 0.0,
+                "Surprise": 0.0,
+                "Trust": 0.0,
+                "Anticipation": 0.0,
+                "Shame": 0.0,
+                "Love": 0.0,
+                "Envy": 0.0,
+                "Aesthetic Awe": 0.0
+            },
+            "primary_result": {
+                "progression_id": "generated_0",
+                "prompt": "I feel melancholic and wistful, thinking about the past",
+                "emotion_weights": {
+                    "Joy": 0.0,
+                    "Sadness": 1.0,
+                    "Fear": 0.0,
+                    "Anger": 0.0,
+                    "Disgust": 0.0,
+                    "Surprise": 0.0,
+                    "Trust": 0.0,
+                    "Anticipation": 0.0,
+                    "Shame": 0.0,
+                    "Love": 0.0,
+                    "Envy": 0.0,
+                    "Aesthetic Awe": 0.0
+                },
+                "detected_sub_emotion": "Sadness:Melancholy",
+                "primary_mode": "Aeolian",
+                "mode_blend": {
+                    "Ionian": 0.0,
+                    "Aeolian": 1.0,
+                    "Phrygian": 0.0,
+                    "Phrygian Dominant": 0.0,
+                    "Locrian": 0.0,
+                    "Lydian": 0.0,
+                    "Dorian": 0.0,
+                    "Melodic Minor": 0.0,
+                    "Harmonic Minor": 0.0,
+                    "Mixolydian": 0.0,
+                    "Hungarian Minor": 0.0,
+                    "Lydian Augmented": 0.0
+                },
+                "chords": [
+                    "i",
+                    "\u266dVI",
+                    "\u266dIII",
+                    "\u266dVII"
+                ],
+                "chord_metadata": [
+                    {
+                        "is_substitution": false,
+                        "original_chord": "i",
+                        "source": "database"
+                    },
+                    {
+                        "is_substitution": false,
+                        "original_chord": "\u266dVI",
+                        "source": "database"
+                    },
+                    {
+                        "is_substitution": false,
+                        "original_chord": "\u266dIII",
+                        "source": "database"
+                    },
+                    {
+                        "is_substitution": false,
+                        "original_chord": "\u266dVII",
+                        "source": "database"
+                    }
+                ],
+                "substitution_count": 0,
+                "genre": "Pop",
+                "metadata": {
+                    "generation_method": "database_selection",
+                    "timestamp": "2025-07-02T14:08:51.724189",
+                    "neural_mode": false,
+                    "has_substitutions": false
+                }
+            },
+            "alternatives": {
+                "Blues": [
+                    "V7",
+                    "I",
+                    "vi7",
+                    "IV"
+                ],
+                "Jazz": [
+                    "I",
+                    "vi",
+                    "vi",
+                    "ii"
+                ],
+                "Classical": [
+                    "I",
+                    "vii\u00b0",
+                    "I",
+                    "ii"
+                ],
+                "Pop": [
+                    "I",
+                    "vi",
+                    "vi",
+                    "I"
+                ],
+                "Rock": [
+                    "I",
+                    "IVadd9",
+                    "IV",
+                    "IV"
+                ],
+                "Folk": [
+                    "I",
+                    "vi",
+                    "ii",
+                    "V"
+                ],
+                "RnB": [
+                    "I",
+                    "I6",
+                    "ii7",
+                    "V9"
+                ],
+                "Cinematic": [
+                    "I",
+                    "V7#5",
+                    "V7#5",
+                    "IM7#11"
+                ]
+            },
+            "individual_analysis": [
+                {
+                    "chord_id": "ionian_I",
+                    "prompt": "I feel melancholic and wistful, thinking about the past",
+                    "emotion_weights": {
+                        "Joy": 1.0,
+                        "Sadness": 0.0,
+                        "Fear": 0.0,
+                        "Anger": 0.0,
+                        "Disgust": 0.0,
+                        "Surprise": 0.0,
+                        "Trust": 0.0,
+                        "Anticipation": 0.0,
+                        "Shame": 0.0,
+                        "Love": 0.0,
+                        "Envy": 0.0,
+                        "Aesthetic Awe": 0.0
+                    },
+                    "chord_symbol": "C",
+                    "roman_numeral": "I",
+                    "mode_context": "Ionian",
+                    "style_context": "Classical",
+                    "emotional_score": 1.0,
+                    "key": "C",
+                    "metadata": {
+                        "generation_method": "emotion_weighted_selection",
+                        "timestamp": "2025-07-02T14:08:51.724306",
+                        "mode_filter": "Any",
+                        "style_filter": "Any"
+                    }
+                }
+            ],
+            "suggestions": [
+                "Try this in a different style",
+                "Show me individual chord emotions",
+                "Compare across musical styles",
+                "Explain the music theory"
+            ],
+            "intent": "emotional_progression",
+            "confidence": 0.3333333333333333,
+            "models_used": [
+                "progression",
+                "individual",
+                "theory"
+            ],
+            "timestamp": 1751479733.011243
+        },
+        "last_progression": [
+            "i",
+            "\u266dVI",
+            "\u266dIII",
+            "\u266dVII"
+        ],
+        "last_emotion": "Sadness",
+        "last_style": "Pop",
+        "last_mode": "Aeolian",
+        "timestamp": 1751479733.011351
+    },
+    "session_1751481734_4375": {
+        "last_response": {
+            "message": "\ud83c\udfbc **\u266fiv\u00b0 \u2192 \u266dIII \u2192 II \u2192 \u266fiv\u00b0**\n\n\ud83c\udfad Emotions: Joy (0.50), Trust (0.30)\n\n\ud83c\udfb5 Mode: Dorian\n\n\ud83d\udd0d Individual chord emotions available - ask for details!\n\n\ud83c\udfb6 8 style alternatives available",
+            "chords": [
+                "\u266fiv\u00b0",
+                "\u266dIII",
+                "II",
+                "\u266fiv\u00b0"
+            ],
+            "original_chords": [
+                "\u266fiv\u00b0",
+                "\u266dIII",
+                "II",
+                "\u266fiv\u00b0"
+            ],
+            "chord_metadata": [
+                {
+                    "position": 0,
+                    "current_chord": "\u266fiv\u00b0",
+                    "original_chord": "I",
+                    "is_substitution": true,
+                    "source": "neural_substitution",
+                    "substitution_type": "added_diminished"
+                },
+                {
+                    "position": 1,
+                    "current_chord": "\u266dIII",
+                    "original_chord": "vi",
+                    "is_substitution": true,
+                    "source": "neural_substitution",
+                    "substitution_type": "chord_substitution"
+                },
+                {
+                    "position": 2,
+                    "current_chord": "II",
+                    "original_chord": "II7",
+                    "is_substitution": false,
+                    "source": "database_match",
+                    "substitution_type": null
+                },
+                {
+                    "position": 3,
+                    "current_chord": "\u266fiv\u00b0",
+                    "original_chord": "V",
+                    "is_substitution": true,
+                    "source": "neural_substitution",
+                    "substitution_type": "added_diminished"
+                }
+            ],
+            "substitution_count": 3,
+            "generation_method": "unknown",
+            "has_substitutions": true,
+            "emotions": {
+                "Joy": 0.5,
+                "Sadness": 0.0,
+                "Fear": 0.0,
+                "Anger": 0.0,
+                "Disgust": 0.0,
+                "Surprise": 0.0,
+                "Trust": 0.3,
+                "Anticipation": 0.0,
+                "Shame": 0.0,
+                "Love": 0.0,
+                "Envy": 0.0,
+                "Aesthetic Awe": 0.0,
+                "Malice": 0.0
+            },
+            "primary_result": {
+                "progression_id": "generated_0",
+                "prompt": "test message 0",
+                "emotion_weights": {
+                    "Joy": 0.5,
+                    "Sadness": 0.0,
+                    "Fear": 0.0,
+                    "Anger": 0.0,
+                    "Disgust": 0.0,
+                    "Surprise": 0.0,
+                    "Trust": 0.3,
+                    "Anticipation": 0.0,
+                    "Shame": 0.0,
+                    "Love": 0.0,
+                    "Envy": 0.0,
+                    "Aesthetic Awe": 0.0,
+                    "Malice": 0.0
+                },
+                "detected_sub_emotion": "",
+                "primary_mode": "Dorian",
+                "mode_blend": {
+                    "Ionian": 0.08440559357404709,
+                    "Aeolian": 0.08461660891771317,
+                    "Phrygian": 0.08246326446533203,
+                    "Phrygian Dominant": 0.08446381986141205,
+                    "Locrian": 0.08395370841026306,
+                    "Lydian": 0.08167241513729095,
+                    "Dorian": 0.08466390520334244,
+                    "Melodic Minor": 0.08166182786226273,
+                    "Harmonic Minor": 0.08127863705158234,
+                    "Mixolydian": 0.08345702290534973,
+                    "Hungarian Minor": 0.08383798599243164,
+                    "Lydian Augmented": 0.083525151014328
+                },
+                "chords": [
+                    "\u266fiv\u00b0",
+                    "\u266dIII",
+                    "II",
+                    "\u266fiv\u00b0"
+                ],
+                "chord_metadata": [
+                    {
+                        "position": 0,
+                        "current_chord": "\u266fiv\u00b0",
+                        "original_chord": "I",
+                        "is_substitution": true,
+                        "source": "neural_substitution",
+                        "substitution_type": "added_diminished"
+                    },
+                    {
+                        "position": 1,
+                        "current_chord": "\u266dIII",
+                        "original_chord": "vi",
+                        "is_substitution": true,
+                        "source": "neural_substitution",
+                        "substitution_type": "chord_substitution"
+                    },
+                    {
+                        "position": 2,
+                        "current_chord": "II",
+                        "original_chord": "II7",
+                        "is_substitution": false,
+                        "source": "database_match",
+                        "substitution_type": null
+                    },
+                    {
+                        "position": 3,
+                        "current_chord": "\u266fiv\u00b0",
+                        "original_chord": "V",
+                        "is_substitution": true,
+                        "source": "neural_substitution",
+                        "substitution_type": "added_diminished"
+                    }
+                ],
+                "substitution_count": 3,
+                "genre": "Pop",
+                "metadata": {
+                    "generation_method": "neural_generation",
+                    "timestamp": "2025-07-02T14:42:14.141008",
+                    "neural_mode": true,
+                    "has_substitutions": true
+                }
+            },
+            "alternatives": {
+                "Blues": [
+                    "bIII9",
+                    "bIII9",
+                    "bIII9",
+                    "bIII9"
+                ],
+                "Jazz": [
+                    "I",
+                    "iii",
+                    "V9",
+                    "I"
+                ],
+                "Classical": [
+                    "I",
+                    "I",
+                    "vi",
+                    "ii"
+                ],
+                "Pop": [
+                    "I",
+                    "vi",
+                    "I",
+                    "I"
+                ],
+                "Rock": [
+                    "I",
+                    "vi7",
+                    "Isus4",
+                    "iii"
+                ],
+                "Folk": [
+                    "I",
+                    "ii",
+                    "ii",
+                    "ii"
+                ],
+                "RnB": [
+                    "I",
+                    "I6",
+                    "IVM7",
+                    "V7#5"
+                ],
+                "Cinematic": [
+                    "I",
+                    "IM7#5",
+                    "V7#5",
+                    "ii7b5"
+                ]
+            },
+            "individual_analysis": [
+                {
+                    "chord_id": "ionian_I",
+                    "prompt": "test message 0",
+                    "emotion_weights": {
+                        "Joy": 1.0,
+                        "Sadness": 0.0,
+                        "Fear": 0.0,
+                        "Anger": 0.0,
+                        "Disgust": 0.0,
+                        "Surprise": 0.0,
+                        "Trust": 0.0,
+                        "Anticipation": 0.0,
+                        "Shame": 0.0,
+                        "Love": 0.0,
+                        "Envy": 0.0,
+                        "Aesthetic Awe": 0.0,
+                        "Malice": 0.0
+                    },
+                    "chord_symbol": "C",
+                    "roman_numeral": "I",
+                    "mode_context": "Ionian",
+                    "style_context": "Classical",
+                    "emotional_score": 1.0,
+                    "key": "C",
+                    "metadata": {
+                        "generation_method": "emotion_weighted_selection",
+                        "timestamp": "2025-07-02T14:42:14.141160",
+                        "mode_filter": "Any",
+                        "style_filter": "Any"
+                    }
+                }
+            ],
+            "suggestions": [
+                "Try this in a different style",
+                "Show me individual chord emotions",
+                "Compare across musical styles",
+                "Explain the music theory"
+            ],
+            "intent": "emotional_progression",
+            "confidence": 0.3,
+            "models_used": [
+                "progression",
+                "individual",
+                "theory"
+            ],
+            "timestamp": 1751481735.609966
+        },
+        "last_progression": [
+            "\u266fiv\u00b0",
+            "\u266dIII",
+            "II",
+            "\u266fiv\u00b0"
+        ],
+        "last_emotion": "Joy",
+        "last_style": "Pop",
+        "last_mode": "Dorian",
+        "timestamp": 1751481735.610053
+    },
+    "session_1751481736_9865": {
+        "last_response": {
+            "message": "\ud83c\udfbc **vi \u2192 START \u2192 \u266dIII \u2192 iv**\n\n\ud83c\udfad Emotions: Joy (0.50), Trust (0.30)\n\n\ud83c\udfb5 Mode: Dorian\n\n\ud83d\udd0d Individual chord emotions available - ask for details!\n\n\ud83c\udfb6 8 style alternatives available",
+            "chords": [
+                "vi",
+                "START",
+                "\u266dIII",
+                "iv"
+            ],
+            "original_chords": [
+                "vi",
+                "START",
+                "\u266dIII",
+                "iv"
+            ],
+            "chord_metadata": [
+                {
+                    "position": 0,
+                    "current_chord": "vi",
+                    "original_chord": "I",
+                    "is_substitution": true,
+                    "source": "neural_substitution",
+                    "substitution_type": "chord_substitution"
+                },
+                {
+                    "position": 1,
+                    "current_chord": "START",
+                    "original_chord": "II7",
+                    "is_substitution": true,
+                    "source": "neural_substitution",
+                    "substitution_type": "removed_seventh"
+                },
+                {
+                    "position": 2,
+                    "current_chord": "\u266dIII",
+                    "original_chord": "V",
+                    "is_substitution": true,
+                    "source": "neural_substitution",
+                    "substitution_type": "chord_substitution"
+                },
+                {
+                    "position": 3,
+                    "current_chord": "iv",
+                    "original_chord": "I",
+                    "is_substitution": true,
+                    "source": "neural_substitution",
+                    "substitution_type": "chord_substitution"
+                }
+            ],
+            "substitution_count": 4,
+            "generation_method": "unknown",
+            "has_substitutions": true,
+            "emotions": {
+                "Joy": 0.5,
+                "Sadness": 0.0,
+                "Fear": 0.0,
+                "Anger": 0.0,
+                "Disgust": 0.0,
+                "Surprise": 0.0,
+                "Trust": 0.3,
+                "Anticipation": 0.0,
+                "Shame": 0.0,
+                "Love": 0.0,
+                "Envy": 0.0,
+                "Aesthetic Awe": 0.0,
+                "Malice": 0.0
+            },
+            "primary_result": {
+                "progression_id": "generated_0",
+                "prompt": "test message 1",
+                "emotion_weights": {
+                    "Joy": 0.5,
+                    "Sadness": 0.0,
+                    "Fear": 0.0,
+                    "Anger": 0.0,
+                    "Disgust": 0.0,
+                    "Surprise": 0.0,
+                    "Trust": 0.3,
+                    "Anticipation": 0.0,
+                    "Shame": 0.0,
+                    "Love": 0.0,
+                    "Envy": 0.0,
+                    "Aesthetic Awe": 0.0,
+                    "Malice": 0.0
+                },
+                "detected_sub_emotion": "",
+                "primary_mode": "Dorian",
+                "mode_blend": {
+                    "Ionian": 0.08440559357404709,
+                    "Aeolian": 0.08461660891771317,
+                    "Phrygian": 0.08246326446533203,
+                    "Phrygian Dominant": 0.08446381986141205,
+                    "Locrian": 0.08395370841026306,
+                    "Lydian": 0.08167241513729095,
+                    "Dorian": 0.08466390520334244,
+                    "Melodic Minor": 0.08166182786226273,
+                    "Harmonic Minor": 0.08127863705158234,
+                    "Mixolydian": 0.08345702290534973,
+                    "Hungarian Minor": 0.08383798599243164,
+                    "Lydian Augmented": 0.083525151014328
+                },
+                "chords": [
+                    "vi",
+                    "START",
+                    "\u266dIII",
+                    "iv"
+                ],
+                "chord_metadata": [
+                    {
+                        "position": 0,
+                        "current_chord": "vi",
+                        "original_chord": "I",
+                        "is_substitution": true,
+                        "source": "neural_substitution",
+                        "substitution_type": "chord_substitution"
+                    },
+                    {
+                        "position": 1,
+                        "current_chord": "START",
+                        "original_chord": "II7",
+                        "is_substitution": true,
+                        "source": "neural_substitution",
+                        "substitution_type": "removed_seventh"
+                    },
+                    {
+                        "position": 2,
+                        "current_chord": "\u266dIII",
+                        "original_chord": "V",
+                        "is_substitution": true,
+                        "source": "neural_substitution",
+                        "substitution_type": "chord_substitution"
+                    },
+                    {
+                        "position": 3,
+                        "current_chord": "iv",
+                        "original_chord": "I",
+                        "is_substitution": true,
+                        "source": "neural_substitution",
+                        "substitution_type": "chord_substitution"
+                    }
+                ],
+                "substitution_count": 4,
+                "genre": "Pop",
+                "metadata": {
+                    "generation_method": "neural_generation",
+                    "timestamp": "2025-07-02T14:42:16.161889",
+                    "neural_mode": true,
+                    "has_substitutions": true
+                }
+            },
+            "alternatives": {
+                "Blues": [
+                    "I7",
+                    "IV7",
+                    "I",
+                    "Vsus4"
+                ],
+                "Jazz": [
+                    "I",
+                    "vii\u00b0",
+                    "V7alt",
+                    "iii7"
+                ],
+                "Classical": [
+                    "I",
+                    "vi",
+                    "IV",
+                    "V"
+                ],
+                "Pop": [
+                    "I",
+                    "IV",
+                    "V",
+                    "I"
+                ],
+                "Rock": [
+                    "I",
+                    "Vadd9",
+                    "IVadd9",
+                    "iiisus4"
+                ],
+                "Folk": [
+                    "I",
+                    "V",
+                    "vi",
+                    "IV"
+                ],
+                "RnB": [
+                    "I",
+                    "I",
+                    "I",
+                    "iii"
+                ],
+                "Cinematic": [
+                    "I",
+                    "vii\u00b0",
+                    "V",
+                    "V7#11"
+                ]
+            },
+            "individual_analysis": [
+                {
+                    "chord_id": "ionian_I",
+                    "prompt": "test message 1",
+                    "emotion_weights": {
+                        "Joy": 1.0,
+                        "Sadness": 0.0,
+                        "Fear": 0.0,
+                        "Anger": 0.0,
+                        "Disgust": 0.0,
+                        "Surprise": 0.0,
+                        "Trust": 0.0,
+                        "Anticipation": 0.0,
+                        "Shame": 0.0,
+                        "Love": 0.0,
+                        "Envy": 0.0,
+                        "Aesthetic Awe": 0.0,
+                        "Malice": 0.0
+                    },
+                    "chord_symbol": "C",
+                    "roman_numeral": "I",
+                    "mode_context": "Ionian",
+                    "style_context": "Classical",
+                    "emotional_score": 1.0,
+                    "key": "C",
+                    "metadata": {
+                        "generation_method": "emotion_weighted_selection",
+                        "timestamp": "2025-07-02T14:42:16.162067",
+                        "mode_filter": "Any",
+                        "style_filter": "Any"
+                    }
+                }
+            ],
+            "suggestions": [
+                "Try this in a different style",
+                "Show me individual chord emotions",
+                "Compare across musical styles",
+                "Explain the music theory"
+            ],
+            "intent": "emotional_progression",
+            "confidence": 0.3,
+            "models_used": [
+                "progression",
+                "individual",
+                "theory"
+            ],
+            "timestamp": 1751481737.439451
+        },
+        "last_progression": [
+            "vi",
+            "START",
+            "\u266dIII",
+            "iv"
+        ],
+        "last_emotion": "Joy",
+        "last_style": "Pop",
+        "last_mode": "Dorian",
+        "timestamp": 1751481737.43958
+    },
+    "session_1751481737_3050": {
+        "last_response": {
+            "message": "\ud83c\udfbc **v \u2192 v \u2192 \u266dIII \u2192 \u266dIII**\n\n\ud83c\udfad Emotions: Joy (0.50), Trust (0.30)\n\n\ud83c\udfb5 Mode: Dorian\n\n\ud83d\udd0d Individual chord emotions available - ask for details!\n\n\ud83c\udfb6 8 style alternatives available",
+            "chords": [
+                "v",
+                "v",
+                "\u266dIII",
+                "\u266dIII"
+            ],
+            "original_chords": [
+                "v",
+                "v",
+                "\u266dIII",
+                "\u266dIII"
+            ],
+            "chord_metadata": [
+                {
+                    "position": 0,
+                    "current_chord": "v",
+                    "original_chord": "I",
+                    "is_substitution": true,
+                    "source": "neural_substitution",
+                    "substitution_type": "chord_substitution"
+                },
+                {
+                    "position": 1,
+                    "current_chord": "v",
+                    "original_chord": "vi",
+                    "is_substitution": true,
+                    "source": "neural_substitution",
+                    "substitution_type": "chord_substitution"
+                },
+                {
+                    "position": 2,
+                    "current_chord": "\u266dIII",
+                    "original_chord": "II7",
+                    "is_substitution": true,
+                    "source": "neural_substitution",
+                    "substitution_type": "removed_seventh"
+                },
+                {
+                    "position": 3,
+                    "current_chord": "\u266dIII",
+                    "original_chord": "V",
+                    "is_substitution": true,
+                    "source": "neural_substitution",
+                    "substitution_type": "chord_substitution"
+                }
+            ],
+            "substitution_count": 4,
+            "generation_method": "unknown",
+            "has_substitutions": true,
+            "emotions": {
+                "Joy": 0.5,
+                "Sadness": 0.0,
+                "Fear": 0.0,
+                "Anger": 0.0,
+                "Disgust": 0.0,
+                "Surprise": 0.0,
+                "Trust": 0.3,
+                "Anticipation": 0.0,
+                "Shame": 0.0,
+                "Love": 0.0,
+                "Envy": 0.0,
+                "Aesthetic Awe": 0.0,
+                "Malice": 0.0
+            },
+            "primary_result": {
+                "progression_id": "generated_0",
+                "prompt": "test message 2",
+                "emotion_weights": {
+                    "Joy": 0.5,
+                    "Sadness": 0.0,
+                    "Fear": 0.0,
+                    "Anger": 0.0,
+                    "Disgust": 0.0,
+                    "Surprise": 0.0,
+                    "Trust": 0.3,
+                    "Anticipation": 0.0,
+                    "Shame": 0.0,
+                    "Love": 0.0,
+                    "Envy": 0.0,
+                    "Aesthetic Awe": 0.0,
+                    "Malice": 0.0
+                },
+                "detected_sub_emotion": "",
+                "primary_mode": "Dorian",
+                "mode_blend": {
+                    "Ionian": 0.08440559357404709,
+                    "Aeolian": 0.08461660891771317,
+                    "Phrygian": 0.08246326446533203,
+                    "Phrygian Dominant": 0.08446381986141205,
+                    "Locrian": 0.08395370841026306,
+                    "Lydian": 0.08167241513729095,
+                    "Dorian": 0.08466390520334244,
+                    "Melodic Minor": 0.08166182786226273,
+                    "Harmonic Minor": 0.08127863705158234,
+                    "Mixolydian": 0.08345702290534973,
+                    "Hungarian Minor": 0.08383798599243164,
+                    "Lydian Augmented": 0.083525151014328
+                },
+                "chords": [
+                    "v",
+                    "v",
+                    "\u266dIII",
+                    "\u266dIII"
+                ],
+                "chord_metadata": [
+                    {
+                        "position": 0,
+                        "current_chord": "v",
+                        "original_chord": "I",
+                        "is_substitution": true,
+                        "source": "neural_substitution",
+                        "substitution_type": "chord_substitution"
+                    },
+                    {
+                        "position": 1,
+                        "current_chord": "v",
+                        "original_chord": "vi",
+                        "is_substitution": true,
+                        "source": "neural_substitution",
+                        "substitution_type": "chord_substitution"
+                    },
+                    {
+                        "position": 2,
+                        "current_chord": "\u266dIII",
+                        "original_chord": "II7",
+                        "is_substitution": true,
+                        "source": "neural_substitution",
+                        "substitution_type": "removed_seventh"
+                    },
+                    {
+                        "position": 3,
+                        "current_chord": "\u266dIII",
+                        "original_chord": "V",
+                        "is_substitution": true,
+                        "source": "neural_substitution",
+                        "substitution_type": "chord_substitution"
+                    }
+                ],
+                "substitution_count": 4,
+                "genre": "Pop",
+                "metadata": {
+                    "generation_method": "neural_generation",
+                    "timestamp": "2025-07-02T14:42:17.991082",
+                    "neural_mode": true,
+                    "has_substitutions": true
+                }
+            },
+            "alternatives": {
+                "Blues": [
+                    "IV+",
+                    "IV",
+                    "bVII9",
+                    "bVII9"
+                ],
+                "Jazz": [
+                    "I",
+                    "vi",
+                    "IV",
+                    "I"
+                ],
+                "Classical": [
+                    "I",
+                    "V",
+                    "vi",
+                    "vi"
+                ],
+                "Pop": [
+                    "I",
+                    "vi",
+                    "V",
+                    "I"
+                ],
+                "Rock": [
+                    "I",
+                    "IVadd9",
+                    "ii7",
+                    "iisus4"
+                ],
+                "Folk": [
+                    "I",
+                    "iii",
+                    "iii",
+                    "iii"
+                ],
+                "RnB": [
+                    "I",
+                    "vi7",
+                    "vi",
+                    "vi"
+                ],
+                "Cinematic": [
+                    "I",
+                    "ii7b5",
+                    "V7#11",
+                    "IM7#11"
+                ]
+            },
+            "individual_analysis": [
+                {
+                    "chord_id": "ionian_I",
+                    "prompt": "test message 2",
+                    "emotion_weights": {
+                        "Joy": 1.0,
+                        "Sadness": 0.0,
+                        "Fear": 0.0,
+                        "Anger": 0.0,
+                        "Disgust": 0.0,
+                        "Surprise": 0.0,
+                        "Trust": 0.0,
+                        "Anticipation": 0.0,
+                        "Shame": 0.0,
+                        "Love": 0.0,
+                        "Envy": 0.0,
+                        "Aesthetic Awe": 0.0,
+                        "Malice": 0.0
+                    },
+                    "chord_symbol": "C",
+                    "roman_numeral": "I",
+                    "mode_context": "Ionian",
+                    "style_context": "Classical",
+                    "emotional_score": 1.0,
+                    "key": "C",
+                    "metadata": {
+                        "generation_method": "emotion_weighted_selection",
+                        "timestamp": "2025-07-02T14:42:17.991284",
+                        "mode_filter": "Any",
+                        "style_filter": "Any"
+                    }
+                }
+            ],
+            "suggestions": [
+                "Try this in a different style",
+                "Show me individual chord emotions",
+                "Compare across musical styles",
+                "Explain the music theory"
+            ],
+            "intent": "emotional_progression",
+            "confidence": 0.3,
+            "models_used": [
+                "progression",
+                "individual",
+                "theory"
+            ],
+            "timestamp": 1751481739.266329
+        },
+        "last_progression": [
+            "v",
+            "v",
+            "\u266dIII",
+            "\u266dIII"
+        ],
+        "last_emotion": "Joy",
+        "last_style": "Pop",
+        "last_mode": "Dorian",
+        "timestamp": 1751481739.266412
+    },
+    "session_1751481739_5553": {
+        "last_response": {
+            "message": "\ud83c\udfbc **\u266dIII \u2192 iv\u00b0 \u2192 START \u2192 \u266fV**\n\n\ud83c\udfad Emotions: Joy (0.50), Trust (0.30)\n\n\ud83c\udfb5 Mode: Dorian\n\n\ud83d\udd0d Individual chord emotions available - ask for details!\n\n\ud83c\udfb6 8 style alternatives available",
+            "chords": [
+                "\u266dIII",
+                "iv\u00b0",
+                "START",
+                "\u266fV"
+            ],
+            "original_chords": [
+                "\u266dIII",
+                "iv\u00b0",
+                "START",
+                "\u266fV"
+            ],
+            "chord_metadata": [
+                {
+                    "position": 0,
+                    "current_chord": "\u266dIII",
+                    "original_chord": "I",
+                    "is_substitution": true,
+                    "source": "neural_substitution",
+                    "substitution_type": "chord_substitution"
+                },
+                {
+                    "position": 1,
+                    "current_chord": "iv\u00b0",
+                    "original_chord": "II7",
+                    "is_substitution": true,
+                    "source": "neural_substitution",
+                    "substitution_type": "removed_seventh"
+                },
+                {
+                    "position": 2,
+                    "current_chord": "START",
+                    "original_chord": "V",
+                    "is_substitution": true,
+                    "source": "neural_substitution",
+                    "substitution_type": "chord_substitution"
+                },
+                {
+                    "position": 3,
+                    "current_chord": "\u266fV",
+                    "original_chord": "I",
+                    "is_substitution": true,
+                    "source": "neural_substitution",
+                    "substitution_type": "chord_substitution"
+                }
+            ],
+            "substitution_count": 4,
+            "generation_method": "unknown",
+            "has_substitutions": true,
+            "emotions": {
+                "Joy": 0.5,
+                "Sadness": 0.0,
+                "Fear": 0.0,
+                "Anger": 0.0,
+                "Disgust": 0.0,
+                "Surprise": 0.0,
+                "Trust": 0.3,
+                "Anticipation": 0.0,
+                "Shame": 0.0,
+                "Love": 0.0,
+                "Envy": 0.0,
+                "Aesthetic Awe": 0.0,
+                "Malice": 0.0
+            },
+            "primary_result": {
+                "progression_id": "generated_0",
+                "prompt": "test message 3",
+                "emotion_weights": {
+                    "Joy": 0.5,
+                    "Sadness": 0.0,
+                    "Fear": 0.0,
+                    "Anger": 0.0,
+                    "Disgust": 0.0,
+                    "Surprise": 0.0,
+                    "Trust": 0.3,
+                    "Anticipation": 0.0,
+                    "Shame": 0.0,
+                    "Love": 0.0,
+                    "Envy": 0.0,
+                    "Aesthetic Awe": 0.0,
+                    "Malice": 0.0
+                },
+                "detected_sub_emotion": "",
+                "primary_mode": "Dorian",
+                "mode_blend": {
+                    "Ionian": 0.08440559357404709,
+                    "Aeolian": 0.08461660891771317,
+                    "Phrygian": 0.08246326446533203,
+                    "Phrygian Dominant": 0.08446381986141205,
+                    "Locrian": 0.08395370841026306,
+                    "Lydian": 0.08167241513729095,
+                    "Dorian": 0.08466390520334244,
+                    "Melodic Minor": 0.08166182786226273,
+                    "Harmonic Minor": 0.08127863705158234,
+                    "Mixolydian": 0.08345702290534973,
+                    "Hungarian Minor": 0.08383798599243164,
+                    "Lydian Augmented": 0.083525151014328
+                },
+                "chords": [
+                    "\u266dIII",
+                    "iv\u00b0",
+                    "START",
+                    "\u266fV"
+                ],
+                "chord_metadata": [
+                    {
+                        "position": 0,
+                        "current_chord": "\u266dIII",
+                        "original_chord": "I",
+                        "is_substitution": true,
+                        "source": "neural_substitution",
+                        "substitution_type": "chord_substitution"
+                    },
+                    {
+                        "position": 1,
+                        "current_chord": "iv\u00b0",
+                        "original_chord": "II7",
+                        "is_substitution": true,
+                        "source": "neural_substitution",
+                        "substitution_type": "removed_seventh"
+                    },
+                    {
+                        "position": 2,
+                        "current_chord": "START",
+                        "original_chord": "V",
+                        "is_substitution": true,
+                        "source": "neural_substitution",
+                        "substitution_type": "chord_substitution"
+                    },
+                    {
+                        "position": 3,
+                        "current_chord": "\u266fV",
+                        "original_chord": "I",
+                        "is_substitution": true,
+                        "source": "neural_substitution",
+                        "substitution_type": "chord_substitution"
+                    }
+                ],
+                "substitution_count": 4,
+                "genre": "Pop",
+                "metadata": {
+                    "generation_method": "neural_generation",
+                    "timestamp": "2025-07-02T14:42:19.821051",
+                    "neural_mode": true,
+                    "has_substitutions": true
+                }
+            },
+            "alternatives": {
+                "Blues": [
+                    "V+",
+                    "V",
+                    "vi9",
+                    "vi9"
+                ],
+                "Jazz": [
+                    "I",
+                    "vi7",
+                    "ii",
+                    "I6/9"
+                ],
+                "Classical": [
+                    "I",
+                    "V",
+                    "V",
+                    "I"
+                ],
+                "Pop": [
+                    "I",
+                    "IV",
+                    "V",
+                    "I"
+                ],
+                "Rock": [
+                    "I",
+                    "iisus4",
+                    "vi+",
+                    "viadd9"
+                ],
+                "Folk": [
+                    "I",
+                    "I",
+                    "V",
+                    "I"
+                ],
+                "RnB": [
+                    "I",
+                    "V",
+                    "I6",
+                    "V7#11"
+                ],
+                "Cinematic": [
+                    "I",
+                    "vi",
+                    "V7#5",
+                    "ii7b5"
+                ]
+            },
+            "individual_analysis": [
+                {
+                    "chord_id": "ionian_I",
+                    "prompt": "test message 3",
+                    "emotion_weights": {
+                        "Joy": 1.0,
+                        "Sadness": 0.0,
+                        "Fear": 0.0,
+                        "Anger": 0.0,
+                        "Disgust": 0.0,
+                        "Surprise": 0.0,
+                        "Trust": 0.0,
+                        "Anticipation": 0.0,
+                        "Shame": 0.0,
+                        "Love": 0.0,
+                        "Envy": 0.0,
+                        "Aesthetic Awe": 0.0,
+                        "Malice": 0.0
+                    },
+                    "chord_symbol": "C",
+                    "roman_numeral": "I",
+                    "mode_context": "Ionian",
+                    "style_context": "Classical",
+                    "emotional_score": 1.0,
+                    "key": "C",
+                    "metadata": {
+                        "generation_method": "emotion_weighted_selection",
+                        "timestamp": "2025-07-02T14:42:19.821291",
+                        "mode_filter": "Any",
+                        "style_filter": "Any"
+                    }
+                }
+            ],
+            "suggestions": [
+                "Try this in a different style",
+                "Show me individual chord emotions",
+                "Compare across musical styles",
+                "Explain the music theory"
+            ],
+            "intent": "emotional_progression",
+            "confidence": 0.3,
+            "models_used": [
+                "progression",
+                "individual",
+                "theory"
+            ],
+            "timestamp": 1751481741.0948591
+        },
+        "last_progression": [
+            "\u266dIII",
+            "iv\u00b0",
+            "START",
+            "\u266fV"
+        ],
+        "last_emotion": "Joy",
+        "last_style": "Pop",
+        "last_mode": "Dorian",
+        "timestamp": 1751481741.0949981
+    },
+    "session_1751481741_8558": {
+        "last_response": {
+            "message": "\ud83c\udfbc **\u266fIVdim \u2192 \u266fiv\u00b0 \u2192 \u266fvi \u2192 V**\n\n\ud83c\udfad Emotions: Joy (0.50), Trust (0.30)\n\n\ud83c\udfb5 Mode: Dorian\n\n\ud83d\udd0d Individual chord emotions available - ask for details!\n\n\ud83c\udfb6 8 style alternatives available",
+            "chords": [
+                "\u266fIVdim",
+                "\u266fiv\u00b0",
+                "\u266fvi",
+                "V"
+            ],
+            "original_chords": [
+                "\u266fIVdim",
+                "\u266fiv\u00b0",
+                "\u266fvi",
+                "V"
+            ],
+            "chord_metadata": [
+                {
+                    "position": 0,
+                    "current_chord": "\u266fIVdim",
+                    "original_chord": "I",
+                    "is_substitution": true,
+                    "source": "neural_substitution",
+                    "substitution_type": "chord_substitution"
+                },
+                {
+                    "position": 1,
+                    "current_chord": "\u266fiv\u00b0",
+                    "original_chord": "IV",
+                    "is_substitution": true,
+                    "source": "neural_substitution",
+                    "substitution_type": "added_diminished"
+                },
+                {
+                    "position": 2,
+                    "current_chord": "\u266fvi",
+                    "original_chord": "I",
+                    "is_substitution": true,
+                    "source": "neural_substitution",
+                    "substitution_type": "chord_substitution"
+                },
+                {
+                    "position": 3,
+                    "current_chord": "V",
+                    "original_chord": "IV",
+                    "is_substitution": true,
+                    "source": "neural_substitution",
+                    "substitution_type": "chord_substitution"
+                }
+            ],
+            "substitution_count": 4,
+            "generation_method": "unknown",
+            "has_substitutions": true,
+            "emotions": {
+                "Joy": 0.5,
+                "Sadness": 0.0,
+                "Fear": 0.0,
+                "Anger": 0.0,
+                "Disgust": 0.0,
+                "Surprise": 0.0,
+                "Trust": 0.3,
+                "Anticipation": 0.0,
+                "Shame": 0.0,
+                "Love": 0.0,
+                "Envy": 0.0,
+                "Aesthetic Awe": 0.0,
+                "Malice": 0.0
+            },
+            "primary_result": {
+                "progression_id": "generated_0",
+                "prompt": "test message 4",
+                "emotion_weights": {
+                    "Joy": 0.5,
+                    "Sadness": 0.0,
+                    "Fear": 0.0,
+                    "Anger": 0.0,
+                    "Disgust": 0.0,
+                    "Surprise": 0.0,
+                    "Trust": 0.3,
+                    "Anticipation": 0.0,
+                    "Shame": 0.0,
+                    "Love": 0.0,
+                    "Envy": 0.0,
+                    "Aesthetic Awe": 0.0,
+                    "Malice": 0.0
+                },
+                "detected_sub_emotion": "",
+                "primary_mode": "Dorian",
+                "mode_blend": {
+                    "Ionian": 0.08440559357404709,
+                    "Aeolian": 0.08461660891771317,
+                    "Phrygian": 0.08246326446533203,
+                    "Phrygian Dominant": 0.08446381986141205,
+                    "Locrian": 0.08395370841026306,
+                    "Lydian": 0.08167241513729095,
+                    "Dorian": 0.08466390520334244,
+                    "Melodic Minor": 0.08166182786226273,
+                    "Harmonic Minor": 0.08127863705158234,
+                    "Mixolydian": 0.08345702290534973,
+                    "Hungarian Minor": 0.08383798599243164,
+                    "Lydian Augmented": 0.083525151014328
+                },
+                "chords": [
+                    "\u266fIVdim",
+                    "\u266fiv\u00b0",
+                    "\u266fvi",
+                    "V"
+                ],
+                "chord_metadata": [
+                    {
+                        "position": 0,
+                        "current_chord": "\u266fIVdim",
+                        "original_chord": "I",
+                        "is_substitution": true,
+                        "source": "neural_substitution",
+                        "substitution_type": "chord_substitution"
+                    },
+                    {
+                        "position": 1,
+                        "current_chord": "\u266fiv\u00b0",
+                        "original_chord": "IV",
+                        "is_substitution": true,
+                        "source": "neural_substitution",
+                        "substitution_type": "added_diminished"
+                    },
+                    {
+                        "position": 2,
+                        "current_chord": "\u266fvi",
+                        "original_chord": "I",
+                        "is_substitution": true,
+                        "source": "neural_substitution",
+                        "substitution_type": "chord_substitution"
+                    },
+                    {
+                        "position": 3,
+                        "current_chord": "V",
+                        "original_chord": "IV",
+                        "is_substitution": true,
+                        "source": "neural_substitution",
+                        "substitution_type": "chord_substitution"
+                    }
+                ],
+                "substitution_count": 4,
+                "genre": "Pop",
+                "metadata": {
+                    "generation_method": "neural_generation",
+                    "timestamp": "2025-07-02T14:42:21.644600",
+                    "neural_mode": true,
+                    "has_substitutions": true
+                }
+            },
+            "alternatives": {
+                "Blues": [
+                    "bVII7",
+                    "V7",
+                    "vi",
+                    "IV+"
+                ],
+                "Jazz": [
+                    "I",
+                    "I",
+                    "vi7",
+                    "IVM7"
+                ],
+                "Classical": [
+                    "I",
+                    "ii",
+                    "V",
+                    "I"
+                ],
+                "Pop": [
+                    "I",
+                    "vi",
+                    "V",
+                    "vi"
+                ],
+                "Rock": [
+                    "I",
+                    "I+",
+                    "iii+",
+                    "Isus4"
+                ],
+                "Folk": [
+                    "I",
+                    "iii",
+                    "vi",
+                    "vi"
+                ],
+                "RnB": [
+                    "I",
+                    "V",
+                    "IM7",
+                    "ii"
+                ],
+                "Cinematic": [
+                    "I",
+                    "V",
+                    "IM7#5",
+                    "IM7#5"
+                ]
+            },
+            "individual_analysis": [
+                {
+                    "chord_id": "ionian_I",
+                    "prompt": "test message 4",
+                    "emotion_weights": {
+                        "Joy": 1.0,
+                        "Sadness": 0.0,
+                        "Fear": 0.0,
+                        "Anger": 0.0,
+                        "Disgust": 0.0,
+                        "Surprise": 0.0,
+                        "Trust": 0.0,
+                        "Anticipation": 0.0,
+                        "Shame": 0.0,
+                        "Love": 0.0,
+                        "Envy": 0.0,
+                        "Aesthetic Awe": 0.0,
+                        "Malice": 0.0
+                    },
+                    "chord_symbol": "C",
+                    "roman_numeral": "I",
+                    "mode_context": "Ionian",
+                    "style_context": "Classical",
+                    "emotional_score": 1.0,
+                    "key": "C",
+                    "metadata": {
+                        "generation_method": "emotion_weighted_selection",
+                        "timestamp": "2025-07-02T14:42:21.644768",
+                        "mode_filter": "Any",
+                        "style_filter": "Any"
+                    }
+                }
+            ],
+            "suggestions": [
+                "Try this in a different style",
+                "Show me individual chord emotions",
+                "Compare across musical styles",
+                "Explain the music theory"
+            ],
+            "intent": "emotional_progression",
+            "confidence": 0.3,
+            "models_used": [
+                "progression",
+                "individual",
+                "theory"
+            ],
+            "timestamp": 1751481742.915251
+        },
+        "last_progression": [
+            "\u266fIVdim",
+            "\u266fiv\u00b0",
+            "\u266fvi",
+            "V"
+        ],
+        "last_emotion": "Joy",
+        "last_style": "Pop",
+        "last_mode": "Dorian",
+        "timestamp": 1751481742.915391
+    },
+    "session_1751481830_3154": {
+        "last_response": {
+            "message": "\ud83c\udfbc **\u266fIVdim \u2192 iii \u2192 \u266dII \u2192 III**\n\n\ud83c\udfad Emotions: Joy (0.50), Trust (0.30)\n\n\ud83c\udfb5 Mode: Lydian\n\n\ud83d\udd0d Individual chord emotions available - ask for details!\n\n\ud83c\udfb6 8 style alternatives available",
+            "chords": [
+                "\u266fIVdim",
+                "iii",
+                "\u266dII",
+                "III"
+            ],
+            "original_chords": [
+                "\u266fIVdim",
+                "iii",
+                "\u266dII",
+                "III"
+            ],
+            "chord_metadata": [
+                {
+                    "position": 0,
+                    "current_chord": "\u266fIVdim",
+                    "original_chord": "I",
+                    "is_substitution": true,
+                    "source": "neural_substitution",
+                    "substitution_type": "chord_substitution"
+                },
+                {
+                    "position": 1,
+                    "current_chord": "iii",
+                    "original_chord": "vi",
+                    "is_substitution": true,
+                    "source": "neural_substitution",
+                    "substitution_type": "chord_substitution"
+                },
+                {
+                    "position": 2,
+                    "current_chord": "\u266dII",
+                    "original_chord": "II7",
+                    "is_substitution": true,
+                    "source": "neural_substitution",
+                    "substitution_type": "removed_seventh"
+                },
+                {
+                    "position": 3,
+                    "current_chord": "III",
+                    "original_chord": "V",
+                    "is_substitution": true,
+                    "source": "neural_substitution",
+                    "substitution_type": "chord_substitution"
+                }
+            ],
+            "substitution_count": 4,
+            "generation_method": "unknown",
+            "has_substitutions": true,
+            "emotions": {
+                "Joy": 0.5,
+                "Sadness": 0.0,
+                "Fear": 0.0,
+                "Anger": 0.0,
+                "Disgust": 0.0,
+                "Surprise": 0.0,
+                "Trust": 0.3,
+                "Anticipation": 0.0,
+                "Shame": 0.0,
+                "Love": 0.0,
+                "Envy": 0.0,
+                "Aesthetic Awe": 0.0,
+                "Malice": 0.0
+            },
+            "primary_result": {
+                "progression_id": "generated_0",
+                "prompt": "test message 0",
+                "emotion_weights": {
+                    "Joy": 0.5,
+                    "Sadness": 0.0,
+                    "Fear": 0.0,
+                    "Anger": 0.0,
+                    "Disgust": 0.0,
+                    "Surprise": 0.0,
+                    "Trust": 0.3,
+                    "Anticipation": 0.0,
+                    "Shame": 0.0,
+                    "Love": 0.0,
+                    "Envy": 0.0,
+                    "Aesthetic Awe": 0.0,
+                    "Malice": 0.0
+                },
+                "detected_sub_emotion": "",
+                "primary_mode": "Lydian",
+                "mode_blend": {
+                    "Ionian": 0.08226907253265381,
+                    "Aeolian": 0.08173087239265442,
+                    "Phrygian": 0.08237546682357788,
+                    "Phrygian Dominant": 0.08338870853185654,
+                    "Locrian": 0.08325288444757462,
+                    "Lydian": 0.08758951723575592,
+                    "Dorian": 0.08266107738018036,
+                    "Melodic Minor": 0.08527390658855438,
+                    "Harmonic Minor": 0.08166764676570892,
+                    "Mixolydian": 0.08202652633190155,
+                    "Hungarian Minor": 0.08454446494579315,
+                    "Lydian Augmented": 0.0832197368144989
+                },
+                "chords": [
+                    "\u266fIVdim",
+                    "iii",
+                    "\u266dII",
+                    "III"
+                ],
+                "chord_metadata": [
+                    {
+                        "position": 0,
+                        "current_chord": "\u266fIVdim",
+                        "original_chord": "I",
+                        "is_substitution": true,
+                        "source": "neural_substitution",
+                        "substitution_type": "chord_substitution"
+                    },
+                    {
+                        "position": 1,
+                        "current_chord": "iii",
+                        "original_chord": "vi",
+                        "is_substitution": true,
+                        "source": "neural_substitution",
+                        "substitution_type": "chord_substitution"
+                    },
+                    {
+                        "position": 2,
+                        "current_chord": "\u266dII",
+                        "original_chord": "II7",
+                        "is_substitution": true,
+                        "source": "neural_substitution",
+                        "substitution_type": "removed_seventh"
+                    },
+                    {
+                        "position": 3,
+                        "current_chord": "III",
+                        "original_chord": "V",
+                        "is_substitution": true,
+                        "source": "neural_substitution",
+                        "substitution_type": "chord_substitution"
+                    }
+                ],
+                "substitution_count": 4,
+                "genre": "Pop",
+                "metadata": {
+                    "generation_method": "neural_generation",
+                    "timestamp": "2025-07-02T14:43:50.597082",
+                    "neural_mode": true,
+                    "has_substitutions": true
+                }
+            },
+            "alternatives": {
+                "Blues": [
+                    "bVI7",
+                    "bVII7",
+                    "bVII7",
+                    "bVII7"
+                ],
+                "Jazz": [
+                    "I",
+                    "vi",
+                    "ii",
+                    "I6/9"
+                ],
+                "Classical": [
+                    "I",
+                    "ii",
+                    "V",
+                    "V"
+                ],
+                "Pop": [
+                    "I",
+                    "IV",
+                    "I",
+                    "I"
+                ],
+                "Rock": [
+                    "I",
+                    "V",
+                    "V",
+                    "viadd9"
+                ],
+                "Folk": [
+                    "I",
+                    "ii",
+                    "V",
+                    "vi"
+                ],
+                "RnB": [
+                    "I",
+                    "I",
+                    "vi7",
+                    "V7"
+                ],
+                "Cinematic": [
+                    "I",
+                    "iii",
+                    "vi",
+                    "I"
+                ]
+            },
+            "individual_analysis": [
+                {
+                    "chord_id": "ionian_I",
+                    "prompt": "test message 0",
+                    "emotion_weights": {
+                        "Joy": 1.0,
+                        "Sadness": 0.0,
+                        "Fear": 0.0,
+                        "Anger": 0.0,
+                        "Disgust": 0.0,
+                        "Surprise": 0.0,
+                        "Trust": 0.0,
+                        "Anticipation": 0.0,
+                        "Shame": 0.0,
+                        "Love": 0.0,
+                        "Envy": 0.0,
+                        "Aesthetic Awe": 0.0,
+                        "Malice": 0.0
+                    },
+                    "chord_symbol": "C",
+                    "roman_numeral": "I",
+                    "mode_context": "Ionian",
+                    "style_context": "Classical",
+                    "emotional_score": 1.0,
+                    "key": "C",
+                    "metadata": {
+                        "generation_method": "emotion_weighted_selection",
+                        "timestamp": "2025-07-02T14:43:50.597231",
+                        "mode_filter": "Any",
+                        "style_filter": "Any"
+                    }
+                }
+            ],
+            "suggestions": [
+                "Try this in a different style",
+                "Show me individual chord emotions",
+                "Compare across musical styles",
+                "Explain the music theory"
+            ],
+            "intent": "emotional_progression",
+            "confidence": 0.3,
+            "models_used": [
+                "progression",
+                "individual",
+                "theory"
+            ],
+            "timestamp": 1751481831.926192
+        },
+        "last_progression": [
+            "\u266fIVdim",
+            "iii",
+            "\u266dII",
+            "III"
+        ],
+        "last_emotion": "Joy",
+        "last_style": "Pop",
+        "last_mode": "Lydian",
+        "timestamp": 1751481831.926292
+    },
+    "session_1751481832_5261": {
+        "last_response": {
+            "message": "\ud83c\udfbc **III \u2192 iv\u00b0 \u2192 iii \u2192 VI**\n\n\ud83c\udfad Emotions: Joy (0.50), Trust (0.30)\n\n\ud83c\udfb5 Mode: Lydian\n\n\ud83d\udd0d Individual chord emotions available - ask for details!\n\n\ud83c\udfb6 8 style alternatives available",
+            "chords": [
+                "III",
+                "iv\u00b0",
+                "iii",
+                "VI"
+            ],
+            "original_chords": [
+                "III",
+                "iv\u00b0",
+                "iii",
+                "VI"
+            ],
+            "chord_metadata": [
+                {
+                    "position": 0,
+                    "current_chord": "III",
+                    "original_chord": "I",
+                    "is_substitution": true,
+                    "source": "neural_substitution",
+                    "substitution_type": "chord_substitution"
+                },
+                {
+                    "position": 1,
+                    "current_chord": "iv\u00b0",
+                    "original_chord": "vi",
+                    "is_substitution": true,
+                    "source": "neural_substitution",
+                    "substitution_type": "added_diminished"
+                },
+                {
+                    "position": 2,
+                    "current_chord": "iii",
+                    "original_chord": "II7",
+                    "is_substitution": true,
+                    "source": "neural_substitution",
+                    "substitution_type": "removed_seventh"
+                },
+                {
+                    "position": 3,
+                    "current_chord": "VI",
+                    "original_chord": "V",
+                    "is_substitution": true,
+                    "source": "neural_substitution",
+                    "substitution_type": "chord_substitution"
+                }
+            ],
+            "substitution_count": 4,
+            "generation_method": "unknown",
+            "has_substitutions": true,
+            "emotions": {
+                "Joy": 0.5,
+                "Sadness": 0.0,
+                "Fear": 0.0,
+                "Anger": 0.0,
+                "Disgust": 0.0,
+                "Surprise": 0.0,
+                "Trust": 0.3,
+                "Anticipation": 0.0,
+                "Shame": 0.0,
+                "Love": 0.0,
+                "Envy": 0.0,
+                "Aesthetic Awe": 0.0,
+                "Malice": 0.0
+            },
+            "primary_result": {
+                "progression_id": "generated_0",
+                "prompt": "test message 1",
+                "emotion_weights": {
+                    "Joy": 0.5,
+                    "Sadness": 0.0,
+                    "Fear": 0.0,
+                    "Anger": 0.0,
+                    "Disgust": 0.0,
+                    "Surprise": 0.0,
+                    "Trust": 0.3,
+                    "Anticipation": 0.0,
+                    "Shame": 0.0,
+                    "Love": 0.0,
+                    "Envy": 0.0,
+                    "Aesthetic Awe": 0.0,
+                    "Malice": 0.0
+                },
+                "detected_sub_emotion": "",
+                "primary_mode": "Lydian",
+                "mode_blend": {
+                    "Ionian": 0.08226907253265381,
+                    "Aeolian": 0.08173087239265442,
+                    "Phrygian": 0.08237546682357788,
+                    "Phrygian Dominant": 0.08338870853185654,
+                    "Locrian": 0.08325288444757462,
+                    "Lydian": 0.08758951723575592,
+                    "Dorian": 0.08266107738018036,
+                    "Melodic Minor": 0.08527390658855438,
+                    "Harmonic Minor": 0.08166764676570892,
+                    "Mixolydian": 0.08202652633190155,
+                    "Hungarian Minor": 0.08454446494579315,
+                    "Lydian Augmented": 0.0832197368144989
+                },
+                "chords": [
+                    "III",
+                    "iv\u00b0",
+                    "iii",
+                    "VI"
+                ],
+                "chord_metadata": [
+                    {
+                        "position": 0,
+                        "current_chord": "III",
+                        "original_chord": "I",
+                        "is_substitution": true,
+                        "source": "neural_substitution",
+                        "substitution_type": "chord_substitution"
+                    },
+                    {
+                        "position": 1,
+                        "current_chord": "iv\u00b0",
+                        "original_chord": "vi",
+                        "is_substitution": true,
+                        "source": "neural_substitution",
+                        "substitution_type": "added_diminished"
+                    },
+                    {
+                        "position": 2,
+                        "current_chord": "iii",
+                        "original_chord": "II7",
+                        "is_substitution": true,
+                        "source": "neural_substitution",
+                        "substitution_type": "removed_seventh"
+                    },
+                    {
+                        "position": 3,
+                        "current_chord": "VI",
+                        "original_chord": "V",
+                        "is_substitution": true,
+                        "source": "neural_substitution",
+                        "substitution_type": "chord_substitution"
+                    }
+                ],
+                "substitution_count": 4,
+                "genre": "Pop",
+                "metadata": {
+                    "generation_method": "neural_generation",
+                    "timestamp": "2025-07-02T14:43:52.481410",
+                    "neural_mode": true,
+                    "has_substitutions": true
+                }
+            },
+            "alternatives": {
+                "Blues": [
+                    "V+",
+                    "I",
+                    "vi7",
+                    "IV"
+                ],
+                "Jazz": [
+                    "I",
+                    "ii7",
+                    "V9",
+                    "IM7"
+                ],
+                "Classical": [
+                    "I",
+                    "I",
+                    "iii",
+                    "iii"
+                ],
+                "Pop": [
+                    "I",
+                    "iii",
+                    "IV",
+                    "IV"
+                ],
+                "Rock": [
+                    "I",
+                    "Vsus4",
+                    "vi",
+                    "iiadd9"
+                ],
+                "Folk": [
+                    "I",
+                    "vi",
+                    "vi",
+                    "I"
+                ],
+                "RnB": [
+                    "I",
+                    "I",
+                    "iii",
+                    "IM7"
+                ],
+                "Cinematic": [
+                    "I",
+                    "I",
+                    "vii\u00b0",
+                    "vii\u00b0"
+                ]
+            },
+            "individual_analysis": [
+                {
+                    "chord_id": "ionian_I",
+                    "prompt": "test message 1",
+                    "emotion_weights": {
+                        "Joy": 1.0,
+                        "Sadness": 0.0,
+                        "Fear": 0.0,
+                        "Anger": 0.0,
+                        "Disgust": 0.0,
+                        "Surprise": 0.0,
+                        "Trust": 0.0,
+                        "Anticipation": 0.0,
+                        "Shame": 0.0,
+                        "Love": 0.0,
+                        "Envy": 0.0,
+                        "Aesthetic Awe": 0.0,
+                        "Malice": 0.0
+                    },
+                    "chord_symbol": "C",
+                    "roman_numeral": "I",
+                    "mode_context": "Ionian",
+                    "style_context": "Classical",
+                    "emotional_score": 1.0,
+                    "key": "C",
+                    "metadata": {
+                        "generation_method": "emotion_weighted_selection",
+                        "timestamp": "2025-07-02T14:43:52.481572",
+                        "mode_filter": "Any",
+                        "style_filter": "Any"
+                    }
+                }
+            ],
+            "suggestions": [
+                "Try this in a different style",
+                "Show me individual chord emotions",
+                "Compare across musical styles",
+                "Explain the music theory"
+            ],
+            "intent": "emotional_progression",
+            "confidence": 0.3,
+            "models_used": [
+                "progression",
+                "individual",
+                "theory"
+            ],
+            "timestamp": 1751481833.761815
+        },
+        "last_progression": [
+            "III",
+            "iv\u00b0",
+            "iii",
+            "VI"
+        ],
+        "last_emotion": "Joy",
+        "last_style": "Pop",
+        "last_mode": "Lydian",
+        "timestamp": 1751481833.76192
+    },
+    "session_1751481834_2722": {
+        "last_response": {
+            "message": "\ud83c\udfbc **I \u2192 V \u2192 vi \u2192 IV**\n\n\ud83c\udfad Emotions: Joy (0.50), Trust (0.30)\n\n\ud83c\udfb5 Mode: Lydian\n\n\ud83d\udd0d Individual chord emotions available - ask for details!\n\n\ud83c\udfb6 8 style alternatives available",
+            "chords": [
+                "I",
+                "V",
+                "vi",
+                "IV"
+            ],
+            "original_chords": [
+                "I",
+                "V",
+                "vi",
+                "IV"
+            ],
+            "chord_metadata": [
+                {
+                    "position": 0,
+                    "current_chord": "I",
+                    "original_chord": "I",
+                    "is_substitution": false,
+                    "source": "database_match",
+                    "substitution_type": null
+                },
+                {
+                    "position": 1,
+                    "current_chord": "V",
+                    "original_chord": "II7",
+                    "is_substitution": true,
+                    "source": "neural_substitution",
+                    "substitution_type": "removed_seventh"
+                },
+                {
+                    "position": 2,
+                    "current_chord": "vi",
+                    "original_chord": "V",
+                    "is_substitution": true,
+                    "source": "neural_substitution",
+                    "substitution_type": "chord_substitution"
+                },
+                {
+                    "position": 3,
+                    "current_chord": "IV",
+                    "original_chord": "I",
+                    "is_substitution": true,
+                    "source": "neural_substitution",
+                    "substitution_type": "chord_substitution"
+                }
+            ],
+            "substitution_count": 3,
+            "generation_method": "unknown",
+            "has_substitutions": true,
+            "emotions": {
+                "Joy": 0.5,
+                "Sadness": 0.0,
+                "Fear": 0.0,
+                "Anger": 0.0,
+                "Disgust": 0.0,
+                "Surprise": 0.0,
+                "Trust": 0.3,
+                "Anticipation": 0.0,
+                "Shame": 0.0,
+                "Love": 0.0,
+                "Envy": 0.0,
+                "Aesthetic Awe": 0.0,
+                "Malice": 0.0
+            },
+            "primary_result": {
+                "progression_id": "generated_0",
+                "prompt": "test message 2",
+                "emotion_weights": {
+                    "Joy": 0.5,
+                    "Sadness": 0.0,
+                    "Fear": 0.0,
+                    "Anger": 0.0,
+                    "Disgust": 0.0,
+                    "Surprise": 0.0,
+                    "Trust": 0.3,
+                    "Anticipation": 0.0,
+                    "Shame": 0.0,
+                    "Love": 0.0,
+                    "Envy": 0.0,
+                    "Aesthetic Awe": 0.0,
+                    "Malice": 0.0
+                },
+                "detected_sub_emotion": "",
+                "primary_mode": "Lydian",
+                "mode_blend": {
+                    "Ionian": 0.08226907253265381,
+                    "Aeolian": 0.08173087239265442,
+                    "Phrygian": 0.08237546682357788,
+                    "Phrygian Dominant": 0.08338870853185654,
+                    "Locrian": 0.08325288444757462,
+                    "Lydian": 0.08758951723575592,
+                    "Dorian": 0.08266107738018036,
+                    "Melodic Minor": 0.08527390658855438,
+                    "Harmonic Minor": 0.08166764676570892,
+                    "Mixolydian": 0.08202652633190155,
+                    "Hungarian Minor": 0.08454446494579315,
+                    "Lydian Augmented": 0.0832197368144989
+                },
+                "chords": [
+                    "I",
+                    "V",
+                    "vi",
+                    "IV"
+                ],
+                "chord_metadata": [
+                    {
+                        "position": 0,
+                        "current_chord": "I",
+                        "original_chord": "I",
+                        "is_substitution": false,
+                        "source": "database_match",
+                        "substitution_type": null
+                    },
+                    {
+                        "position": 1,
+                        "current_chord": "V",
+                        "original_chord": "II7",
+                        "is_substitution": true,
+                        "source": "neural_substitution",
+                        "substitution_type": "removed_seventh"
+                    },
+                    {
+                        "position": 2,
+                        "current_chord": "vi",
+                        "original_chord": "V",
+                        "is_substitution": true,
+                        "source": "neural_substitution",
+                        "substitution_type": "chord_substitution"
+                    },
+                    {
+                        "position": 3,
+                        "current_chord": "IV",
+                        "original_chord": "I",
+                        "is_substitution": true,
+                        "source": "neural_substitution",
+                        "substitution_type": "chord_substitution"
+                    }
+                ],
+                "substitution_count": 3,
+                "genre": "Pop",
+                "metadata": {
+                    "generation_method": "neural_generation",
+                    "timestamp": "2025-07-02T14:43:54.292178",
+                    "neural_mode": true,
+                    "has_substitutions": true
+                }
+            },
+            "alternatives": {
+                "Blues": [
+                    "bIII9",
+                    "bIII9",
+                    "bIII9",
+                    "bIII9"
+                ],
+                "Jazz": [
+                    "I",
+                    "iii",
+                    "vi",
+                    "ii"
+                ],
+                "Classical": [
+                    "I",
+                    "ii",
+                    "V",
+                    "I"
+                ],
+                "Pop": [
+                    "I",
+                    "I",
+                    "IV",
+                    "ii"
+                ],
+                "Rock": [
+                    "I",
+                    "IVadd9",
+                    "iii+",
+                    "I"
+                ],
+                "Folk": [
+                    "I",
+                    "V",
+                    "V",
+                    "vi"
+                ],
+                "RnB": [
+                    "I",
+                    "I",
+                    "I",
+                    "vi7"
+                ],
+                "Cinematic": [
+                    "I",
+                    "V7#11",
+                    "V7#5",
+                    "V7#11"
+                ]
+            },
+            "individual_analysis": [
+                {
+                    "chord_id": "ionian_I",
+                    "prompt": "test message 2",
+                    "emotion_weights": {
+                        "Joy": 1.0,
+                        "Sadness": 0.0,
+                        "Fear": 0.0,
+                        "Anger": 0.0,
+                        "Disgust": 0.0,
+                        "Surprise": 0.0,
+                        "Trust": 0.0,
+                        "Anticipation": 0.0,
+                        "Shame": 0.0,
+                        "Love": 0.0,
+                        "Envy": 0.0,
+                        "Aesthetic Awe": 0.0,
+                        "Malice": 0.0
+                    },
+                    "chord_symbol": "C",
+                    "roman_numeral": "I",
+                    "mode_context": "Ionian",
+                    "style_context": "Classical",
+                    "emotional_score": 1.0,
+                    "key": "C",
+                    "metadata": {
+                        "generation_method": "emotion_weighted_selection",
+                        "timestamp": "2025-07-02T14:43:54.292362",
+                        "mode_filter": "Any",
+                        "style_filter": "Any"
+                    }
+                }
+            ],
+            "suggestions": [
+                "Try this in a different style",
+                "Show me individual chord emotions",
+                "Compare across musical styles",
+                "Explain the music theory"
+            ],
+            "intent": "emotional_progression",
+            "confidence": 0.3,
+            "models_used": [
+                "progression",
+                "individual",
+                "theory"
+            ],
+            "timestamp": 1751481835.68194
+        },
+        "last_progression": [
+            "I",
+            "V",
+            "vi",
+            "IV"
+        ],
+        "last_emotion": "Joy",
+        "last_style": "Pop",
+        "last_mode": "Lydian",
+        "timestamp": 1751481835.682081
+    },
+    "session_1751481836_1467": {
+        "last_response": {
+            "message": "\ud83c\udfbc **I \u2192 V \u2192 vi \u2192 ii**\n\n\ud83c\udfad Emotions: Joy (0.50), Trust (0.30)\n\n\ud83c\udfb5 Mode: Lydian\n\n\ud83d\udd0d Individual chord emotions available - ask for details!\n\n\ud83c\udfb6 8 style alternatives available",
+            "chords": [
+                "I",
+                "V",
+                "vi",
+                "ii"
+            ],
+            "original_chords": [
+                "I",
+                "V",
+                "vi",
+                "ii"
+            ],
+            "chord_metadata": [
+                {
+                    "position": 0,
+                    "current_chord": "I",
+                    "original_chord": "I",
+                    "is_substitution": false,
+                    "source": "database_match",
+                    "substitution_type": null
+                },
+                {
+                    "position": 1,
+                    "current_chord": "V",
+                    "original_chord": "II7",
+                    "is_substitution": true,
+                    "source": "neural_substitution",
+                    "substitution_type": "removed_seventh"
+                },
+                {
+                    "position": 2,
+                    "current_chord": "vi",
+                    "original_chord": "V",
+                    "is_substitution": true,
+                    "source": "neural_substitution",
+                    "substitution_type": "chord_substitution"
+                },
+                {
+                    "position": 3,
+                    "current_chord": "ii",
+                    "original_chord": "I",
+                    "is_substitution": true,
+                    "source": "neural_substitution",
+                    "substitution_type": "chord_substitution"
+                }
+            ],
+            "substitution_count": 3,
+            "generation_method": "unknown",
+            "has_substitutions": true,
+            "emotions": {
+                "Joy": 0.5,
+                "Sadness": 0.0,
+                "Fear": 0.0,
+                "Anger": 0.0,
+                "Disgust": 0.0,
+                "Surprise": 0.0,
+                "Trust": 0.3,
+                "Anticipation": 0.0,
+                "Shame": 0.0,
+                "Love": 0.0,
+                "Envy": 0.0,
+                "Aesthetic Awe": 0.0,
+                "Malice": 0.0
+            },
+            "primary_result": {
+                "progression_id": "generated_0",
+                "prompt": "test message 3",
+                "emotion_weights": {
+                    "Joy": 0.5,
+                    "Sadness": 0.0,
+                    "Fear": 0.0,
+                    "Anger": 0.0,
+                    "Disgust": 0.0,
+                    "Surprise": 0.0,
+                    "Trust": 0.3,
+                    "Anticipation": 0.0,
+                    "Shame": 0.0,
+                    "Love": 0.0,
+                    "Envy": 0.0,
+                    "Aesthetic Awe": 0.0,
+                    "Malice": 0.0
+                },
+                "detected_sub_emotion": "",
+                "primary_mode": "Lydian",
+                "mode_blend": {
+                    "Ionian": 0.08226907253265381,
+                    "Aeolian": 0.08173087239265442,
+                    "Phrygian": 0.08237546682357788,
+                    "Phrygian Dominant": 0.08338870853185654,
+                    "Locrian": 0.08325288444757462,
+                    "Lydian": 0.08758951723575592,
+                    "Dorian": 0.08266107738018036,
+                    "Melodic Minor": 0.08527390658855438,
+                    "Harmonic Minor": 0.08166764676570892,
+                    "Mixolydian": 0.08202652633190155,
+                    "Hungarian Minor": 0.08454446494579315,
+                    "Lydian Augmented": 0.0832197368144989
+                },
+                "chords": [
+                    "I",
+                    "V",
+                    "vi",
+                    "ii"
+                ],
+                "chord_metadata": [
+                    {
+                        "position": 0,
+                        "current_chord": "I",
+                        "original_chord": "I",
+                        "is_substitution": false,
+                        "source": "database_match",
+                        "substitution_type": null
+                    },
+                    {
+                        "position": 1,
+                        "current_chord": "V",
+                        "original_chord": "II7",
+                        "is_substitution": true,
+                        "source": "neural_substitution",
+                        "substitution_type": "removed_seventh"
+                    },
+                    {
+                        "position": 2,
+                        "current_chord": "vi",
+                        "original_chord": "V",
+                        "is_substitution": true,
+                        "source": "neural_substitution",
+                        "substitution_type": "chord_substitution"
+                    },
+                    {
+                        "position": 3,
+                        "current_chord": "ii",
+                        "original_chord": "I",
+                        "is_substitution": true,
+                        "source": "neural_substitution",
+                        "substitution_type": "chord_substitution"
+                    }
+                ],
+                "substitution_count": 3,
+                "genre": "Pop",
+                "metadata": {
+                    "generation_method": "neural_generation",
+                    "timestamp": "2025-07-02T14:43:56.203390",
+                    "neural_mode": true,
+                    "has_substitutions": true
+                }
+            },
+            "alternatives": {
+                "Blues": [
+                    "IV+",
+                    "V",
+                    "bVI9",
+                    "bVI9"
+                ],
+                "Jazz": [
+                    "I",
+                    "vi",
+                    "vi",
+                    "ii7"
+                ],
+                "Classical": [
+                    "I",
+                    "IV",
+                    "ii",
+                    "V"
+                ],
+                "Pop": [
+                    "I",
+                    "IV",
+                    "I",
+                    "IV"
+                ],
+                "Rock": [
+                    "I",
+                    "Iadd9",
+                    "iisus4",
+                    "Iadd9"
+                ],
+                "Folk": [
+                    "I",
+                    "vi",
+                    "ii",
+                    "vi"
+                ],
+                "RnB": [
+                    "I",
+                    "V",
+                    "I",
+                    "I6"
+                ],
+                "Cinematic": [
+                    "I",
+                    "vi",
+                    "V7#11",
+                    "ii7b5"
+                ]
+            },
+            "individual_analysis": [
+                {
+                    "chord_id": "ionian_I",
+                    "prompt": "test message 3",
+                    "emotion_weights": {
+                        "Joy": 1.0,
+                        "Sadness": 0.0,
+                        "Fear": 0.0,
+                        "Anger": 0.0,
+                        "Disgust": 0.0,
+                        "Surprise": 0.0,
+                        "Trust": 0.0,
+                        "Anticipation": 0.0,
+                        "Shame": 0.0,
+                        "Love": 0.0,
+                        "Envy": 0.0,
+                        "Aesthetic Awe": 0.0,
+                        "Malice": 0.0
+                    },
+                    "chord_symbol": "C",
+                    "roman_numeral": "I",
+                    "mode_context": "Ionian",
+                    "style_context": "Classical",
+                    "emotional_score": 1.0,
+                    "key": "C",
+                    "metadata": {
+                        "generation_method": "emotion_weighted_selection",
+                        "timestamp": "2025-07-02T14:43:56.203521",
+                        "mode_filter": "Any",
+                        "style_filter": "Any"
+                    }
+                }
+            ],
+            "suggestions": [
+                "Try this in a different style",
+                "Show me individual chord emotions",
+                "Compare across musical styles",
+                "Explain the music theory"
+            ],
+            "intent": "emotional_progression",
+            "confidence": 0.3,
+            "models_used": [
+                "progression",
+                "individual",
+                "theory"
+            ],
+            "timestamp": 1751481837.492351
+        },
+        "last_progression": [
+            "I",
+            "V",
+            "vi",
+            "ii"
+        ],
+        "last_emotion": "Joy",
+        "last_style": "Pop",
+        "last_mode": "Lydian",
+        "timestamp": 1751481837.492446
+    },
+    "session_1751481838_3821": {
+        "last_response": {
+            "message": "\ud83c\udfbc **\u266fiv\u00b0 \u2192 ii\u00f8 \u2192 VII \u2192 \u266dII**\n\n\ud83c\udfad Emotions: Joy (0.50), Trust (0.30)\n\n\ud83c\udfb5 Mode: Lydian\n\n\ud83d\udd0d Individual chord emotions available - ask for details!\n\n\ud83c\udfb6 8 style alternatives available",
+            "chords": [
+                "\u266fiv\u00b0",
+                "ii\u00f8",
+                "VII",
+                "\u266dII"
+            ],
+            "original_chords": [
+                "\u266fiv\u00b0",
+                "ii\u00f8",
+                "VII",
+                "\u266dII"
+            ],
+            "chord_metadata": [
+                {
+                    "position": 0,
+                    "current_chord": "\u266fiv\u00b0",
+                    "original_chord": "I",
+                    "is_substitution": true,
+                    "source": "neural_substitution",
+                    "substitution_type": "added_diminished"
+                },
+                {
+                    "position": 1,
+                    "current_chord": "ii\u00f8",
+                    "original_chord": "II7",
+                    "is_substitution": true,
+                    "source": "neural_substitution",
+                    "substitution_type": "removed_seventh"
+                },
+                {
+                    "position": 2,
+                    "current_chord": "VII",
+                    "original_chord": "V",
+                    "is_substitution": true,
+                    "source": "neural_substitution",
+                    "substitution_type": "chord_substitution"
+                },
+                {
+                    "position": 3,
+                    "current_chord": "\u266dII",
+                    "original_chord": "I",
+                    "is_substitution": true,
+                    "source": "neural_substitution",
+                    "substitution_type": "chord_substitution"
+                }
+            ],
+            "substitution_count": 4,
+            "generation_method": "unknown",
+            "has_substitutions": true,
+            "emotions": {
+                "Joy": 0.5,
+                "Sadness": 0.0,
+                "Fear": 0.0,
+                "Anger": 0.0,
+                "Disgust": 0.0,
+                "Surprise": 0.0,
+                "Trust": 0.3,
+                "Anticipation": 0.0,
+                "Shame": 0.0,
+                "Love": 0.0,
+                "Envy": 0.0,
+                "Aesthetic Awe": 0.0,
+                "Malice": 0.0
+            },
+            "primary_result": {
+                "progression_id": "generated_0",
+                "prompt": "test message 4",
+                "emotion_weights": {
+                    "Joy": 0.5,
+                    "Sadness": 0.0,
+                    "Fear": 0.0,
+                    "Anger": 0.0,
+                    "Disgust": 0.0,
+                    "Surprise": 0.0,
+                    "Trust": 0.3,
+                    "Anticipation": 0.0,
+                    "Shame": 0.0,
+                    "Love": 0.0,
+                    "Envy": 0.0,
+                    "Aesthetic Awe": 0.0,
+                    "Malice": 0.0
+                },
+                "detected_sub_emotion": "",
+                "primary_mode": "Lydian",
+                "mode_blend": {
+                    "Ionian": 0.08226907253265381,
+                    "Aeolian": 0.08173087239265442,
+                    "Phrygian": 0.08237546682357788,
+                    "Phrygian Dominant": 0.08338870853185654,
+                    "Locrian": 0.08325288444757462,
+                    "Lydian": 0.08758951723575592,
+                    "Dorian": 0.08266107738018036,
+                    "Melodic Minor": 0.08527390658855438,
+                    "Harmonic Minor": 0.08166764676570892,
+                    "Mixolydian": 0.08202652633190155,
+                    "Hungarian Minor": 0.08454446494579315,
+                    "Lydian Augmented": 0.0832197368144989
+                },
+                "chords": [
+                    "\u266fiv\u00b0",
+                    "ii\u00f8",
+                    "VII",
+                    "\u266dII"
+                ],
+                "chord_metadata": [
+                    {
+                        "position": 0,
+                        "current_chord": "\u266fiv\u00b0",
+                        "original_chord": "I",
+                        "is_substitution": true,
+                        "source": "neural_substitution",
+                        "substitution_type": "added_diminished"
+                    },
+                    {
+                        "position": 1,
+                        "current_chord": "ii\u00f8",
+                        "original_chord": "II7",
+                        "is_substitution": true,
+                        "source": "neural_substitution",
+                        "substitution_type": "removed_seventh"
+                    },
+                    {
+                        "position": 2,
+                        "current_chord": "VII",
+                        "original_chord": "V",
+                        "is_substitution": true,
+                        "source": "neural_substitution",
+                        "substitution_type": "chord_substitution"
+                    },
+                    {
+                        "position": 3,
+                        "current_chord": "\u266dII",
+                        "original_chord": "I",
+                        "is_substitution": true,
+                        "source": "neural_substitution",
+                        "substitution_type": "chord_substitution"
+                    }
+                ],
+                "substitution_count": 4,
+                "genre": "Pop",
+                "metadata": {
+                    "generation_method": "neural_generation",
+                    "timestamp": "2025-07-02T14:43:58.043527",
+                    "neural_mode": true,
+                    "has_substitutions": true
+                }
+            },
+            "alternatives": {
+                "Blues": [
+                    "bVII7",
+                    "IV7",
+                    "V7",
+                    "I"
+                ],
+                "Jazz": [
+                    "I",
+                    "vi7",
+                    "ii7",
+                    "V7alt"
+                ],
+                "Classical": [
+                    "I",
+                    "ii",
+                    "vii\u00b0",
+                    "I"
+                ],
+                "Pop": [
+                    "I",
+                    "I",
+                    "ii",
+                    "vi"
+                ],
+                "Rock": [
+                    "I",
+                    "iiiadd9",
+                    "Isus2",
+                    "Iadd9"
+                ],
+                "Folk": [
+                    "I",
+                    "V",
+                    "V",
+                    "I"
+                ],
+                "RnB": [
+                    "I",
+                    "I",
+                    "vi7",
+                    "ii7"
+                ],
+                "Cinematic": [
+                    "I",
+                    "vi",
+                    "vi",
+                    "V"
+                ]
+            },
+            "individual_analysis": [
+                {
+                    "chord_id": "ionian_I",
+                    "prompt": "test message 4",
+                    "emotion_weights": {
+                        "Joy": 1.0,
+                        "Sadness": 0.0,
+                        "Fear": 0.0,
+                        "Anger": 0.0,
+                        "Disgust": 0.0,
+                        "Surprise": 0.0,
+                        "Trust": 0.0,
+                        "Anticipation": 0.0,
+                        "Shame": 0.0,
+                        "Love": 0.0,
+                        "Envy": 0.0,
+                        "Aesthetic Awe": 0.0,
+                        "Malice": 0.0
+                    },
+                    "chord_symbol": "C",
+                    "roman_numeral": "I",
+                    "mode_context": "Ionian",
+                    "style_context": "Classical",
+                    "emotional_score": 1.0,
+                    "key": "C",
+                    "metadata": {
+                        "generation_method": "emotion_weighted_selection",
+                        "timestamp": "2025-07-02T14:43:58.043675",
+                        "mode_filter": "Any",
+                        "style_filter": "Any"
+                    }
+                }
+            ],
+            "suggestions": [
+                "Try this in a different style",
+                "Show me individual chord emotions",
+                "Compare across musical styles",
+                "Explain the music theory"
+            ],
+            "intent": "emotional_progression",
+            "confidence": 0.3,
+            "models_used": [
+                "progression",
+                "individual",
+                "theory"
+            ],
+            "timestamp": 1751481839.326619
+        },
+        "last_progression": [
+            "\u266fiv\u00b0",
+            "ii\u00f8",
+            "VII",
+            "\u266dII"
+        ],
+        "last_emotion": "Joy",
+        "last_style": "Pop",
+        "last_mode": "Lydian",
+        "timestamp": 1751481839.326765
+    }
+}

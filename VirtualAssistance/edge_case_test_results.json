@@ -1,0 +1,368 @@
+{
+  "passed": [
+    {
+      "test": "Inversion Test: I6",
+      "message": "Generated progression with First inversion of I major"
+    },
+    {
+      "test": "Individual Inversion: I6",
+      "message": "Generated individual chord analysis"
+    },
+    {
+      "test": "Inversion Test: ii6",
+      "message": "Generated progression with First inversion of ii minor"
+    },
+    {
+      "test": "Individual Inversion: ii6",
+      "message": "Generated individual chord analysis"
+    },
+    {
+      "test": "Inversion Test: V6",
+      "message": "Generated progression with First inversion of V major"
+    },
+    {
+      "test": "Individual Inversion: V6",
+      "message": "Generated individual chord analysis"
+    },
+    {
+      "test": "Inversion Test: I6/4",
+      "message": "Generated progression with Second inversion of I major"
+    },
+    {
+      "test": "Individual Inversion: I6/4",
+      "message": "Generated individual chord analysis"
+    },
+    {
+      "test": "Inversion Test: V6/4",
+      "message": "Generated progression with Second inversion of V major"
+    },
+    {
+      "test": "Individual Inversion: V6/4",
+      "message": "Generated individual chord analysis"
+    },
+    {
+      "test": "Inversion Test: IM76",
+      "message": "Generated progression with IM7 first inversion"
+    },
+    {
+      "test": "Individual Inversion: IM76",
+      "message": "Generated individual chord analysis"
+    },
+    {
+      "test": "Inversion Test: V76",
+      "message": "Generated progression with V7 first inversion"
+    },
+    {
+      "test": "Individual Inversion: V76",
+      "message": "Generated individual chord analysis"
+    },
+    {
+      "test": "Inversion Test: i6",
+      "message": "Generated progression with i minor first inversion"
+    },
+    {
+      "test": "Individual Inversion: i6",
+      "message": "Generated individual chord analysis"
+    },
+    {
+      "test": "Inversion Test: iv6",
+      "message": "Generated progression with iv minor first inversion"
+    },
+    {
+      "test": "Individual Inversion: iv6",
+      "message": "Generated individual chord analysis"
+    },
+    {
+      "test": "Neural Substitution: happy and excited",
+      "message": "Found substitution: I \u2192 iv\u00b0"
+    },
+    {
+      "test": "Neural Substitution: happy and excited",
+      "message": "Found substitution: vi \u2192 i"
+    },
+    {
+      "test": "Neural Substitution: happy and excited",
+      "message": "Found substitution: V \u2192 \u266dVI"
+    },
+    {
+      "test": "Neural Substitution: happy and excited",
+      "message": "Found substitution: I \u2192 vii\u00b0"
+    },
+    {
+      "test": "Neural Substitution: happy and excited",
+      "message": "Found substitution: I \u2192 ii"
+    },
+    {
+      "test": "Neural Substitution: happy and excited",
+      "message": "Found substitution: I \u2192 iv\u00b0"
+    },
+    {
+      "test": "Neural Substitution: happy and excited",
+      "message": "Found substitution: I \u2192 VI"
+    },
+    {
+      "test": "Neural Method: happy and excited",
+      "message": "Used neural generation successfully"
+    },
+    {
+      "test": "Neural Substitution: melancholic jazz",
+      "message": "Found substitution: i \u2192 VII"
+    },
+    {
+      "test": "Neural Substitution: melancholic jazz",
+      "message": "Found substitution: \u266dIII \u2192 III"
+    },
+    {
+      "test": "Neural Method: melancholic jazz",
+      "message": "Used neural generation successfully"
+    },
+    {
+      "test": "Neural Substitution: angry classical",
+      "message": "Found substitution: I \u2192 \u266dII"
+    },
+    {
+      "test": "Neural Substitution: angry classical",
+      "message": "Found substitution: II7 \u2192 \u266dII"
+    },
+    {
+      "test": "Neural Substitution: angry classical",
+      "message": "Found substitution: V \u2192 v\u00b0"
+    },
+    {
+      "test": "Neural Substitution: angry classical",
+      "message": "Found substitution: I \u2192 vi"
+    },
+    {
+      "test": "Neural Substitution: angry classical",
+      "message": "Found substitution: I \u2192 \u266dII"
+    },
+    {
+      "test": "Neural Substitution: angry classical",
+      "message": "Found substitution: I \u2192 VI"
+    },
+    {
+      "test": "Neural Substitution: angry classical",
+      "message": "Found substitution: I \u2192 \u266dII"
+    },
+    {
+      "test": "Neural Substitution: angry classical",
+      "message": "Found substitution: I \u2192 \u266fiv\u00b0"
+    },
+    {
+      "test": "Neural Method: angry classical",
+      "message": "Used neural generation successfully"
+    },
+    {
+      "test": "Neural Substitution: romantic blues",
+      "message": "Found substitution: I \u2192 V"
+    },
+    {
+      "test": "Neural Substitution: romantic blues",
+      "message": "Found substitution: vi \u2192 II"
+    },
+    {
+      "test": "Neural Substitution: romantic blues",
+      "message": "Found substitution: II7 \u2192 ii\u00b0"
+    },
+    {
+      "test": "Neural Substitution: romantic blues",
+      "message": "Found substitution: V \u2192 iii"
+    },
+    {
+      "test": "Neural Substitution: romantic blues",
+      "message": "Found substitution: I \u2192 vii\u00b0"
+    },
+    {
+      "test": "Neural Substitution: romantic blues",
+      "message": "Found substitution: I \u2192 i"
+    },
+    {
+      "test": "Neural Substitution: romantic blues",
+      "message": "Found substitution: I \u2192 iii\u00b0"
+    },
+    {
+      "test": "Neural Substitution: romantic blues",
+      "message": "Found substitution: I \u2192 ii\u00f8"
+    },
+    {
+      "test": "Neural Method: romantic blues",
+      "message": "Used neural generation successfully"
+    },
+    {
+      "test": "Neural Substitution Rate",
+      "message": "96.2% substitution rate achieved"
+    },
+    {
+      "test": "Color Coding: happy and excited ja...",
+      "message": "Found substitutions for orange color coding"
+    },
+    {
+      "test": "Color Coding: sad classical music...",
+      "message": "Found substitutions for orange color coding"
+    },
+    {
+      "test": "Color Coding: I feel melancholic a...",
+      "message": "Found substitutions for orange color coding"
+    },
+    {
+      "test": "Sub-emotion: I feel excited and t...",
+      "message": "Correctly detected Joy:Excitement"
+    },
+    {
+      "test": "Sub-emotion: I feel melancholic a...",
+      "message": "Correctly detected Sadness:Melancholy"
+    },
+    {
+      "test": "Sub-emotion: I feel content and p...",
+      "message": "Correctly detected Joy:Contentment"
+    },
+    {
+      "test": "Consistency: happy",
+      "message": "All models responded successfully"
+    },
+    {
+      "test": "Emotion Mapping: happy",
+      "message": "Top detected emotion: Joy"
+    },
+    {
+      "test": "Consistency: sad",
+      "message": "All models responded successfully"
+    },
+    {
+      "test": "Emotion Mapping: sad",
+      "message": "Top detected emotion: Sadness"
+    },
+    {
+      "test": "Consistency: romantic",
+      "message": "All models responded successfully"
+    },
+    {
+      "test": "Emotion Mapping: romantic",
+      "message": "Top detected emotion: Joy"
+    },
+    {
+      "test": "Consistency: mysterious",
+      "message": "All models responded successfully"
+    },
+    {
+      "test": "Emotion Mapping: mysterious",
+      "message": "Top detected emotion: Joy"
+    },
+    {
+      "test": "Edge Case: N6",
+      "message": "System handled unusual chord symbol"
+    },
+    {
+      "test": "Edge Case: Ger6",
+      "message": "System handled unusual chord symbol"
+    },
+    {
+      "test": "Edge Case: Fr6",
+      "message": "System handled unusual chord symbol"
+    },
+    {
+      "test": "Edge Case: It6",
+      "message": "System handled unusual chord symbol"
+    },
+    {
+      "test": "Edge Case: \u266dII6",
+      "message": "System handled unusual chord symbol"
+    },
+    {
+      "test": "Edge Case: V7/vi",
+      "message": "System handled unusual chord symbol"
+    },
+    {
+      "test": "Edge Case: ii\u00b07",
+      "message": "System handled unusual chord symbol"
+    },
+    {
+      "test": "Edge Case: V7alt",
+      "message": "System handled unusual chord symbol"
+    },
+    {
+      "test": "Edge Case: #iv\u00b07",
+      "message": "System handled unusual chord symbol"
+    },
+    {
+      "test": "Edge Case: \u266dVI7",
+      "message": "System handled unusual chord symbol"
+    }
+  ],
+  "failed": [],
+  "warnings": [
+    {
+      "test": "Sub-emotion: I feel anxious and w...",
+      "message": "No sub-emotion detected"
+    },
+    {
+      "test": "Sub-emotion: I feel romantic and ...",
+      "message": "No sub-emotion detected"
+    },
+    {
+      "test": "Sub-emotion: I feel bitter and re...",
+      "message": "No sub-emotion detected"
+    },
+    {
+      "test": "Database Schema",
+      "message": "Not using latest v2.0 schema"
+    },
+    {
+      "test": "Audio Test: I",
+      "message": "Chord not appearing in progressions"
+    },
+    {
+      "test": "Audio Test: V",
+      "message": "Chord not appearing in progressions"
+    },
+    {
+      "test": "Audio Test: vi",
+      "message": "Chord not appearing in progressions"
+    },
+    {
+      "test": "Audio Test: IV",
+      "message": "Chord not appearing in progressions"
+    },
+    {
+      "test": "Audio Test: I6",
+      "message": "Chord not appearing in progressions"
+    },
+    {
+      "test": "Audio Test: V6",
+      "message": "Chord not appearing in progressions"
+    },
+    {
+      "test": "Audio Test: ii6",
+      "message": "Chord not appearing in progressions"
+    },
+    {
+      "test": "Audio Test: IM7",
+      "message": "Chord not appearing in progressions"
+    },
+    {
+      "test": "Audio Test: V7",
+      "message": "Chord not appearing in progressions"
+    },
+    {
+      "test": "Audio Test: vi7",
+      "message": "Chord not appearing in progressions"
+    },
+    {
+      "test": "Audio Test: I6/4",
+      "message": "Chord not appearing in progressions"
+    },
+    {
+      "test": "Audio Test: V6/4",
+      "message": "Chord not appearing in progressions"
+    },
+    {
+      "test": "Audio Test: IM76",
+      "message": "Chord not appearing in progressions"
+    },
+    {
+      "test": "Audio Test: V76",
+      "message": "Chord not appearing in progressions"
+    }
+  ],
+  "total_tests": 90
+}

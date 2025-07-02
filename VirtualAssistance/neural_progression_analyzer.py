@@ -59,7 +59,7 @@ class NeuralProgressionAnalyzer(nn.Module):
     
     def __init__(self, 
                  chord_vocab_size: int = 100,  # Max number of unique chords
-                 emotion_dim: int = 12,
+                 emotion_dim: int = 22,        # 22 core emotions (expanded system)
                  hidden_dim: int = 256,
                  context_window: int = 8):
         super().__init__()
@@ -123,6 +123,12 @@ class NeuralProgressionAnalyzer(nn.Module):
             nn.Linear(64, 1),
             nn.Sigmoid()
         )
+        
+        # Update emotion labels for 22-emotion system
+        self.emotion_labels = ["Joy", "Sadness", "Fear", "Anger", "Disgust", "Surprise", 
+                              "Trust", "Anticipation", "Shame", "Love", "Envy", "Aesthetic Awe", "Malice",
+                              "Arousal", "Guilt", "Reverence", "Wonder", "Dissociation", 
+                              "Empowerment", "Belonging", "Ideology", "Gratitude"]
         
     def forward(self, chord_indices: torch.Tensor, positions: torch.Tensor) -> Dict[str, torch.Tensor]:
         """
@@ -196,46 +202,60 @@ class ContextualProgressionIntegrator:
         # Initialize neural analyzer
         self.neural_analyzer = NeuralProgressionAnalyzer()
         
+        # Add emotion labels for compatibility
+        self.emotion_labels = ["Joy", "Sadness", "Fear", "Anger", "Disgust", "Surprise", 
+                              "Trust", "Anticipation", "Shame", "Love", "Envy", "Aesthetic Awe", "Malice",
+                              "Arousal", "Guilt", "Reverence", "Wonder", "Dissociation", 
+                              "Empowerment", "Belonging", "Ideology", "Gratitude"]
+        
         # Chord vocabulary for neural network
         self.chord_vocab = self._build_chord_vocabulary()
         self.chord_to_idx = {chord: idx for idx, chord in enumerate(self.chord_vocab)}
         self.idx_to_chord = {idx: chord for chord, idx in self.chord_to_idx.items()}
-        
-        # Emotion labels
-        self.emotion_labels = [
-            "Joy", "Sadness", "Fear", "Anger", "Disgust", "Surprise",
-            "Trust", "Anticipation", "Shame", "Love", "Envy", "Aesthetic Awe"
-        ]
         
         # Training data for neural network
         self.training_data = []
         self._prepare_training_data()
         
     def _build_chord_vocabulary(self) -> List[str]:
-        """Build vocabulary of all possible chords from both models"""
+        """Build vocabulary of all chords from the progression database"""
         vocab = set()
         
-        # Add chords from individual chord database
-        for chord in self.individual_model.database.chord_emotion_map:
-            vocab.add(chord.roman_numeral)
-            
-        # Add chords from progression database
         try:
             with open('emotion_progression_database.json', 'r') as f:
                 prog_data = json.load(f)
             
             for emotion_name, emotion_data in prog_data['emotions'].items():
-                for prog in emotion_data['progression_pool']:
-                    for chord in prog['chords']:
-                        vocab.add(chord)
-        except FileNotFoundError:
-            print("Warning: Could not load progression database for vocabulary building")
+                # Handle both old structure (direct progression_pool) and new structure (sub_emotions)
+                progressions_to_process = []
+                
+                if 'progression_pool' in emotion_data:
+                    # Old structure - direct progression pool
+                    progressions_to_process.extend(emotion_data['progression_pool'])
+                
+                if 'sub_emotions' in emotion_data:
+                    # New structure - progressions in sub-emotions
+                    for sub_emotion_name, sub_emotion_data in emotion_data['sub_emotions'].items():
+                        if 'progression_pool' in sub_emotion_data:
+                            progressions_to_process.extend(sub_emotion_data['progression_pool'])
+                
+                # Process all collected progressions
+                for prog in progressions_to_process:
+                    if isinstance(prog, dict) and 'chords' in prog:
+                        for chord in prog['chords']:
+                            vocab.add(chord)
+        except Exception as e:
+            print(f"Warning: Could not load progression database for vocabulary: {e}")
+            # Fallback vocabulary
+            vocab = {
+                'I', 'ii', 'iii', 'IV', 'V', 'vi', 'vii°',
+                'i', 'ii°', 'III', 'iv', 'v', 'VI', 'VII',
+                '♭II', '♭III', '♭VI', '♭VII', 'N6', 'Aug6',
+                'V7', 'vii7', 'I7', 'ii7', 'iii7', 'IV7', 'vi7'
+            }
         
-        # Add common extended chords not in database
-        common_extensions = ['I7', 'ii7', 'iii7', 'IV7', 'V7', 'vi7', 'vii7',
-                            'Imaj7', 'iimaj7', 'IVmaj7', 'Vmaj7', 'vimaj7',
-                            'i7', 'iv7', 'v7', 'bVII7', 'bVI7', 'bIII7']
-        vocab.update(common_extensions)
+        # Add padding token at index 0
+        vocab.add('<PAD>')
         
         return sorted(list(vocab))
     
@@ -249,7 +269,21 @@ class ContextualProgressionIntegrator:
             for emotion_name, emotion_data in prog_data['emotions'].items():
                 emotion_vector = self._emotion_name_to_vector(emotion_name)
                 
-                for prog in emotion_data['progression_pool']:
+                # Handle both old structure (direct progression_pool) and new structure (sub_emotions)
+                progressions_to_process = []
+                
+                if 'progression_pool' in emotion_data:
+                    # Old structure - direct progression pool
+                    progressions_to_process.extend(emotion_data['progression_pool'])
+                
+                if 'sub_emotions' in emotion_data:
+                    # New structure - progressions in sub-emotions
+                    for sub_emotion_name, sub_emotion_data in emotion_data['sub_emotions'].items():
+                        if 'progression_pool' in sub_emotion_data:
+                            progressions_to_process.extend(sub_emotion_data['progression_pool'])
+                
+                # Process all collected progressions
+                for prog in progressions_to_process:
                     chord_sequence = prog['chords']
                     
                     # Convert to indices
@@ -280,10 +314,12 @@ class ContextualProgressionIntegrator:
                     
         except FileNotFoundError:
             print("Warning: Could not load progression database for training data")
+        except Exception as e:
+            print(f"Warning: Error processing progression database: {e}")
     
     def _emotion_name_to_vector(self, emotion_name: str) -> List[float]:
-        """Convert emotion name to 12-dimensional vector"""
-        vector = [0.0] * 12
+        """Convert emotion name to 22-dimensional vector"""
+        vector = [0.0] * 22  # Updated to 22 emotions
         if emotion_name in self.emotion_labels:
             idx = self.emotion_labels.index(emotion_name)
             vector[idx] = 1.0

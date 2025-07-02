@@ -1,0 +1,351 @@
+{
+  "summary": {
+    "total_tests": 81,
+    "passed": 80,
+    "failed": 0,
+    "warnings": 1,
+    "critical_failures": 1,
+    "success_rate": 98.76543209876543
+  },
+  "details": {
+    "passed": [
+      {
+        "id": "input_validation_0",
+        "message": "Handled malformed input correctly: '...'"
+      },
+      {
+        "id": "input_validation_1",
+        "message": "Handled malformed input correctly: ' ...'"
+      },
+      {
+        "id": "input_validation_2",
+        "message": "Handled malformed input correctly: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa...'"
+      },
+      {
+        "id": "input_validation_3",
+        "message": "Handled malformed input correctly: '\ud83c\udfb5\ud83c\udfb6\ud83c\udfb5\ud83c\udfb6\ud83c\udfb5...'"
+      },
+      {
+        "id": "input_validation_4",
+        "message": "Handled malformed input correctly: 'I feel \ud83d\udc80\u2620\ufe0f\ud83d\udd25...'"
+      },
+      {
+        "id": "input_validation_5",
+        "message": "Handled malformed input correctly: 'NULL...'"
+      },
+      {
+        "id": "input_validation_6",
+        "message": "Handled malformed input correctly: 'undefined...'"
+      },
+      {
+        "id": "input_validation_7",
+        "message": "Handled malformed input correctly: '{{malicious}}...'"
+      },
+      {
+        "id": "input_validation_8",
+        "message": "Handled malformed input correctly: '<script>alert('xss')</script>...'"
+      },
+      {
+        "id": "input_validation_9",
+        "message": "Handled malformed input correctly: '\n\r\t...'"
+      },
+      {
+        "id": "input_validation_10",
+        "message": "Handled malformed input correctly: 'feelingfeelingfeelingfeelingfe...'"
+      },
+      {
+        "id": "chord_edge_8845056462708277740",
+        "message": "Processed chord reference: IM7\u266f11\u266f9\u266d13"
+      },
+      {
+        "id": "chord_edge_8788161873586177165",
+        "message": "Processed chord reference: V7alt"
+      },
+      {
+        "id": "chord_edge_5441898739078477851",
+        "message": "Processed chord reference: \u266d\u266dVII"
+      },
+      {
+        "id": "chord_edge_3318264320739270945",
+        "message": "Processed chord reference: \u266f\u266fIV"
+      },
+      {
+        "id": "chord_edge_3051986802694820020",
+        "message": "Processed chord reference: XIII"
+      },
+      {
+        "id": "chord_edge_2916586974111011967",
+        "message": "Processed chord reference: \u266dIXsus4add9"
+      },
+      {
+        "id": "chord_edge_-8981610204609924548",
+        "message": "Processed chord reference: I/"
+      },
+      {
+        "id": "chord_edge_5429188100799704347",
+        "message": "Processed chord reference: /V"
+      },
+      {
+        "id": "chord_edge_6329732649258323211",
+        "message": "Processed chord reference: I//V"
+      },
+      {
+        "id": "chord_edge_4029840292214845451",
+        "message": "Processed chord reference: I-V"
+      },
+      {
+        "id": "chord_edge_-6069171241221073555",
+        "message": "Processed chord reference: i(add\u266f9)"
+      },
+      {
+        "id": "chord_edge_3281315067830125996",
+        "message": "Processed chord reference: \u266dVII"
+      },
+      {
+        "id": "chord_edge_2899145830522671994",
+        "message": "Processed chord reference: bVII"
+      },
+      {
+        "id": "chord_edge_9193751241258915209",
+        "message": "Processed chord reference: VII\u266d"
+      },
+      {
+        "id": "chord_edge_3036847330331573009",
+        "message": "Processed chord reference: Imaj7"
+      },
+      {
+        "id": "chord_edge_-338907920062299319",
+        "message": "Processed chord reference: IMAJ7"
+      },
+      {
+        "id": "chord_edge_2563411968951124489",
+        "message": "Processed chord reference: imaj7"
+      },
+      {
+        "id": "chord_edge_7358783383130224305",
+        "message": "Processed chord reference: I maj7"
+      },
+      {
+        "id": "chord_edge_6628298755794227390",
+        "message": "Processed chord reference: I  maj7"
+      },
+      {
+        "id": "chord_edge_96002503898570032",
+        "message": "Processed chord reference: Imaj 7"
+      },
+      {
+        "id": "emotion_parsing_5973681930766175127",
+        "message": "Parsed 'I feel happy and sad simultane...' \u2192 Joy, 4 chords"
+      },
+      {
+        "id": "emotion_parsing_-5718613497470761004",
+        "message": "Parsed 'joyful but also filled with ra...' \u2192 Joy, 4 chords"
+      },
+      {
+        "id": "emotion_parsing_6889967741725830113",
+        "message": "Parsed 'peaceful yet aggressive...' \u2192 Joy, 4 chords"
+      },
+      {
+        "id": "emotion_parsing_-6669301644755973783",
+        "message": "Parsed 'EXTREMELY ABSOLUTELY UTTERLY D...' \u2192 Joy, 4 chords"
+      },
+      {
+        "id": "emotion_parsing_5226543211365591850",
+        "message": "Parsed 'so happy i could die...' \u2192 Joy, 4 chords"
+      },
+      {
+        "id": "emotion_parsing_3925784378807144422",
+        "message": "Parsed 'infinitely sad beyond measure...' \u2192 Sadness, 4 chords"
+      },
+      {
+        "id": "emotion_parsing_4384753383918792899",
+        "message": "Parsed 'feeling like a storm...' \u2192 Joy, 4 chords"
+      },
+      {
+        "id": "emotion_parsing_3120299390974898254",
+        "message": "Parsed 'my heart is a black hole...' \u2192 Joy, 4 chords"
+      },
+      {
+        "id": "emotion_parsing_1226201291786307173",
+        "message": "Parsed 'emotions are a rainbow...' \u2192 Joy, 4 chords"
+      },
+      {
+        "id": "emotion_parsing_7072296106689436090",
+        "message": "Parsed 'I was happy but now I'm sad...' \u2192 Joy, 4 chords"
+      },
+      {
+        "id": "emotion_parsing_-6476064763950934986",
+        "message": "Parsed 'feeling nostalgic about future...' \u2192 Joy, 4 chords"
+      },
+      {
+        "id": "emotion_parsing_-1872335751991097359",
+        "message": "Parsed 'feeling the heat death of the ...' \u2192 Joy, 4 chords"
+      },
+      {
+        "id": "emotion_parsing_3682062665106161716",
+        "message": "Parsed 'emotionally quantum entangled...' \u2192 Joy, 4 chords"
+      },
+      {
+        "id": "emotion_parsing_1752886774477820047",
+        "message": "Parsed 'vibrating at the frequency of ...' \u2192 Joy, 4 chords"
+      },
+      {
+        "id": "emotion_parsing_6314664247435716431",
+        "message": "Parsed 'malicious but not quite sadist...' \u2192 Malice, 4 chords"
+      },
+      {
+        "id": "emotion_parsing_8669721314264006544",
+        "message": "Parsed 'happy but not excited or eupho...' \u2192 Joy, 4 chords"
+      },
+      {
+        "id": "emotion_parsing_144765913967308951",
+        "message": "Parsed 'sad but specifically melanchol...' \u2192 Sadness, 3 chords"
+      },
+      {
+        "id": "boundary_Unknown genre",
+        "message": "Handled boundary case correctly: 4 chords"
+      },
+      {
+        "id": "boundary_Empty genre",
+        "message": "Handled boundary case correctly: 4 chords"
+      },
+      {
+        "id": "boundary_Very long genre",
+        "message": "Handled boundary case correctly: 4 chords"
+      },
+      {
+        "id": "malformed_245871629386624464",
+        "message": "Handled malformed input: '{\"emotion\": \"happy\", \"genre\": ...', got 4 chords"
+      },
+      {
+        "id": "malformed_-8110213420173140723",
+        "message": "Handled malformed input: '['I', 'V', 'vi', 'IV']...', got 4 chords"
+      },
+      {
+        "id": "malformed_-286424244533015416",
+        "message": "Handled malformed input: 'function generateMusic() { ret...', got 4 chords"
+      },
+      {
+        "id": "malformed_-1071824402829437579",
+        "message": "Handled malformed input: 'SELECT * FROM emotions WHERE m...', got 4 chords"
+      },
+      {
+        "id": "malformed_-9165767434998822013",
+        "message": "Handled malformed input: 'happiness = joy + excitement -...', got 4 chords"
+      },
+      {
+        "id": "malformed_-9144640536253103548",
+        "message": "Handled malformed input: '\u2211(sadness) + \u222b(melancholy)dx...', got 4 chords"
+      },
+      {
+        "id": "malformed_4875723489740941628",
+        "message": "Handled malformed input: 'C-Am-F-G...', got 4 chords"
+      },
+      {
+        "id": "malformed_6930947115973846447",
+        "message": "Handled malformed input: 'I-vi-IV-V in C major...', got 4 chords"
+      },
+      {
+        "id": "malformed_-5344907632893238701",
+        "message": "Handled malformed input: '\u266a\u266b\u266a\u266b happy music \u266a\u266b\u266a\u266b...', got 4 chords"
+      },
+      {
+        "id": "malformed_8809737889093307786",
+        "message": "Handled malformed input: 'http://example.com/emotion/hap...', got 4 chords"
+      },
+      {
+        "id": "malformed_-7851492322937105652",
+        "message": "Handled malformed input: '/usr/bin/happy...', got 4 chords"
+      },
+      {
+        "id": "malformed_6421130225436917469",
+        "message": "Handled malformed input: 'C:\\emotions\\sadness.exe...', got 4 chords"
+      },
+      {
+        "id": "unusual_chord_3741960575892523702",
+        "message": "Handled unusual chord request: 4 chords generated"
+      },
+      {
+        "id": "unusual_chord_-4100792967450958001",
+        "message": "Handled unusual chord request: 4 chords generated"
+      },
+      {
+        "id": "unusual_chord_1017227175634181791",
+        "message": "Handled unusual chord request: 4 chords generated"
+      },
+      {
+        "id": "unusual_chord_-5213328917762199160",
+        "message": "Handled unusual chord request: 4 chords generated"
+      },
+      {
+        "id": "unusual_chord_-1598451504431058885",
+        "message": "Handled unusual chord request: 4 chords generated"
+      },
+      {
+        "id": "unusual_chord_2326286141980863886",
+        "message": "Handled unusual chord request: 4 chords generated"
+      },
+      {
+        "id": "extreme_emotion_-338943098020686700",
+        "message": "Complex emotions: 1 detected, 4 chords"
+      },
+      {
+        "id": "extreme_emotion_8039355868982843990",
+        "message": "Complex emotions: 2 detected, 4 chords"
+      },
+      {
+        "id": "extreme_emotion_-6671640698959347249",
+        "message": "Complex emotions: 2 detected, 4 chords"
+      },
+      {
+        "id": "extreme_emotion_-6038207274443005274",
+        "message": "Complex emotions: 2 detected, 4 chords"
+      },
+      {
+        "id": "extreme_emotion_2637872943759333178",
+        "message": "Complex emotions: 2 detected, 1 chords"
+      },
+      {
+        "id": "extreme_emotion_8362743300225226601",
+        "message": "Complex emotions: 2 detected, 3 chords"
+      },
+      {
+        "id": "extreme_emotion_-829186323728828674",
+        "message": "Complex emotions: 1 detected, 4 chords"
+      },
+      {
+        "id": "extreme_emotion_1407936319575092358",
+        "message": "Complex emotions: 2 detected, 4 chords"
+      },
+      {
+        "id": "extreme_emotion_7502880636954217906",
+        "message": "Complex emotions: 2 detected, 4 chords"
+      },
+      {
+        "id": "server_stress_rapid",
+        "message": "Handled rapid requests: 100.0% success"
+      },
+      {
+        "id": "length_consistency",
+        "message": "All progressions have consistent length: 4 chords"
+      }
+    ],
+    "failed": [],
+    "warnings": [
+      {
+        "id": "audio_mapping_issues",
+        "message": "Chord issues: ['\u266dIII (wrong length: 2)']"
+      }
+    ],
+    "critical_failures": [
+      {
+        "test": "test_boundary_condition_edge_cases",
+        "error": "not enough values to unpack (expected 3, got 2)",
+        "traceback": "Traceback (most recent call last):\n  File \"/Users/timothydowler/Projects/MIDIp2p/VirtualAssistance/comprehensive_edge_case_detector.py\", line 67, in run_all_edge_case_tests\n    test_method()\n    ~~~~~~~~~~~^^\n  File \"/Users/timothydowler/Projects/MIDIp2p/VirtualAssistance/comprehensive_edge_case_detector.py\", line 221, in test_boundary_condition_edge_cases\n    for test_name, emotion, genre in boundary_tests:\n        ^^^^^^^^^^^^^^^^^^^^^^^^^\nValueError: not enough values to unpack (expected 3, got 2)\n"
+      }
+    ]
+  },
+  "recommendations": [
+    "Critical failures indicate fundamental system issues"
+  ]
+}

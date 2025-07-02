@@ -1,16 +1,17 @@
 {
   "database_info": {
-    "version": "1.2",
-    "description": "Individual chord-to-emotion mapping database across musical contexts",
-    "total_contexts": 9,
-    "total_chords": 66,
+    "version": "1.3",
+    "description": "Individual chord-to-emotion mapping database across musical contexts with expanded malice chord support",
+    "total_contexts": 12,
+    "total_chords": 96,
     "created": "2025-07-01",
-    "updated": "2025-07-01",
+    "updated": "2025-07-02",
     "architecture_notes": [
       "This database maps individual chords to emotional weights across different musical contexts",
       "Contexts include modal frameworks (Ionian, Aeolian, Dorian, etc.) and stylistic frameworks (Jazz, Blues)",
-      "Each chord includes 12-dimensional emotion weights for the core emotion model",
-      "Supports both traditional triads and extended harmony (7ths, 9ths, alterations)",
+      "Each chord includes 13-dimensional emotion weights for the core emotion model including Malice",
+      "Supports traditional triads, extended harmony, augmented, diminished, and altered chords",
+      "Expanded with malice-specific chord progressions for psychological depth",
       "Designed for single chord selection based on emotional prompts"
     ]
   },
@@ -1334,6 +1335,272 @@
         "Aesthetic Awe": 0.0
       },
       "chord_id": "locrian_bVII"
+    },
+    {
+      "chord": "i+",
+      "symbol": "C+",
+      "mode_context": "Augmented",
+      "emotion_weights": {
+        "Malice": 0.9,
+        "Fear": 0.7,
+        "Surprise": 0.6,
+        "Anger": 0.5,
+        "Sadness": 0.3,
+        "Aesthetic Awe": 0.4,
+        "Disgust": 0.3,
+        "Joy": 0.0,
+        "Trust": 0.0,
+        "Love": 0.0,
+        "Anticipation": 0.2,
+        "Shame": 0.1,
+        "Envy": 0.4
+      },
+      "chord_id": "augmented_i"
+    },
+    {
+      "chord": "♭III+",
+      "symbol": "E♭+",
+      "mode_context": "Augmented",
+      "emotion_weights": {
+        "Malice": 0.8,
+        "Spite": 0.9,
+        "Fear": 0.6,
+        "Surprise": 0.7,
+        "Anger": 0.4,
+        "Sadness": 0.2,
+        "Aesthetic Awe": 0.3,
+        "Disgust": 0.4,
+        "Joy": 0.0,
+        "Trust": 0.0,
+        "Love": 0.0,
+        "Anticipation": 0.3,
+        "Shame": 0.1,
+        "Envy": 0.5
+      },
+      "chord_id": "augmented_bIII"
+    },
+    {
+      "chord": "i°",
+      "symbol": "C°",
+      "mode_context": "Locrian",
+      "emotion_weights": {
+        "Malice": 1.0,
+        "Fear": 0.9,
+        "Hatred": 0.9,
+        "Psychopathy": 0.8,
+        "Anger": 0.6,
+        "Sadness": 0.4,
+        "Disgust": 0.7,
+        "Surprise": 0.3,
+        "Joy": 0.0,
+        "Trust": 0.0,
+        "Love": 0.0,
+        "Anticipation": 0.1,
+        "Shame": 0.2,
+        "Envy": 0.3,
+        "Aesthetic Awe": 0.1
+      },
+      "chord_id": "locrian_i_dim"
+    },
+    {
+      "chord": "♭iii°",
+      "symbol": "E♭°",
+      "mode_context": "Octatonic",
+      "emotion_weights": {
+        "Malice": 0.9,
+        "Machiavellianism": 0.9,
+        "Fear": 0.8,
+        "Anger": 0.5,
+        "Sadness": 0.3,
+        "Disgust": 0.6,
+        "Surprise": 0.4,
+        "Joy": 0.0,
+        "Trust": 0.0,
+        "Love": 0.0,
+        "Anticipation": 0.2,
+        "Shame": 0.1,
+        "Envy": 0.3,
+        "Aesthetic Awe": 0.1
+      },
+      "chord_id": "octatonic_biii_dim"
+    },
+    {
+      "chord": "♭v°",
+      "symbol": "G♭°",
+      "mode_context": "Octatonic",
+      "emotion_weights": {
+        "Malice": 0.9,
+        "Machiavellianism": 0.8,
+        "Fear": 0.8,
+        "Anger": 0.5,
+        "Sadness": 0.3,
+        "Disgust": 0.6,
+        "Surprise": 0.4,
+        "Joy": 0.0,
+        "Trust": 0.0,
+        "Love": 0.0,
+        "Anticipation": 0.2,
+        "Shame": 0.1,
+        "Envy": 0.3,
+        "Aesthetic Awe": 0.1
+      },
+      "chord_id": "octatonic_bv_dim"
+    },
+    {
+      "chord": "V7alt",
+      "symbol": "G7alt",
+      "mode_context": "Altered Scale",
+      "emotion_weights": {
+        "Malice": 0.9,
+        "Wrath": 1.0,
+        "Anger": 0.9,
+        "Fear": 0.8,
+        "Sadness": 0.2,
+        "Disgust": 0.7,
+        "Surprise": 0.6,
+        "Joy": 0.0,
+        "Trust": 0.0,
+        "Love": 0.0,
+        "Anticipation": 0.8,
+        "Shame": 0.1,
+        "Envy": 0.2,
+        "Aesthetic Awe": 0.2
+      },
+      "chord_id": "altered_V7"
+    },
+    {
+      "chord": "V7♭9♭13",
+      "symbol": "G7♭9♭13",
+      "mode_context": "Altered Scale",
+      "emotion_weights": {
+        "Malice": 0.9,
+        "Wrath": 0.9,
+        "Anger": 0.8,
+        "Fear": 0.7,
+        "Sadness": 0.2,
+        "Disgust": 0.8,
+        "Surprise": 0.5,
+        "Joy": 0.0,
+        "Trust": 0.0,
+        "Love": 0.0,
+        "Anticipation": 0.7,
+        "Shame": 0.1,
+        "Envy": 0.2,
+        "Aesthetic Awe": 0.3
+      },
+      "chord_id": "altered_V7b9b13"
+    },
+    {
+      "chord": "♯iv°",
+      "symbol": "F♯°",
+      "mode_context": "Hungarian Minor",
+      "emotion_weights": {
+        "Malice": 0.8,
+        "Spite": 0.9,
+        "Fear": 0.6,
+        "Anger": 0.4,
+        "Sadness": 0.5,
+        "Disgust": 0.5,
+        "Surprise": 0.4,
+        "Joy": 0.0,
+        "Trust": 0.0,
+        "Love": 0.0,
+        "Anticipation": 0.2,
+        "Shame": 0.2,
+        "Envy": 0.6,
+        "Aesthetic Awe": 0.2
+      },
+      "chord_id": "hungarian_sharp_iv_dim"
+    },
+    {
+      "chord": "♭II",
+      "symbol": "D♭",
+      "mode_context": "Neapolitan",
+      "emotion_weights": {
+        "Malice": 0.7,
+        "Cruelty": 0.8,
+        "Malicious_Envy": 0.8,
+        "Narcissism": 0.7,
+        "Fear": 0.5,
+        "Anger": 0.4,
+        "Sadness": 0.6,
+        "Disgust": 0.3,
+        "Surprise": 0.7,
+        "Joy": 0.0,
+        "Trust": 0.0,
+        "Love": 0.0,
+        "Anticipation": 0.3,
+        "Shame": 0.2,
+        "Envy": 0.6,
+        "Aesthetic Awe": 0.4
+      },
+      "chord_id": "neapolitan_bII"
+    },
+    {
+      "chord": "iv",
+      "symbol": "Fm",
+      "mode_context": "Harmonic Major",
+      "emotion_weights": {
+        "Malice": 0.6,
+        "Contempt": 0.8,
+        "Sadness": 0.7,
+        "Anger": 0.3,
+        "Fear": 0.2,
+        "Disgust": 0.4,
+        "Surprise": 0.3,
+        "Joy": 0.1,
+        "Trust": 0.2,
+        "Love": 0.1,
+        "Anticipation": 0.2,
+        "Shame": 0.3,
+        "Envy": 0.3,
+        "Aesthetic Awe": 0.2
+      },
+      "chord_id": "harmonic_major_iv"
+    },
+    {
+      "chord": "♭VII",
+      "symbol": "B♭",
+      "mode_context": "Mixolydian",
+      "emotion_weights": {
+        "Malice": 0.5,
+        "Schadenfreude": 0.8,
+        "Joy": 0.6,
+        "Surprise": 0.4,
+        "Anger": 0.2,
+        "Fear": 0.1,
+        "Sadness": 0.2,
+        "Disgust": 0.1,
+        "Trust": 0.3,
+        "Love": 0.2,
+        "Anticipation": 0.5,
+        "Shame": 0.0,
+        "Envy": 0.2,
+        "Aesthetic Awe": 0.3
+      },
+      "chord_id": "mixolydian_bVII"
+    },
+    {
+      "chord": "♭VI",
+      "symbol": "A♭",
+      "mode_context": "Harmonic Major",
+      "emotion_weights": {
+        "Malice": 0.4,
+        "Contempt": 0.6,
+        "Sadness": 0.6,
+        "Anger": 0.2,
+        "Fear": 0.3,
+        "Disgust": 0.3,
+        "Surprise": 0.2,
+        "Joy": 0.2,
+        "Trust": 0.2,
+        "Love": 0.1,
+        "Anticipation": 0.2,
+        "Shame": 0.4,
+        "Envy": 0.3,
+        "Aesthetic Awe": 0.3
+      },
+      "chord_id": "harmonic_major_bVI"
     }
   ],
   "musical_contexts": [
@@ -1344,7 +1611,7 @@
       "typical_chords": ["I", "ii", "iii", "IV", "V", "vi", "vii°"]
     },
     {
-      "context": "Aeolian", 
+      "context": "Aeolian",
       "description": "Natural minor scale harmony, melancholic and introspective",
       "characteristics": ["dark", "emotional", "introspective"],
       "typical_chords": ["i", "ii°", "♭III", "iv", "v", "♭VI", "♭VII"]
@@ -1382,13 +1649,25 @@
     {
       "context": "Hungarian Minor",
       "description": "Harmonic minor with raised 4th, creating exotic Romani/Eastern European colors",
-      "characteristics": ["exotic", "dramatic", "mysterious", "passionate", "gypsy"],
+      "characteristics": [
+        "exotic",
+        "dramatic",
+        "mysterious",
+        "passionate",
+        "gypsy"
+      ],
       "typical_chords": ["i", "ii°", "♭III+", "IV", "V7", "♭VI", "vii°"]
     },
     {
       "context": "Locrian",
       "description": "Unstable mode with diminished tonic, expressing anxiety and collapse",
-      "characteristics": ["unstable", "anxious", "dissonant", "chaotic", "experimental"],
+      "characteristics": [
+        "unstable",
+        "anxious",
+        "dissonant",
+        "chaotic",
+        "experimental"
+      ],
       "typical_chords": ["i°", "♭II", "♭iii", "iv", "♭V", "♭VI", "♭VII"]
     }
   ]

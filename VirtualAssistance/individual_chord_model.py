@@ -45,13 +45,15 @@ class EmotionChordDatabase:
             
             chords = []
             for chord_data in data['chord_to_emotion_map']:
+                # Default style_context if missing from database
+                style_context = chord_data.get('style_context', 'Classical')
                 chord = IndividualChord(
                     symbol=chord_data.get('symbol', chord_data['chord']),
                     roman_numeral=chord_data['chord'],
                     mode_context=chord_data['mode_context'],
-                    style_context=chord_data['style_context'],
+                    style_context=style_context,
                     emotion_weights=chord_data['emotion_weights'],
-                    chord_id=chord_data.get('chord_id', f"{chord_data['style_context']}_{chord_data['mode_context']}_{chord_data['chord']}")
+                    chord_id=chord_data.get('chord_id', f"{style_context}_{chord_data['mode_context']}_{chord_data['chord']}")
                 )
                 chords.append(chord)
             
@@ -209,8 +211,11 @@ class IndividualChordEmotionParser:
     """Parse emotional content from text for individual chord generation"""
     
     def __init__(self):
+        # Complete 22-emotion system emotion labels
         self.emotion_labels = ["Joy", "Sadness", "Fear", "Anger", "Disgust", "Surprise", 
-                              "Trust", "Anticipation", "Shame", "Love", "Envy", "Aesthetic Awe"]
+                              "Trust", "Anticipation", "Shame", "Love", "Envy", "Aesthetic Awe", "Malice",
+                              "Arousal", "Guilt", "Reverence", "Wonder", "Dissociation", 
+                              "Empowerment", "Belonging", "Ideology", "Gratitude"]
     
     def parse_emotion_weights(self, text: str) -> Dict[str, float]:
         """Parse text and return emotion weights using keyword matching"""
@@ -232,7 +237,8 @@ class IndividualChordEmotionParser:
             "Shame": ["guilt", "shame", "regret", "embarrassed", "remorseful", "ashamed", "humiliated"],
             "Love": ["love", "romantic", "affection", "caring", "warm", "tender", "devoted", "passionate"],
             "Envy": ["jealous", "envious", "spiteful", "competitive", "bitter", "possessive", "resentful"],
-            "Aesthetic Awe": ["awe", "wonder", "sublime", "inspired", "majestic", "transcendent", "beautiful", "breathtaking", "jazz"]
+            "Aesthetic Awe": ["awe", "wonder", "sublime", "inspired", "majestic", "transcendent", "beautiful"],
+            "Malice": ["malicious", "evil", "wicked", "cruel", "vicious", "sinister", "vindictive", "sadistic", "callous", "manipulative"]
         }
         
         # Count keyword matches

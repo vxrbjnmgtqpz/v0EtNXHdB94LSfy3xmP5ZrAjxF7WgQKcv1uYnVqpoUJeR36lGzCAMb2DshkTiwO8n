@@ -57,17 +57,34 @@ class ConversationMemory:
         print(f"DEBUG: Response data keys: {list(response_data.keys())}")
         print(f"DEBUG: Chords in response: {response_data.get('chords', [])}")
         
+        # Extract conversation data properly
+        chords = response_data.get('chords', [])
+        
+        # Extract primary emotion from emotions dict
+        emotions = response_data.get('emotions', {})
+        primary_emotion = max(emotions.items(), key=lambda x: x[1])[0] if emotions else ""
+        
+        # Extract style and mode from primary_result
+        primary_result = response_data.get('primary_result', {})
+        style = primary_result.get('genre', '')
+        mode = primary_result.get('primary_mode', '')
+        
+        # Get existing context to preserve data
+        existing_context = self.get_context(session_id)
+        
         context = ConversationContext(
             last_response=response_data,
-            last_progression=response_data.get('chords', []),
-            last_emotion=response_data.get('primary_emotion', ''),
-            last_style=response_data.get('style', ''),
-            last_mode=response_data.get('mode', ''),
+            last_progression=chords or (existing_context.last_progression if existing_context else []),
+            last_emotion=primary_emotion or (existing_context.last_emotion if existing_context else ""),
+            last_style=style or (existing_context.last_style if existing_context else ""),
+            last_mode=mode or (existing_context.last_mode if existing_context else ""),
             session_id=session_id,
             timestamp=time.time()
         )
         self.sessions[session_id] = context
         print(f"DEBUG: Stored progression: {context.last_progression}")
+        print(f"DEBUG: Stored emotion: {context.last_emotion}")
+        print(f"DEBUG: Stored mode: {context.last_mode}")
     
     def get_context(self, session_id: str) -> Optional[ConversationContext]:
         """Retrieve conversation context"""
@@ -316,6 +333,12 @@ class ResponseSynthesizer:
             top_emotions = sorted(emotions.items(), key=lambda x: x[1], reverse=True)[:2]
             emotion_text = ", ".join([f"{k} ({v:.2f})" for k, v in top_emotions])
             message_parts.append(f"🎭 Emotions: {emotion_text}")
+            
+            # Check for detected sub-emotions
+            detected_sub_emotion = progression_result.get("detected_sub_emotion", "")
+            if detected_sub_emotion and ":" in detected_sub_emotion:
+                main_emotion, sub_emotion = detected_sub_emotion.split(":", 1)
+                message_parts.append(f"🎯 Specific sub-emotion: {sub_emotion} (within {main_emotion})")
         
         if progression_result.get("primary_mode"):
             message_parts.append(f"🎵 Mode: {progression_result['primary_mode']}")
@@ -335,10 +358,30 @@ class ResponseSynthesizer:
             alt_count = len(theory_result["style_alternatives"])
             message_parts.append(f"🎶 {alt_count} style alternatives available")
         
+        # Clean chord symbols for better playback
+        cleaned_chords = [self._clean_chord_symbol(chord) for chord in chords]
+        
+        # Include substitution tracking data
+        chord_metadata = progression_result.get("chord_metadata", [])
+        substitution_count = progression_result.get("substitution_count", 0)
+        has_substitutions = progression_result.get("metadata", {}).get("has_substitutions", False)
+        generation_method = progression_result.get("generation_method", "unknown")
+        
+        # Add substitution info to message if neural generation was used
+        if generation_method == "neural_generation" and has_substitutions:
+            message_parts.append(f"🧠 Neural Network made {substitution_count} creative substitutions")
+        elif generation_method == "neural_generation" and not has_substitutions:
+            message_parts.append("🧠 Neural Network agreed with database defaults")
+        
         return {
             "message": "\n\n".join(message_parts),
-            "chords": chords,
-            "emotions": emotions,
+            "chords": cleaned_chords,
+            "original_chords": chords,  # Keep originals for reference
+            "chord_metadata": chord_metadata,  # NEW: Substitution tracking
+            "substitution_count": substitution_count,  # NEW: Count of substitutions
+            "generation_method": generation_method,  # NEW: How chords were generated
+            "has_substitutions": has_substitutions,  # NEW: Boolean flag
+            "emotion": emotions,
             "primary_result": progression_result,
             "alternatives": theory_result.get("style_alternatives", {}),
             "individual_analysis": individual_result,
@@ -419,9 +462,14 @@ class ResponseSynthesizer:
             top_emotion = max(emotions.items(), key=lambda x: x[1])
             message_parts.append(f"🎭 Emotional character: {top_emotion[0]} ({top_emotion[1]:.2f})")
         
+        # Clean chord symbols for better playback
+        raw_chords = theory_result.get("progression", [])
+        cleaned_chords = [self._clean_chord_symbol(chord) for chord in raw_chords]
+        
         return {
             "message": "\n\n".join(message_parts),
-            "chords": theory_result.get("progression", []),
+            "chords": cleaned_chords,
+            "original_chords": raw_chords,  # Keep originals for reference
             "style": style,
             "mode": mode,
             "primary_result": theory_result,
@@ -436,11 +484,35 @@ class ResponseSynthesizer:
         
         message_parts = ["🎼 **Style Comparison**"]
         
+        # Style characteristics for context
+        style_descriptions = {
+            "Blues": "Blues progressions emphasize dominant 7ths and bVII chords, creating that characteristic 'blue' sound with tension and release",
+            "Jazz": "Jazz uses extended chords (7ths, 9ths) and chromatic movement, often featuring ii-V-I progressions",
+            "Classical": "Classical style focuses on functional harmony with clear tonic-dominant relationships and careful voice leading",
+            "Pop": "Pop progressions are often simple but catchy, using I-V-vi-IV and similar patterns that are memorable and singable",
+            "Rock": "Rock emphasizes power and movement with strong V chords and sometimes augmented tensions for edge",
+            "Folk": "Folk music uses simple, modal progressions that feel natural and organic, often staying close to home keys",
+            "RnB": "R&B features sophisticated harmony with extended chords and smooth voice leading, creating rich emotional textures",
+            "Cinematic": "Cinematic music uses dramatic harmony including diminished chords and unusual extensions for emotional impact"
+        }
+        
         comparisons = theory_result.get("style_comparison", {})
         if comparisons:
             for style, progression in comparisons.items():
                 if progression:
-                    message_parts.append(f"• **{style}**: {' → '.join(progression)}")
+                    # Fix character encoding issue: replace corrupted degree symbols
+                    cleaned_progression = []
+                    for chord in progression:
+                        # Fix the encoding issue with degree symbol
+                        cleaned_chord = str(chord).replace('Â°', '°').replace('â°', '°')
+                        cleaned_progression.append(cleaned_chord)
+                    
+                    progression_str = ' → '.join(cleaned_progression)
+                    message_parts.append(f"• **{style}**: {progression_str}")
+                    
+                    # Add style explanation
+                    if style in style_descriptions:
+                        message_parts.append(f"  *{style_descriptions[style]}*")
         
         # Add emotional context if available
         if progression_result.get("emotion_weights"):
@@ -449,9 +521,15 @@ class ResponseSynthesizer:
             emotion_text = ", ".join([f"{k} ({v:.2f})" for k, v in top_emotions])
             message_parts.append(f"\n🎭 Emotional foundation: {emotion_text}")
         
+        # Clean up chord symbols for playback
+        cleaned_comparisons = {}
+        for style, progression in comparisons.items():
+            cleaned_comparisons[style] = [self._clean_chord_symbol(chord) for chord in progression]
+        
         return {
             "message": "\n\n".join(message_parts),
             "comparisons": comparisons,
+            "style_playback_data": cleaned_comparisons,  # Include cleaned chord data for playback
             "primary_result": theory_result,
             "emotional_context": progression_result,
             "suggestions": self._generate_suggestions(intent, "comparison")
@@ -599,6 +677,57 @@ class ResponseSynthesizer:
         
         return suggestions[:4]  # Limit to 4 suggestions
 
+    def _clean_chord_symbol(self, chord_symbol: str) -> str:
+        """Clean up chord symbols for better playback compatibility"""
+        if not chord_symbol or not isinstance(chord_symbol, str):
+            return "I"  # Safe fallback
+        
+        # Fix common problematic chord symbols
+        cleaned = chord_symbol.strip()
+        
+        # Convert "alt" chords to specific alterations
+        if 'alt' in cleaned:
+            # V7alt becomes V7#5 (altered dominant)
+            cleaned = cleaned.replace('V7alt', 'V7#5')
+            cleaned = cleaned.replace('IValt', 'IV#11')
+            cleaned = cleaned.replace('alt', '#5')  # Generic fallback
+        
+        # Convert complex jazz chords to simpler equivalents for playback
+        replacements = {
+            'maj7#11': 'M7#11',
+            'min7b5': 'ø7',
+            'dim7': '°7',
+            'aug7': '+7',
+            'sus2': 'sus2',
+            'sus4': 'sus4',
+            '6/9': '6/9',
+            'add9': 'add9',
+            '13': '7',  # Simplify 13th to 7th for basic playback
+            '11': '7',  # Simplify 11th to 7th for basic playback
+        }
+        
+        for old, new in replacements.items():
+            cleaned = cleaned.replace(old, new)
+        
+        # Remove any remaining unrecognized extensions and keep the core chord
+        # This is a safety fallback for complex symbols
+        if len(cleaned) > 6 and any(char in cleaned for char in ['b', '#', '/']):
+            # For very complex chords, extract the Roman numeral base
+            base_match = ""
+            for i, char in enumerate(cleaned):
+                if char.isalpha() or char in ['i', 'I', 'v', 'V']:
+                    base_match += char
+                elif char in ['7', '9', 'M', 'm', '+', '°', 'ø', 'sus']:
+                    base_match += char
+                    break
+                else:
+                    break
+            
+            if base_match:
+                cleaned = base_match
+        
+        return cleaned or "I"  # Final safety fallback
+
 class PersistentChatLog:
     """Manages persistent chat logs stored in a JSON file."""
 
@@ -616,6 +745,9 @@ class PersistentChatLog:
 
     def save_chatlog(self, session_id: str, context: ConversationContext):
         """Save context to the chat log."""
+        if not context:
+            return  # Don't save if context is None
+            
         chatlog = self.load_chatlog()
         chatlog[session_id] = {
             "last_response": context.last_response,
@@ -673,12 +805,12 @@ class IntegratedMusicChatServer:
         
         print("✓ All models loaded successfully!")
     
-    def process_message(self, user_input: str, context: Dict[str, Any] = None, session_id: str = None) -> Dict[str, Any]:
+    def process_message(self, user_input: str, context: ConversationContext = None, session_id: str = None) -> Dict[str, Any]:
         """Process a user message and return integrated response with conversation context"""
         try:
-            # Get conversation context
-            conversation_context = None
-            if session_id:
+            # Use provided context or get from memory
+            conversation_context = context
+            if not conversation_context and session_id:
                 conversation_context = self.conversation_memory.get_context(session_id)
             
             # Classify intent with context
@@ -688,7 +820,7 @@ class IntegratedMusicChatServer:
             model_results = {}
             
             # For individual analysis, we might need to analyze each chord in the progression
-            if intent.primary_intent == "individual_analysis" and conversation_context:
+            if intent.primary_intent == "individual_analysis" and conversation_context and conversation_context.last_progression:
                 progression = conversation_context.last_progression
                 context_emotion = conversation_context.last_emotion or ""
                 
@@ -1004,19 +1136,36 @@ if __name__ == "__main__":
         try:
             data = request.get_json()
             user_message = data.get('message', '')
-            context = data.get('context', {})  # Client-side context (chatlog)
+            client_context = data.get('context', {})  # Client-side context (chatlog)
             session_id = session.get('session_id')
 
             if not session_id:
                 session_id = f"session_{int(time.time())}_{random.randint(1000, 9999)}"
                 session['session_id'] = session_id
 
-            # Retrieve context from persistent chat log
+            # Build unified context from multiple sources
+            context = None
+            
+            # First try server-side persistent context
             context = persistent_chatlog.get_context(session_id)
+            
+            # Fall back to in-memory context
             if not context:
-                context = conversation_memory.get_context(session_id)
-
-            # Ensure context is not None
+                context = integrated_server.conversation_memory.get_context(session_id)
+            
+            # Fall back to client context if we have useful data
+            if not context and client_context.get('lastProgression'):
+                context = ConversationContext(
+                    last_response=client_context.get('lastResponse', {}),
+                    last_progression=client_context.get('lastProgression', []),
+                    last_emotion=client_context.get('lastEmotion', ''),
+                    last_style=client_context.get('lastStyle', ''),
+                    last_mode=client_context.get('lastMode', ''),
+                    session_id=session_id,
+                    timestamp=time.time()
+                )
+            
+            # Final fallback - create new context
             if not context:
                 context = ConversationContext(
                     last_response={},
@@ -1031,9 +1180,33 @@ if __name__ == "__main__":
             # Process the message
             response = integrated_server.process_message(user_message, context, session_id)
 
-            # Store context for future requests
+            # Extract conversation data from response for context
+            response_context = {
+                'chords': response.get('chords', []),
+                'primary_emotion': None,
+                'primary_style': response.get('primary_result', {}).get('genre', ''),
+                'primary_mode': response.get('primary_result', {}).get('primary_mode', '')
+            }
+            
+            # Get primary emotion from response
+            emotions = response.get('emotions', {})
+            if emotions:
+                response_context['primary_emotion'] = max(emotions.items(), key=lambda x: x[1])[0]
+
+            # Store updated context in both systems
             integrated_server.conversation_memory.store_context(session_id, response)
-            persistent_chatlog.save_chatlog(session_id, conversation_memory.get_context(session_id))
+            
+            # Update persistent context with extracted data
+            updated_context = integrated_server.conversation_memory.get_context(session_id)
+            if updated_context:
+                # Enhance context with extracted conversation data
+                updated_context.last_progression = response_context['chords']
+                updated_context.last_emotion = response_context['primary_emotion'] or updated_context.last_emotion
+                updated_context.last_style = response_context['primary_style'] or updated_context.last_style
+                updated_context.last_mode = response_context['primary_mode'] or updated_context.last_mode
+                updated_context.timestamp = time.time()
+                
+                persistent_chatlog.save_chatlog(session_id, updated_context)
 
             return jsonify(response)
 
@@ -1063,6 +1236,42 @@ if __name__ == "__main__":
         except Exception as e:
             return jsonify({"error": f"Request error: {str(e)}"}), 500
     
+    @app.route('/debug/context', methods=['GET'])
+    def debug_context():
+        """Debug endpoint to check conversation context"""
+        try:
+            session_id = session.get('session_id')
+            if not session_id:
+                return jsonify({"error": "No session ID found"})
+            
+            # Get context from all sources
+            persistent_context = persistent_chatlog.get_context(session_id)
+            memory_context = integrated_server.conversation_memory.get_context(session_id)
+            
+            context_info = {
+                "session_id": session_id,
+                "persistent_context": {
+                    "exists": persistent_context is not None,
+                    "last_progression": persistent_context.last_progression if persistent_context else None,
+                    "last_emotion": persistent_context.last_emotion if persistent_context else None,
+                    "last_mode": persistent_context.last_mode if persistent_context else None,
+                    "timestamp": persistent_context.timestamp if persistent_context else None
+                },
+                "memory_context": {
+                    "exists": memory_context is not None,
+                    "last_progression": memory_context.last_progression if memory_context else None,
+                    "last_emotion": memory_context.last_emotion if memory_context else None,
+                    "last_mode": memory_context.last_mode if memory_context else None,
+                    "timestamp": memory_context.timestamp if memory_context else None
+                },
+                "all_sessions": list(integrated_server.conversation_memory.sessions.keys())
+            }
+            
+            return jsonify(context_info)
+            
+        except Exception as e:
+            return jsonify({"error": f"Debug error: {str(e)}"}), 500
+    
     print("✓ All models loaded successfully!")
     print("🎼 Integrated Music Chat Server is ready!")
     print("\nAvailable endpoints:")
@@ -1070,6 +1279,7 @@ if __name__ == "__main__":
     print("  GET  /health        - Health check") 
     print("  POST /chat/integrated - Integrated chat")
     print("  POST /chat/analyze   - Progression analysis")
+    print("  GET  /debug/context  - Debug conversation context")
     print()
     
     # Run the server
