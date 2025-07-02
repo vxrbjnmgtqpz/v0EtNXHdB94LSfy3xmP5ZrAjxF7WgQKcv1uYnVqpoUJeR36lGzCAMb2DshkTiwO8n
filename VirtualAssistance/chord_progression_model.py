@@ -99,7 +99,7 @@ class EmotionMusicDatabase:
             "Joy": [["I", "IV", "V", "I"], ["I", "vi", "IV", "V"], ["I", "V", "vi", "IV"]],
             "Sadness": [["i", "iv", "i", "v"], ["i", "VI", "III", "VII"], ["i", "VII", "VI", "VII"]],
             "Fear": [["i", "♭II", "i", "v"], ["♭II", "i", "iv", "i"], ["i", "♭II", "♭VII", "i"]],
-            "Anger": [["I", "♭II", "iv", "I"], ["I", "♭II", "♭VI", "I"], ["I", "V", "♭II", "I"]],
+            "Anger": [["i", "♭II", "iv", "i"], ["i", "♭II", "♭VI", "i"], ["i", "v", "♭II", "i"]],
             "Disgust": [["i°", "♭II", "♭v", "i°"], ["i°", "iv", "♭II", "♭v"], ["♭II", "♭v", "♭VII", "i°"]],
             "Surprise": [["I", "II", "V", "I"], ["I", "II", "iii", "IV"], ["I", "V", "II", "I"]],
             "Trust": [["i", "ii", "IV", "i"], ["i", "IV", "v", "i"], ["i", "ii", "v", "i"]],

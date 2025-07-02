@@ -10,7 +10,7 @@
 
 //==============================================================================
 /**
- * MIDI I/O Manager for MIDILink application
+ * MIDI I/O Manager for TOASTer application
  * Handles real-time MIDI input/output and integrates with JSONMIDI framework
  */
 class MIDIManager : public juce::MidiInputCallback,

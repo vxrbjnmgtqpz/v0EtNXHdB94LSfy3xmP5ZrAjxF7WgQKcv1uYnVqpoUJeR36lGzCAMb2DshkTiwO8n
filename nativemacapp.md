@@ -1,5 +1,5 @@
 # Native Mac App for MIDIp2p Network Testing
-## TOAST Network Testing Application - "MIDILink"
+## TOAST Network Testing Application - "TOASTer"
 
 *VST3-Bridge Compatible Native macOS Application for LAN-based MIDI Streaming Tests*
 
@@ -7,7 +7,7 @@
 
 ## Project Overview
 
-**MIDILink** is a native macOS application designed to test and validate the MIDIp2p JSONMIDI framework over TOAST (Transport Oriented Audio Synchronization Tunnel) network connections. This app will serve as the primary testing platform for Phase 2 and Phase 3 of the MIDIp2p roadmap, enabling real-world validation of distributed MIDI synchronization between multiple Mac devices.
+**TOASTer** is a native macOS application designed to test and validate the JAMNet JSONMIDI framework over TOAST (Transport Oriented Audio Synchronization Tunnel) network connections. This app serves as the primary testing platform for the JAMNet ecosystem, enabling real-world validation of distributed multimedia synchronization between multiple Mac devices.
 
 ### Key Requirements
 - **Native macOS Application** (replacing Electron-based approach)

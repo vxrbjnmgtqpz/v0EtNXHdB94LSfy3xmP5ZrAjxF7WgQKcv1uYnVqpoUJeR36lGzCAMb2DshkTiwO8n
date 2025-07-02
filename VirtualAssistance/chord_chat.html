@@ -293,6 +293,145 @@
         // Configuration
         const SERVER_URL = 'http://localhost:5003';  // Updated to use port 5003
         
+        // JSON Chatlog System - Internal persistence without WebSockets
+        class ChatLog {
+            constructor() {
+                this.sessionId = this.generateSessionId();
+                this.chatHistory = [];
+                this.contextMemory = {
+                    lastProgression: null,
+                    lastEmotion: null,
+                    lastMode: null,
+                    lastStyle: null,
+                    conversationTurn: 0
+                };
+                this.loadFromStorage();
+            }
+            
+            generateSessionId() {
+                return 'chat_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            }
+            
+            addEntry(type, content, aiResponse = null) {
+                const entry = {
+                    id: this.generateEntryId(),
+                    timestamp: new Date().toISOString(),
+                    sessionId: this.sessionId,
+                    turn: ++this.contextMemory.conversationTurn,
+                    type: type, // 'user' or 'agent'
+                    content: content,
+                    aiResponse: aiResponse, // Full AI response data
+                    context: { ...this.contextMemory }
+                };
+                
+                this.chatHistory.push(entry);
+                this.updateContextMemory(aiResponse);
+                this.saveToStorage();
+                
+                return entry;
+            }
+            
+            generateEntryId() {
+                return 'entry_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+            }
+            
+            updateContextMemory(aiResponse) {
+                if (aiResponse) {
+                    if (aiResponse.chords) {
+                        this.contextMemory.lastProgression = aiResponse.chords;
+                    }
+                    if (aiResponse.primary_result) {
+                        if (aiResponse.primary_result.primary_mode) {
+                            this.contextMemory.lastMode = aiResponse.primary_result.primary_mode;
+                        }
+                        if (aiResponse.primary_result.emotion_weights) {
+                            // Get the top emotion
+                            const emotions = Object.entries(aiResponse.primary_result.emotion_weights);
+                            if (emotions.length > 0) {
+                                const topEmotion = emotions.reduce((a, b) => a[1] > b[1] ? a : b);
+                                this.contextMemory.lastEmotion = topEmotion[0];
+                            }
+                        }
+                    }
+                }
+            }
+            
+            getChatContext() {
+                return {
+                    sessionId: this.sessionId,
+                    turn: this.contextMemory.conversationTurn,
+                    lastProgression: this.contextMemory.lastProgression,
+                    lastEmotion: this.contextMemory.lastEmotion,
+                    lastMode: this.contextMemory.lastMode,
+                    lastStyle: this.contextMemory.lastStyle,
+                    recentHistory: this.chatHistory.slice(-5) // Last 5 exchanges for context
+                };
+            }
+            
+            saveToStorage() {
+                try {
+                    const chatData = {
+                        sessionId: this.sessionId,
+                        chatHistory: this.chatHistory,
+                        contextMemory: this.contextMemory,
+                        lastSaved: new Date().toISOString()
+                    };
+                    localStorage.setItem('musicChatLog', JSON.stringify(chatData));
+                } catch (error) {
+                    console.warn('Failed to save chat log to localStorage:', error);
+                }
+            }
+            
+            loadFromStorage() {
+                try {
+                    const saved = localStorage.getItem('musicChatLog');
+                    if (saved) {
+                        const chatData = JSON.parse(saved);
+                        // Only restore if it's recent (within 24 hours)
+                        const lastSaved = new Date(chatData.lastSaved);
+                        const now = new Date();
+                        const hoursDiff = (now - lastSaved) / (1000 * 60 * 60);
+                        
+                        if (hoursDiff < 24) {
+                            this.sessionId = chatData.sessionId;
+                            this.chatHistory = chatData.chatHistory || [];
+                            this.contextMemory = { ...this.contextMemory, ...chatData.contextMemory };
+                            console.log('Restored chat session:', this.sessionId);
+                        } else {
+                            console.log('Previous session expired, starting fresh');
+                        }
+                    }
+                } catch (error) {
+                    console.warn('Failed to load chat log from localStorage:', error);
+                }
+            }
+            
+            clearSession() {
+                this.chatHistory = [];
+                this.contextMemory = {
+                    lastProgression: null,
+                    lastEmotion: null,
+                    lastMode: null,
+                    lastStyle: null,
+                    conversationTurn: 0
+                };
+                this.sessionId = this.generateSessionId();
+                this.saveToStorage();
+            }
+            
+            exportChatLog() {
+                return {
+                    sessionId: this.sessionId,
+                    chatHistory: this.chatHistory,
+                    contextMemory: this.contextMemory,
+                    exportedAt: new Date().toISOString()
+                };
+            }
+        }
+        
+        // Initialize chatlog system
+        const chatLog = new ChatLog();
+        
         // DOM elements
         const chatMessages = document.getElementById('chatMessages');
         const chatInput = document.getElementById('chatInput');
@@ -550,6 +689,11 @@
                 // Add interactive features for integrated responses
                 if (responseData) {
                     addInteractiveFeatures(bubbleDiv, responseData);
+                }
+                
+                // Log to internal JSON chatlog (but skip thinking messages)
+                if (!isThinking) {
+                    chatLog.addEntry(type, content, responseData);
                 }
             }
             
@@ -901,9 +1045,10 @@
                     headers: {
                         'Content-Type': 'application/json',
                     },
+                    credentials: 'include', // Include session cookies
                     body: JSON.stringify({ 
                         message: message,
-                        context: {} // Can be extended for conversation memory
+                        context: chatLog.getChatContext() // Include local chat context
                     }),
                     signal: controller.signal
                 });

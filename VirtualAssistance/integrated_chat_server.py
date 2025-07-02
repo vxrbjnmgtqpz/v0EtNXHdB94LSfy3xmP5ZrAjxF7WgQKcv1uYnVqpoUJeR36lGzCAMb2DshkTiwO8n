@@ -12,6 +12,7 @@ import os
 import re
 import asyncio
 import uuid
+import random
 from typing import Dict, List, Any, Optional
 from dataclasses import dataclass
 
@@ -598,6 +599,57 @@ class ResponseSynthesizer:
         
         return suggestions[:4]  # Limit to 4 suggestions
 
+class PersistentChatLog:
+    """Manages persistent chat logs stored in a JSON file."""
+
+    def __init__(self, file_path: str):
+        self.file_path = file_path
+        # Ensure the file exists
+        if not os.path.exists(self.file_path):
+            with open(self.file_path, 'w') as f:
+                json.dump({}, f)
+
+    def load_chatlog(self) -> Dict[str, Any]:
+        """Load chat log from the JSON file."""
+        with open(self.file_path, 'r') as f:
+            return json.load(f)
+
+    def save_chatlog(self, session_id: str, context: ConversationContext):
+        """Save context to the chat log."""
+        chatlog = self.load_chatlog()
+        chatlog[session_id] = {
+            "last_response": context.last_response,
+            "last_progression": context.last_progression,
+            "last_emotion": context.last_emotion,
+            "last_style": context.last_style,
+            "last_mode": context.last_mode,
+            "timestamp": context.timestamp
+        }
+        with open(self.file_path, 'w') as f:
+            json.dump(chatlog, f, indent=4)
+
+    def get_context(self, session_id: str) -> Optional[ConversationContext]:
+        """Retrieve context from the chat log."""
+        chatlog = self.load_chatlog()
+        session_data = chatlog.get(session_id)
+        if session_data:
+            return ConversationContext(
+                last_response=session_data["last_response"],
+                last_progression=session_data["last_progression"],
+                last_emotion=session_data["last_emotion"],
+                last_style=session_data["last_style"],
+                last_mode=session_data["last_mode"],
+                session_id=session_id,
+                timestamp=session_data["timestamp"]
+            )
+        return None
+
+# Initialize PersistentChatLog
+persistent_chatlog = PersistentChatLog("persistent_chatlog.json")
+
+# Initialize ConversationMemory
+conversation_memory = ConversationMemory()
+
 class IntegratedMusicChatServer:
     """Main server class that coordinates all three models"""
     
@@ -638,36 +690,77 @@ class IntegratedMusicChatServer:
             # For individual analysis, we might need to analyze each chord in the progression
             if intent.primary_intent == "individual_analysis" and conversation_context:
                 progression = conversation_context.last_progression
+                context_emotion = conversation_context.last_emotion or ""
+                
                 if progression:
+                    # Determine the correct mode for this progression using theory engine
+                    progression_mode = self._determine_progression_mode(progression, context_emotion)
+                    print(f"DEBUG: Determined progression mode: {progression_mode} for {progression}")
+                    
                     # Generate individual chord analysis for each chord in the progression
                     individual_analyses = []
                     for chord in progression:
                         try:
-                            # Use the chord symbol as emotion prompt to get detailed analysis
-                            chord_analysis = self.individual_model.generate_chord_from_prompt(f"chord {chord}")
-                            if isinstance(chord_analysis, list) and len(chord_analysis) > 0:
-                                individual_analyses.append(chord_analysis[0])
-                            elif isinstance(chord_analysis, dict):
-                                individual_analyses.append(chord_analysis)
+                            # Validate chord legality in the determined mode
+                            is_valid = self._validate_chord_in_mode(chord, progression_mode)
+                            
+                            if is_valid:
+                                # Create a more specific prompt that includes proper context
+                                if context_emotion:
+                                    emotion_prompt = f"{context_emotion} {chord} chord in {progression_mode} mode"
+                                else:
+                                    emotion_prompt = f"{chord} chord in {progression_mode} mode"
+                                    
+                                chord_analysis = self.individual_model.generate_chord_from_prompt(emotion_prompt)
+                                
+                                # Ensure the analysis has the correct mode context
+                                if isinstance(chord_analysis, list) and len(chord_analysis) > 0:
+                                    analysis = chord_analysis[0].copy()
+                                    analysis["mode_context"] = progression_mode
+                                    analysis["theory_validated"] = True
+                                    individual_analyses.append(analysis)
+                                elif isinstance(chord_analysis, dict):
+                                    analysis = chord_analysis.copy()
+                                    analysis["mode_context"] = progression_mode
+                                    analysis["theory_validated"] = True
+                                    individual_analyses.append(analysis)
+                                else:
+                                    # Create theory-based fallback analysis
+                                    individual_analyses.append({
+                                        "chord_symbol": chord,
+                                        "roman_numeral": chord,
+                                        "mode_context": progression_mode,
+                                        "style_context": "Classical",
+                                        "emotion_weights": self._get_chord_emotions_by_theory(chord, progression_mode),
+                                        "emotional_score": 0.5,
+                                        "theory_validated": True
+                                    })
                             else:
-                                # Fallback: create basic analysis
+                                # Chord is invalid in this mode - report the theory violation
                                 individual_analyses.append({
                                     "chord_symbol": chord,
+                                    "roman_numeral": chord,
+                                    "mode_context": progression_mode,
+                                    "style_context": "Invalid",
+                                    "error": f"Theory violation: {chord} is not valid in {progression_mode} mode",
                                     "emotion_weights": {},
-                                    "mode_context": "Unknown",
-                                    "style_context": "Unknown",
-                                    "emotional_score": 0.0
+                                    "emotional_score": 0.0,
+                                    "theory_validated": False
                                 })
+                                
                         except Exception as e:
                             print(f"Error analyzing chord {chord}: {e}")
                             individual_analyses.append({
                                 "chord_symbol": chord,
+                                "roman_numeral": chord,
+                                "mode_context": progression_mode,
+                                "style_context": "Error",
                                 "error": str(e),
                                 "emotion_weights": {},
-                                "mode_context": "Error",
-                                "style_context": "Error",
-                                "emotional_score": 0.0
+                                "emotional_score": 0.0,
+                                "theory_validated": False
                             })
+                    
                     model_results["individual"] = individual_analyses
             elif "progression" in intent.suggested_models:
                 model_results["progression"] = self._call_progression_model(user_input, intent)
@@ -760,105 +853,224 @@ class IntegratedMusicChatServer:
                 
         except Exception as e:
             return {"error": f"Theory engine error: {str(e)}"}
-
-# Initialize the integrated server
-print("Starting Integrated Music Chat Server...")
-integrated_server = IntegratedMusicChatServer()
-
-# Flask routes
-@app.route('/health')
-def health():
-    """Health check endpoint"""
-    return jsonify({'status': 'healthy', 'models_loaded': True})
-
-@app.route('/chat/integrated', methods=['POST'])
-def chat_integrated():
-    """Main integrated chat endpoint with enhanced validation"""
-    try:
-        # Validate request
-        if not request.is_json:
-            return jsonify({'error': 'Request must be JSON'}), 400
-            
-        data = request.json
-        if not data:
-            return jsonify({'error': 'No data provided'}), 400
-            
-        user_message = data.get('message', '').strip()
-        context = data.get('context', {})
-        
-        # Input validation
-        if not user_message:
-            return jsonify({'error': 'No message provided'}), 400
-            
-        if len(user_message) > 1000:  # Reasonable limit
-            return jsonify({'error': 'Message too long (max 1000 characters)'}), 400
-            
-        # Basic sanitization - remove potential HTML/script tags
-        import re
-        user_message = re.sub(r'<[^>]*>', '', user_message)
-        user_message = re.sub(r'[^\w\s\-\.\,\!\?\:\;\(\)\'\"#@&+/]', '', user_message)
-        
-        if not user_message.strip():
-            return jsonify({'error': 'Message contains no valid content'}), 400
-        
-        # Process with integrated server and session management
-        session_id = integrated_server.conversation_memory.get_session_id()
-        response = integrated_server.process_message(user_message, context, session_id)
-        
-        # Ensure response has required fields
-        if 'error' not in response:
-            response.setdefault('message', 'No response generated')
-            response.setdefault('intent', 'unknown')
-            response.setdefault('confidence', 0.0)
-            response.setdefault('models_used', [])
-            response.setdefault('suggestions', [])
-        
-        return jsonify(response)
-        
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        return jsonify({
-            'error': 'Internal server error',
-            'details': str(e) if app.debug else 'Contact administrator'
-        }), 500
-
-@app.route('/chat/analyze', methods=['POST'])
-def analyze_progression():
-    """Analyze a specific chord progression"""
-    try:
-        data = request.json
-        progression = data.get('progression', [])
-        mode = data.get('mode', 'Ionian')
-        
+    
+    def _determine_progression_mode(self, progression: List[str], context_emotion: str = "") -> str:
+        """Determine the correct mode for a progression using theory engine validation"""
         if not progression:
-            return jsonify({'error': 'No progression provided'}), 400
+            return "Unknown"
         
-        # Use theory engine for analysis
-        analysis = integrated_server.theory_engine.analyze_progression(progression, mode)
-        
-        return jsonify({
-            'analysis': analysis,
-            'progression': progression,
-            'mode': mode,
-            'timestamp': time.time()
-        })
-        
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        try:
+            # Rule-based mode determination from chord patterns
+            has_minor_root = any(chord.startswith('i') and not chord.startswith('ii') for chord in progression)
+            has_major_root = any(chord.startswith('I') and not chord.startswith('II') for chord in progression)
+            has_minor_iv = 'iv' in progression
+            has_major_IV = 'IV' in progression
+            
+            # Determine most likely mode
+            if has_minor_root and has_minor_iv:
+                candidate_mode = "Aeolian"  # Natural minor
+            elif has_major_root and has_major_IV and not has_minor_iv:
+                candidate_mode = "Ionian"   # Major
+            elif has_minor_root and any(chord in progression for chord in ["♭II", "♭VII"]):
+                candidate_mode = "Phrygian"  # Minor with flat intervals
+            else:
+                # Try to infer from emotion if available
+                if context_emotion:
+                    emotion_mode_map = {
+                        "Joy": "Ionian", "Sadness": "Aeolian", "Fear": "Phrygian",
+                        "Anger": "Phrygian", "Love": "Mixolydian", "Trust": "Dorian"
+                    }
+                    candidate_mode = emotion_mode_map.get(context_emotion, "Ionian")
+                else:
+                    candidate_mode = "Ionian"  # Default fallback
+            
+            # Validate with theory engine
+            try:
+                analysis = self.theory_engine.analyze_progression(progression, candidate_mode)
+                if analysis and not analysis.get("error"):
+                    return candidate_mode
+            except:
+                pass
+            
+            # If validation fails, try common alternatives
+            alternatives = ["Aeolian", "Ionian", "Dorian", "Phrygian"]
+            for alt_mode in alternatives:
+                if alt_mode != candidate_mode:
+                    try:
+                        alt_analysis = self.theory_engine.analyze_progression(progression, alt_mode)
+                        if alt_analysis and not alt_analysis.get("error"):
+                            return alt_mode
+                    except:
+                        continue
+            
+            # If all validations fail, return the best guess anyway
+            return candidate_mode
+                
+        except Exception as e:
+            print(f"Error determining progression mode: {e}")
+            # Fallback logic without theory engine
+            if any(chord.startswith('i') for chord in progression):
+                return "Aeolian"
+            else:
+                return "Ionian"
 
-@app.route('/')
-def serve_chat():
-    """Serve the chat interface"""
-    return send_from_directory('.', 'chord_chat.html')
+    def _validate_chord_in_mode(self, chord: str, mode: str) -> bool:
+        """Validate if a chord is legal in the given mode"""
+        try:
+            # Use theory engine to validate
+            test_progression = [chord]
+            analysis = self.theory_engine.analyze_progression(test_progression, mode)
+            return analysis and not analysis.get("error")
+        except:
+            # Fallback validation rules
+            mode_chord_patterns = {
+                "Ionian": ["I", "ii", "iii", "IV", "V", "vi", "vii°"],
+                "Aeolian": ["i", "ii°", "♭III", "iv", "v", "♭VI", "♭VII"],
+                "Dorian": ["i", "ii", "♭III", "IV", "v", "vi°", "♭VII"],
+                "Phrygian": ["i", "♭II", "♭III", "iv", "v°", "♭VI", "♭vii"],
+                "Mixolydian": ["I", "ii", "iii°", "IV", "v", "vi", "♭VII"],
+                "Lydian": ["I", "II", "iii", "♯iv°", "V", "vi", "vii"],
+                "Locrian": ["i°", "♭II", "♭iii", "iv", "♭V", "♭VI", "♭vii"]
+            }
+            
+            valid_chords = mode_chord_patterns.get(mode, [])
+            return chord in valid_chords or any(chord.startswith(base) for base in valid_chords)
 
-if __name__ == '__main__':
+    def _get_chord_emotions_by_theory(self, chord: str, mode: str) -> Dict[str, float]:
+        """Get emotion weights for a chord based on music theory rules"""
+        emotion_weights = {
+            "Joy": 0.0, "Sadness": 0.0, "Fear": 0.0, "Anger": 0.0,
+            "Disgust": 0.0, "Surprise": 0.0, "Trust": 0.0, "Anticipation": 0.0,
+            "Shame": 0.0, "Love": 0.0, "Envy": 0.0, "Aesthetic Awe": 0.0
+        }
+        
+        # Minor chords generally evoke sadness
+        if chord.startswith('i') and not chord.startswith('ii'):  # i, iv, v (minor)
+            emotion_weights["Sadness"] = 0.8
+            emotion_weights["Shame"] = 0.3
+            emotion_weights["Fear"] = 0.2
+        elif chord in ['iv', 'v']:  # minor iv, v
+            emotion_weights["Sadness"] = 0.7
+            emotion_weights["Trust"] = 0.3
+        
+        # Major chords generally evoke joy
+        elif chord.startswith('I') and not chord.startswith('II'):  # I, IV, V (major)
+            emotion_weights["Joy"] = 0.9
+            emotion_weights["Trust"] = 0.6
+            emotion_weights["Love"] = 0.4
+        elif chord in ['IV', 'V']:  # Major IV, V
+            emotion_weights["Joy"] = 0.8
+            emotion_weights["Anticipation"] = 0.5
+            
+        # Diminished chords evoke tension/fear
+        elif '°' in chord or 'dim' in chord:
+            emotion_weights["Fear"] = 0.8
+            emotion_weights["Surprise"] = 0.5
+            emotion_weights["Disgust"] = 0.3
+            
+        # Flat intervals (borrowed from other modes) add complexity
+        elif '♭' in chord:
+            if mode in ["Aeolian", "Phrygian"]:
+                emotion_weights["Sadness"] = 0.6
+                emotion_weights["Anger"] = 0.4
+            else:
+                emotion_weights["Surprise"] = 0.7
+                emotion_weights["Aesthetic Awe"] = 0.5
+        
+        return emotion_weights
+
+if __name__ == "__main__":
+    # Initialize the integrated server
+    integrated_server = IntegratedMusicChatServer()
+    
+    # Test endpoint for basic functionality
+    app = Flask(__name__)
+    app.secret_key = 'music_theory_chat_secret_key_2024'
+    CORS(app, supports_credentials=True)
+    
+    @app.route('/')
+    def serve_chat_interface():
+        """Serve the main chat interface"""
+        return send_from_directory('.', 'chord_chat.html')
+    
+    @app.route('/health')
+    def health_check():
+        """Health check endpoint"""
+        return jsonify({"status": "healthy", "models": ["progression", "individual", "theory"]})
+    
+    @app.route('/chat/integrated', methods=['POST'])
+    def integrated_chat():
+        """Main integrated chat endpoint"""
+        try:
+            data = request.get_json()
+            user_message = data.get('message', '')
+            context = data.get('context', {})  # Client-side context (chatlog)
+            session_id = session.get('session_id')
+
+            if not session_id:
+                session_id = f"session_{int(time.time())}_{random.randint(1000, 9999)}"
+                session['session_id'] = session_id
+
+            # Retrieve context from persistent chat log
+            context = persistent_chatlog.get_context(session_id)
+            if not context:
+                context = conversation_memory.get_context(session_id)
+
+            # Ensure context is not None
+            if not context:
+                context = ConversationContext(
+                    last_response={},
+                    last_progression=[],
+                    last_emotion="",
+                    last_style="",
+                    last_mode="",
+                    session_id=session_id,
+                    timestamp=time.time()
+                )
+
+            # Process the message
+            response = integrated_server.process_message(user_message, context, session_id)
+
+            # Store context for future requests
+            integrated_server.conversation_memory.store_context(session_id, response)
+            persistent_chatlog.save_chatlog(session_id, conversation_memory.get_context(session_id))
+
+            return jsonify(response)
+
+        except Exception as e:
+            print(f"Error in /chat/integrated endpoint: {e}")
+            import traceback
+            traceback.print_exc()
+            return jsonify({"error": f"Processing error: {str(e)}"}), 500
+    
+    @app.route('/chat/analyze', methods=['POST'])
+    def analyze_progression():
+        """Analyze a chord progression"""
+        try:
+            data = request.get_json()
+            chords = data.get('chords', [])
+            
+            if not chords:
+                return jsonify({"error": "No chords provided"}), 400
+            
+            # Use theory engine to analyze
+            try:
+                result = integrated_server.theory_engine.analyze_progression(chords, "Ionian")
+                return jsonify({"analysis": result, "chords": chords})
+            except Exception as e:
+                return jsonify({"error": f"Analysis failed: {str(e)}"}), 500
+                
+        except Exception as e:
+            return jsonify({"error": f"Request error: {str(e)}"}), 500
+    
+    print("✓ All models loaded successfully!")
     print("🎼 Integrated Music Chat Server is ready!")
-    print("Available endpoints:")
+    print("\nAvailable endpoints:")
     print("  GET  /              - Chat interface")
-    print("  GET  /health        - Health check")
+    print("  GET  /health        - Health check") 
     print("  POST /chat/integrated - Integrated chat")
     print("  POST /chat/analyze   - Progression analysis")
     print()
     
-    app.run(debug=True, host='0.0.0.0', port=5003)
+    # Run the server
+    app.run(host='0.0.0.0', port=5004, debug=True)
