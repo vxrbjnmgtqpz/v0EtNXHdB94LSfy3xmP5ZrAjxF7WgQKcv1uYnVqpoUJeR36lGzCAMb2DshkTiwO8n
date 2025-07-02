@@ -1,0 +1,867 @@
+{
+  "database_info": {
+    "version": "1.0",
+    "description": "Complete emotion-to-mode-to-progression mapping database",
+    "total_emotions": 12,
+    "progressions_per_emotion": 12,
+    "total_progressions": 144,
+    "created": "2025-07-01",
+    "architecture_notes": [
+      "This database serves as the foundation for PyTorch chord progression generation",
+      "Each emotion maps to a specific musical mode with 12 genre-weighted progressions",
+      "Progressions are used for both training data and real-time lookup/blending",
+      "Genre weights enable probabilistic selection and style-aware generation",
+      "Future: Can be extended with MIDI data, voice leading rules, and rhythm patterns"
+    ]
+  },
+  "emotions": {
+    "Joy": {
+      "mode": "Ionian",
+      "description": "Bright, balanced, uplifting; evokes happiness and warmth.",
+      "characteristics": ["resolved", "complete", "safe"],
+      "progression_pool": [
+        {
+          "chords": ["I", "IV", "V", "I"],
+          "genres": { "Pop": 0.9, "Rock": 0.8, "Country": 0.7 },
+          "progression_id": "joy_001"
+        },
+        {
+          "chords": ["I", "vi", "IV", "V"],
+          "genres": { "Pop": 1.0, "EDM": 0.7, "Anime": 0.6 },
+          "progression_id": "joy_002"
+        },
+        {
+          "chords": ["I", "V", "vi", "IV"],
+          "genres": { "Pop": 1.0, "Folk": 0.6, "Soft Rock": 0.5 },
+          "progression_id": "joy_003"
+        },
+        {
+          "chords": ["I", "ii", "V", "I"],
+          "genres": { "Jazz": 0.9, "Bossa": 0.6, "Lounge": 0.5 },
+          "progression_id": "joy_004"
+        },
+        {
+          "chords": ["IV", "I", "V", "I"],
+          "genres": { "Gospel": 1.0, "Soul": 0.8, "Country": 0.6 },
+          "progression_id": "joy_005"
+        },
+        {
+          "chords": ["I", "IV", "I", "V"],
+          "genres": { "Blues": 0.7, "Rock": 0.6, "Funk": 0.5 },
+          "progression_id": "joy_006"
+        },
+        {
+          "chords": ["I", "V", "I", "IV"],
+          "genres": { "Reggae": 0.8, "Pop": 0.5, "Folk": 0.4 },
+          "progression_id": "joy_007"
+        },
+        {
+          "chords": ["I", "iii", "IV", "V"],
+          "genres": { "Classic Rock": 0.7, "Pop": 0.6, "Orchestral": 0.5 },
+          "progression_id": "joy_008"
+        },
+        {
+          "chords": ["I", "V", "vi", "iii", "IV", "I", "ii", "V"],
+          "genres": { "Disney": 0.9, "Broadway": 0.7, "Orchestral": 0.6 },
+          "progression_id": "joy_009"
+        },
+        {
+          "chords": ["I", "IV", "vi", "V"],
+          "genres": { "Pop Punk": 0.8, "J-Rock": 0.7, "Indie": 0.6 },
+          "progression_id": "joy_010"
+        },
+        {
+          "chords": ["I", "vi", "ii", "V"],
+          "genres": { "Jazz": 0.8, "R&B": 0.6, "Soul": 0.5 },
+          "progression_id": "joy_011"
+        },
+        {
+          "chords": ["I", "V", "I", "V"],
+          "genres": { "Children": 1.0, "Marching Band": 0.8, "Folk": 0.5 },
+          "progression_id": "joy_012"
+        }
+      ]
+    },
+    "Sadness": {
+      "mode": "Aeolian",
+      "description": "Soft despair, introspective loss, emotional gravity.",
+      "characteristics": ["melancholy", "reflective", "low energy"],
+      "progression_pool": [
+        {
+          "chords": ["i", "iv", "i", "v"],
+          "genres": { "Folk": 0.8, "Indie": 0.7, "Singer-Songwriter": 0.6 },
+          "progression_id": "sad_001"
+        },
+        {
+          "chords": ["i", "♭VI", "♭III", "♭VII"],
+          "genres": { "Cinematic": 0.9, "Rock": 0.6, "Metal": 0.4 },
+          "progression_id": "sad_002"
+        },
+        {
+          "chords": ["i", "♭VII", "♭VI", "♭VII"],
+          "genres": { "Lo-fi": 0.8, "Indie Pop": 0.7, "Dream Pop": 0.5 },
+          "progression_id": "sad_003"
+        },
+        {
+          "chords": ["i", "iv", "♭VI", "v"],
+          "genres": { "Alt Rock": 0.8, "Pop": 0.6, "Soundtrack": 0.5 },
+          "progression_id": "sad_004"
+        },
+        {
+          "chords": ["i", "v", "i", "♭VI"],
+          "genres": { "Blues": 0.9, "Jazz": 0.6, "Trip-hop": 0.5 },
+          "progression_id": "sad_005"
+        },
+        {
+          "chords": ["i", "♭VI", "iv", "v"],
+          "genres": { "Indie": 0.9, "Alternative": 0.6, "Lo-fi": 0.5 },
+          "progression_id": "sad_006"
+        },
+        {
+          "chords": ["i", "iv", "i", "♭VII"],
+          "genres": { "Grunge": 0.7, "Post-Rock": 0.6, "Shoegaze": 0.4 },
+          "progression_id": "sad_007"
+        },
+        {
+          "chords": ["i", "♭III", "iv", "i"],
+          "genres": { "Orchestral": 0.8, "Film Score": 0.7, "Piano Ballad": 0.5 },
+          "progression_id": "sad_008"
+        },
+        {
+          "chords": ["i", "♭VI", "♭III", "iv"],
+          "genres": { "Darkwave": 0.8, "Industrial": 0.6, "Synthwave": 0.5 },
+          "progression_id": "sad_009"
+        },
+        {
+          "chords": ["i", "iv", "v", "i"],
+          "genres": { "Blues": 0.9, "Slow Rock": 0.7, "Country Ballad": 0.5 },
+          "progression_id": "sad_010"
+        },
+        {
+          "chords": ["i", "♭VII", "iv", "i"],
+          "genres": { "Singer-Songwriter": 0.8, "Acoustic": 0.6, "Indie Rock": 0.6 },
+          "progression_id": "sad_011"
+        },
+        {
+          "chords": ["i", "♭VI", "♭VII", "i"],
+          "genres": { "Lo-fi": 0.9, "Ambient": 0.7, "Neoclassical": 0.6 },
+          "progression_id": "sad_012"
+        }
+      ]
+    },
+    "Fear": {
+      "mode": "Phrygian",
+      "description": "Claustrophobic tension, inner dread, survival mode.",
+      "characteristics": ["dark", "compressed", "anxious"],
+      "progression_pool": [
+        {
+          "chords": ["i", "♭II", "i", "v"],
+          "genres": { "Horror Score": 1.0, "Metal": 0.7, "Dark Trap": 0.6 },
+          "progression_id": "fear_001"
+        },
+        {
+          "chords": ["♭II", "i", "iv", "i"],
+          "genres": { "Suspense": 0.9, "Cinematic": 0.7, "Orchestral": 0.6 },
+          "progression_id": "fear_002"
+        },
+        {
+          "chords": ["i", "♭II", "♭VII", "i"],
+          "genres": { "Industrial": 0.9, "EDM": 0.6, "Dark Ambient": 0.6 },
+          "progression_id": "fear_003"
+        },
+        {
+          "chords": ["♭II", "i", "♭III", "iv"],
+          "genres": { "Horror": 1.0, "Post-Rock": 0.5, "Metal": 0.4 },
+          "progression_id": "fear_004"
+        },
+        {
+          "chords": ["i", "♭II", "♭VI", "♭VII"],
+          "genres": { "Thriller": 0.9, "Film Score": 0.7, "Trap": 0.5 },
+          "progression_id": "fear_005"
+        },
+        {
+          "chords": ["iv", "i", "♭II", "i"],
+          "genres": { "Horror": 1.0, "Experimental": 0.8, "Noise": 0.5 },
+          "progression_id": "fear_006"
+        },
+        {
+          "chords": ["i", "♭III", "♭II", "i"],
+          "genres": { "Drone": 0.9, "Minimal": 0.6, "Sound Design": 0.5 },
+          "progression_id": "fear_007"
+        },
+        {
+          "chords": ["♭II", "iv", "i", "♭VII"],
+          "genres": { "EDM": 0.7, "Cyberpunk": 0.6, "Game OST": 0.6 },
+          "progression_id": "fear_008"
+        },
+        {
+          "chords": ["i", "♭II", "i", "♭V"],
+          "genres": { "Modern Classical": 0.8, "Dark Jazz": 0.5, "Score": 0.6 },
+          "progression_id": "fear_009"
+        },
+        {
+          "chords": ["i", "♭VI", "♭VII", "i"],
+          "genres": { "Orchestral": 0.7, "Suspense": 0.6, "Underscore": 0.6 },
+          "progression_id": "fear_010"
+        },
+        {
+          "chords": ["♭II", "♭VI", "i", "v"],
+          "genres": { "Post-Rock": 0.6, "Doom": 0.5, "Cinematic": 0.5 },
+          "progression_id": "fear_011"
+        },
+        {
+          "chords": ["i", "♭VII", "♭II", "i"],
+          "genres": { "Psych Thriller": 0.8, "Trailer Music": 0.7, "Score": 0.6 },
+          "progression_id": "fear_012"
+        }
+      ]
+    },
+    "Anger": {
+      "mode": "Phrygian Dominant",
+      "description": "Explosive aggression, energized instability.",
+      "characteristics": ["volatile", "forceful", "dominant"],
+      "progression_pool": [
+        {
+          "chords": ["I", "♭II", "iv°", "I"],
+          "genres": { "Metal": 1.0, "Flamenco": 0.9, "EDM": 0.6 },
+          "progression_id": "anger_001"
+        },
+        {
+          "chords": ["I", "♭II", "♭VI", "I"],
+          "genres": { "Trailer": 1.0, "Cinematic": 0.8, "Industrial": 0.7 },
+          "progression_id": "anger_002"
+        },
+        {
+          "chords": ["I", "V", "♭II", "I"],
+          "genres": { "Orchestral": 0.9, "Game OST": 0.7, "Dark Fusion": 0.6 },
+          "progression_id": "anger_003"
+        },
+        {
+          "chords": ["I", "♭II", "♭vii°", "I"],
+          "genres": { "Djent": 0.9, "Prog Metal": 0.8, "Middle Eastern": 0.6 },
+          "progression_id": "anger_004"
+        },
+        {
+          "chords": ["I", "iv°", "♭II", "I"],
+          "genres": { "Rock": 0.8, "Hardstyle": 0.6, "Flamenco": 0.6 },
+          "progression_id": "anger_005"
+        },
+        {
+          "chords": ["I", "♭III", "♭II", "I"],
+          "genres": { "Industrial": 0.9, "Hard EDM": 0.7, "Aggrotech": 0.6 },
+          "progression_id": "anger_006"
+        },
+        {
+          "chords": ["I", "iv°", "♭VI", "♭II"],
+          "genres": { "Score": 0.8, "Metal": 0.7, "Symphonic Rock": 0.6 },
+          "progression_id": "anger_007"
+        },
+        {
+          "chords": ["I", "♭II", "V", "I"],
+          "genres": { "Flamenco": 1.0, "Arabic Pop": 0.8, "Psytrance": 0.5 },
+          "progression_id": "anger_008"
+        },
+        {
+          "chords": ["I", "♭II", "iv°", "♭VI"],
+          "genres": { "Sludge": 0.7, "Post-Metal": 0.6, "Film Trailer": 0.8 },
+          "progression_id": "anger_009"
+        },
+        {
+          "chords": ["I", "V", "♭VI", "♭II"],
+          "genres": { "Trailer": 0.9, "Orchestral Hybrid": 0.7, "Cinematic": 0.6 },
+          "progression_id": "anger_010"
+        },
+        {
+          "chords": ["I", "♭II", "I", "♭II"],
+          "genres": { "Electronic Hardcore": 0.8, "Aggro Trap": 0.6, "Industrial": 0.5 },
+          "progression_id": "anger_011"
+        },
+        {
+          "chords": ["I", "♭II", "I", "♭vii°"],
+          "genres": { "Death Metal": 0.8, "Middle Eastern Metal": 0.7, "Prog": 0.6 },
+          "progression_id": "anger_012"
+        }
+      ]
+    },
+    "Disgust": {
+      "mode": "Locrian",
+      "description": "Hollow, broken, disoriented. Harmonic collapse.",
+      "characteristics": ["unresolved", "dissonant", "repelling"],
+      "progression_pool": [
+        {
+          "chords": ["i°", "♭II", "♭v", "i°"],
+          "genres": { "Horror": 1.0, "Experimental": 0.9, "Modern Classical": 0.7 },
+          "progression_id": "disgust_001"
+        },
+        {
+          "chords": ["i°", "♭v", "♭II", "♭v"],
+          "genres": { "Dark Ambient": 0.8, "Doom Jazz": 0.7, "Noise": 0.6 },
+          "progression_id": "disgust_002"
+        },
+        {
+          "chords": ["♭II", "♭v", "♭vii°", "i°"],
+          "genres": { "Industrial": 0.9, "Avant-Garde": 0.8, "Scoring": 0.6 },
+          "progression_id": "disgust_003"
+        },
+        {
+          "chords": ["♭v", "i°", "♭VI", "♭II"],
+          "genres": { "Cinematic Horror": 1.0, "Art Music": 0.7, "Underscore": 0.6 },
+          "progression_id": "disgust_004"
+        },
+        {
+          "chords": ["i°", "♭v", "♭II", "♭vii°"],
+          "genres": { "Jazz Noir": 0.8, "Free Jazz": 0.6, "Sound Design": 0.6 },
+          "progression_id": "disgust_005"
+        },
+        {
+          "chords": ["♭vii°", "♭v", "♭II", "i°"],
+          "genres": { "Darkwave": 0.7, "Drone": 0.6, "Score": 0.6 },
+          "progression_id": "disgust_006"
+        },
+        {
+          "chords": ["♭II", "♭v", "♭VI", "i°"],
+          "genres": { "Serialism": 0.9, "Postmodern": 0.7, "Jazz Fusion": 0.5 },
+          "progression_id": "disgust_007"
+        },
+        {
+          "chords": ["i°", "♭II", "i°", "♭v"],
+          "genres": { "Film Score": 0.8, "Tension Cue": 0.7, "Techno Horror": 0.5 },
+          "progression_id": "disgust_008"
+        },
+        {
+          "chords": ["♭v", "♭II", "♭VI", "i°"],
+          "genres": { "Industrial Noise": 1.0, "Electronic Avant": 0.6, "Death Ambient": 0.5 },
+          "progression_id": "disgust_009"
+        },
+        {
+          "chords": ["♭II", "♭vii°", "i°", "♭v"],
+          "genres": { "Weird Jazz": 0.8, "Sci-Fi": 0.6, "Post-Rock": 0.4 },
+          "progression_id": "disgust_010"
+        },
+        {
+          "chords": ["i°", "♭VI", "♭II", "♭v"],
+          "genres": { "Horror": 1.0, "Dissonant Jazz": 0.7, "Psycho-thriller": 0.6 },
+          "progression_id": "disgust_011"
+        },
+        {
+          "chords": ["♭v", "♭II", "♭III", "♭vii°"],
+          "genres": { "Sound Art": 0.9, "Free Improvisation": 0.7, "Postmodern Score": 0.6 },
+          "progression_id": "disgust_012"
+        }
+      ]
+    },
+    "Surprise": {
+      "mode": "Lydian",
+      "description": "Brightly unexpected; optimistic novelty.",
+      "characteristics": ["floating", "airy", "curious"],
+      "progression_pool": [
+        {
+          "chords": ["I", "II", "V", "I"],
+          "genres": { "Anime": 0.9, "Film Score": 0.8, "Fusion": 0.6 },
+          "progression_id": "surprise_001"
+        },
+        {
+          "chords": ["I", "II", "iii", "♯iv°"],
+          "genres": { "Fantasy": 1.0, "Orchestral": 0.8, "Dream Pop": 0.6 },
+          "progression_id": "surprise_002"
+        },
+        {
+          "chords": ["I", "V", "II", "I"],
+          "genres": { "Jazz Fusion": 0.9, "Prog Rock": 0.7, "Modern Jazz": 0.6 },
+          "progression_id": "surprise_003"
+        },
+        {
+          "chords": ["I", "II", "I", "V"],
+          "genres": { "Soundtrack": 0.8, "EDM": 0.7, "Game OST": 0.6 },
+          "progression_id": "surprise_004"
+        },
+        {
+          "chords": ["I", "vi", "II", "V"],
+          "genres": { "Anime": 0.9, "Rom-Com Score": 0.7, "Pop": 0.6 },
+          "progression_id": "surprise_005"
+        },
+        {
+          "chords": ["I", "iii", "II", "V"],
+          "genres": { "Adventure Score": 0.8, "Fantasy": 0.7, "Orchestral": 0.6 },
+          "progression_id": "surprise_006"
+        },
+        {
+          "chords": ["I", "♯iv°", "II", "V"],
+          "genres": { "Dream Pop": 0.9, "Indie": 0.6, "Shoegaze": 0.5 },
+          "progression_id": "surprise_007"
+        },
+        {
+          "chords": ["I", "II", "V", "vi"],
+          "genres": { "TV Opening": 0.8, "Anime": 0.8, "Fusion": 0.5 },
+          "progression_id": "surprise_008"
+        },
+        {
+          "chords": ["I", "vi", "II", "I"],
+          "genres": { "EDM": 0.8, "Future Bass": 0.6, "Game Music": 0.5 },
+          "progression_id": "surprise_009"
+        },
+        {
+          "chords": ["I", "II", "V", "iii"],
+          "genres": { "Fantasy Score": 0.9, "Cinematic": 0.7, "Adventure": 0.6 },
+          "progression_id": "surprise_010"
+        },
+        {
+          "chords": ["I", "II", "♯iv°", "I"],
+          "genres": { "Orchestral": 0.9, "Soundtrack": 0.8, "Jazz": 0.6 },
+          "progression_id": "surprise_011"
+        },
+        {
+          "chords": ["I", "V", "II", "vi"],
+          "genres": { "Fusion": 0.8, "J-Pop": 0.7, "New Age": 0.6 },
+          "progression_id": "surprise_012"
+        }
+      ]
+    },
+    "Trust": {
+      "mode": "Dorian",
+      "description": "Grounded and warm; minor with a ray of hope.",
+      "characteristics": ["intimate", "supportive", "softly hopeful"],
+      "progression_pool": [
+        {
+          "chords": ["i", "ii", "IV", "i"],
+          "genres": { "Jazz": 0.9, "Soul": 0.8, "R&B": 0.6 },
+          "progression_id": "trust_001"
+        },
+        {
+          "chords": ["i", "IV", "v", "i"],
+          "genres": { "Acoustic": 0.9, "Indie": 0.7, "Chillhop": 0.6 },
+          "progression_id": "trust_002"
+        },
+        {
+          "chords": ["i", "ii", "v", "i"],
+          "genres": { "Lo-fi": 1.0, "Neo-Soul": 0.8, "Fusion": 0.6 },
+          "progression_id": "trust_003"
+        },
+        {
+          "chords": ["i", "IV", "ii", "♭VII"],
+          "genres": { "Jazz Fusion": 0.9, "Soul": 0.7, "R&B": 0.6 },
+          "progression_id": "trust_004"
+        },
+        {
+          "chords": ["i", "v", "ii", "i"],
+          "genres": { "Singer-Songwriter": 0.8, "Indie Folk": 0.6, "Pop Acoustic": 0.5 },
+          "progression_id": "trust_005"
+        },
+        {
+          "chords": ["i", "ii", "♭III", "IV"],
+          "genres": { "Bossa": 0.7, "Lounge": 0.6, "Jazz Ballad": 0.5 },
+          "progression_id": "trust_006"
+        },
+        {
+          "chords": ["i", "IV", "ii", "i"],
+          "genres": { "Lo-fi": 1.0, "Chill": 0.8, "R&B": 0.7 },
+          "progression_id": "trust_007"
+        },
+        {
+          "chords": ["i", "v", "IV", "i"],
+          "genres": { "Soul": 0.8, "Classic R&B": 0.7, "Jazz": 0.6 },
+          "progression_id": "trust_008"
+        },
+        {
+          "chords": ["i", "IV", "vi°", "ii"],
+          "genres": { "Acoustic": 0.9, "Dream Pop": 0.6, "Folk": 0.6 },
+          "progression_id": "trust_009"
+        },
+        {
+          "chords": ["i", "IV", "ii", "v"],
+          "genres": { "Neo-Soul": 1.0, "Fusion": 0.7, "Chillhop": 0.6 },
+          "progression_id": "trust_010"
+        },
+        {
+          "chords": ["i", "ii", "IV", "v"],
+          "genres": { "Jazz": 0.8, "Soul": 0.7, "Indie": 0.5 },
+          "progression_id": "trust_011"
+        },
+        {
+          "chords": ["i", "ii", "♭VII", "i"],
+          "genres": { "Folk": 0.9, "Alt Acoustic": 0.7, "World": 0.5 },
+          "progression_id": "trust_012"
+        }
+      ]
+    },
+    "Anticipation": {
+      "mode": "Melodic Minor",
+      "description": "Forward-driving motion with unresolved hope.",
+      "characteristics": ["ascending", "longing", "tense but bright"],
+      "progression_pool": [
+        {
+          "chords": ["i", "ii°", "V", "i"],
+          "genres": { "Jazz": 1.0, "R&B": 0.8, "Fusion": 0.6 },
+          "progression_id": "anticipation_001"
+        },
+        {
+          "chords": ["i", "IV", "V", "i"],
+          "genres": { "Jazz Fusion": 0.9, "Film Score": 0.7, "Contemporary Classical": 0.6 },
+          "progression_id": "anticipation_002"
+        },
+        {
+          "chords": ["i", "ii°", "VII°", "V"],
+          "genres": { "Neo-Soul": 0.9, "Jazz": 0.8, "Alt R&B": 0.6 },
+          "progression_id": "anticipation_003"
+        },
+        {
+          "chords": ["i", "V", "♭VI+", "i"],
+          "genres": { "Cinematic": 0.9, "Progressive Rock": 0.7, "Trailer": 0.6 },
+          "progression_id": "anticipation_004"
+        },
+        {
+          "chords": ["i", "♭VI+", "V", "i"],
+          "genres": { "Soundtrack": 0.9, "Jazz Ballad": 0.6, "Score": 0.6 },
+          "progression_id": "anticipation_005"
+        },
+        {
+          "chords": ["i", "ii°", "IV", "V"],
+          "genres": { "Jazz": 0.8, "Fusion": 0.6, "R&B": 0.5 },
+          "progression_id": "anticipation_006"
+        },
+        {
+          "chords": ["i", "♭VI+", "ii°", "V"],
+          "genres": { "Orchestral": 0.9, "Experimental": 0.6, "Alt Jazz": 0.5 },
+          "progression_id": "anticipation_007"
+        },
+        {
+          "chords": ["i", "V", "ii°", "i"],
+          "genres": { "Neo-Soul": 0.8, "Chill Jazz": 0.6, "Prog": 0.6 },
+          "progression_id": "anticipation_008"
+        },
+        {
+          "chords": ["i", "V", "♭VI+", "ii°"],
+          "genres": { "Film Score": 1.0, "Suspense": 0.7, "Modern Classical": 0.6 },
+          "progression_id": "anticipation_009"
+        },
+        {
+          "chords": ["i", "VII°", "IV", "V"],
+          "genres": { "R&B": 0.8, "Fusion": 0.7, "Jazz Pop": 0.6 },
+          "progression_id": "anticipation_010"
+        },
+        {
+          "chords": ["i", "♭VI+", "♭III", "V"],
+          "genres": { "Trailer": 0.9, "Orchestral": 0.8, "Sound Design": 0.6 },
+          "progression_id": "anticipation_011"
+        },
+        {
+          "chords": ["i", "ii°", "V", "♭VI+"],
+          "genres": { "Suspense": 0.8, "Alt Rock": 0.6, "Score": 0.5 },
+          "progression_id": "anticipation_012"
+        }
+      ]
+    },
+    "Shame": {
+      "mode": "Harmonic Minor",
+      "description": "Tragic, raw, emotionally exposed.",
+      "characteristics": ["haunted", "heavy", "grief-stricken"],
+      "progression_pool": [
+        {
+          "chords": ["i", "iv", "V", "i"],
+          "genres": { "Classical": 1.0, "Film Score": 0.8, "Metal Ballad": 0.6 },
+          "progression_id": "shame_001"
+        },
+        {
+          "chords": ["i", "♭VI", "V", "i"],
+          "genres": { "Gothic": 0.9, "Symphonic Rock": 0.7, "Epic": 0.6 },
+          "progression_id": "shame_002"
+        },
+        {
+          "chords": ["i", "iv", "♭II°", "i"],
+          "genres": { "Middle Eastern": 0.9, "Traditional": 0.8, "Flamenco": 0.6 },
+          "progression_id": "shame_003"
+        },
+        {
+          "chords": ["i", "V", "♭VI", "i"],
+          "genres": { "Cinematic": 0.9, "Tragic Score": 0.7, "Drama": 0.6 },
+          "progression_id": "shame_004"
+        },
+        {
+          "chords": ["i", "♭VI", "♭II°", "V"],
+          "genres": { "Symphonic Metal": 1.0, "Orchestral": 0.8, "Neo-Romantic": 0.7 },
+          "progression_id": "shame_005"
+        },
+        {
+          "chords": ["i", "V", "♭II°", "i"],
+          "genres": { "Dark Classical": 1.0, "Soundtrack": 0.7, "Score": 0.6 },
+          "progression_id": "shame_006"
+        },
+        {
+          "chords": ["i", "♭II°", "iv", "V"],
+          "genres": { "Tragic Drama": 0.9, "Operatic": 0.8, "Romantic Era": 0.7 },
+          "progression_id": "shame_007"
+        },
+        {
+          "chords": ["i", "♭VI", "ii°", "V"],
+          "genres": { "Flamenco": 0.9, "Gypsy Jazz": 0.7, "Folk-Classical": 0.6 },
+          "progression_id": "shame_008"
+        },
+        {
+          "chords": ["i", "V", "♭VI", "i"],
+          "genres": { "Metal": 0.9, "Symphonic Prog": 0.8, "Neo-Gothic": 0.6 },
+          "progression_id": "shame_009"
+        },
+        {
+          "chords": ["i", "♭III+", "iv", "V"],
+          "genres": { "Classical": 0.8, "Romantic": 0.7, "Melodramatic Score": 0.6 },
+          "progression_id": "shame_010"
+        },
+        {
+          "chords": ["i", "V", "♭VI", "♭II°"],
+          "genres": { "Eastern Fusion": 0.9, "Cinematic": 0.7, "Ethnic": 0.6 },
+          "progression_id": "shame_011"
+        },
+        {
+          "chords": ["i", "iv", "♭II°", "♭VI"],
+          "genres": { "Dramatic Film": 0.9, "Orchestral Tragedy": 0.8, "Dark Jazz": 0.6 },
+          "progression_id": "shame_012"
+        }
+      ]
+    },
+    "Love": {
+      "mode": "Mixolydian",
+      "description": "Nostalgic, soulful warmth with relaxed tension.",
+      "characteristics": ["friendly", "familiar", "tender"],
+      "progression_pool": [
+        {
+          "chords": ["I", "♭VII", "IV", "I"],
+          "genres": { "Country": 1.0, "Classic Rock": 0.9, "Soul": 0.7 },
+          "progression_id": "love_001"
+        },
+        {
+          "chords": ["I", "IV", "♭VII", "I"],
+          "genres": { "Gospel": 1.0, "R&B": 0.8, "Folk": 0.6 },
+          "progression_id": "love_002"
+        },
+        {
+          "chords": ["I", "♭VII", "v", "I"],
+          "genres": { "Blues Rock": 0.9, "Alt Rock": 0.6, "Indie": 0.5 },
+          "progression_id": "love_003"
+        },
+        {
+          "chords": ["I", "v", "♭VII", "IV"],
+          "genres": { "Country Pop": 0.9, "Soul": 0.7, "Adult Contemporary": 0.6 },
+          "progression_id": "love_004"
+        },
+        {
+          "chords": ["I", "♭VII", "IV", "v"],
+          "genres": { "Southern Rock": 1.0, "Classic Rock": 0.9, "Pop Rock": 0.6 },
+          "progression_id": "love_005"
+        },
+        {
+          "chords": ["I", "IV", "I", "♭VII"],
+          "genres": { "Americana": 0.9, "Folk": 0.8, "Country": 0.7 },
+          "progression_id": "love_006"
+        },
+        {
+          "chords": ["I", "♭VII", "ii", "I"],
+          "genres": { "Soul": 0.8, "Funk": 0.7, "Indie": 0.6 },
+          "progression_id": "love_007"
+        },
+        {
+          "chords": ["I", "ii", "♭VII", "IV"],
+          "genres": { "Neo-Soul": 0.9, "Jazz Funk": 0.7, "R&B": 0.6 },
+          "progression_id": "love_008"
+        },
+        {
+          "chords": ["I", "♭VII", "IV", "ii"],
+          "genres": { "Love Ballads": 0.8, "Gospel": 0.8, "Jazz Pop": 0.6 },
+          "progression_id": "love_009"
+        },
+        {
+          "chords": ["I", "IV", "♭VII", "ii"],
+          "genres": { "Singer-Songwriter": 0.9, "Soft Rock": 0.7, "Pop": 0.5 },
+          "progression_id": "love_010"
+        },
+        {
+          "chords": ["I", "v", "♭VII", "I"],
+          "genres": { "Blues": 0.9, "Jam Band": 0.7, "Alt Country": 0.6 },
+          "progression_id": "love_011"
+        },
+        {
+          "chords": ["I", "♭VII", "I", "v"],
+          "genres": { "Classic Soul": 0.8, "Country": 0.8, "Adult Pop": 0.6 },
+          "progression_id": "love_012"
+        }
+      ]
+    },
+    "Envy": {
+      "mode": "Hungarian Minor",
+      "description": "Bitter elegance, twisted desire.",
+      "characteristics": ["exotic", "sharp", "intense"],
+      "progression_pool": [
+        {
+          "chords": ["i", "♯iv°", "V", "i"],
+          "genres": { "Eastern Folk": 1.0, "Dark Jazz": 0.8, "Film Noir": 0.7 },
+          "progression_id": "envy_001"
+        },
+        {
+          "chords": ["i", "♭VI", "V", "♯iv°"],
+          "genres": { "Flamenco": 1.0, "Classical Fusion": 0.8, "Metal": 0.6 },
+          "progression_id": "envy_002"
+        },
+        {
+          "chords": ["i", "♯iv°", "♭II", "i"],
+          "genres": { "Gothic": 0.9, "Cinematic": 0.7, "Middle Eastern": 0.6 },
+          "progression_id": "envy_003"
+        },
+        {
+          "chords": ["i", "♯iv°", "V", "♭VI"],
+          "genres": { "Symphonic Metal": 1.0, "Trailer": 0.8, "Folk Fusion": 0.6 },
+          "progression_id": "envy_004"
+        },
+        {
+          "chords": ["i", "♭III+", "♯iv°", "V"],
+          "genres": { "Dark Classical": 0.9, "Prog Metal": 0.8, "Score": 0.6 },
+          "progression_id": "envy_005"
+        },
+        {
+          "chords": ["i", "♭II", "V", "i"],
+          "genres": { "Arabic Fusion": 0.9, "Jazz Noir": 0.7, "World": 0.6 },
+          "progression_id": "envy_006"
+        },
+        {
+          "chords": ["i", "♯iv°", "♭vi", "i"],
+          "genres": { "Cinematic": 0.8, "Folk Noir": 0.7, "Metal Ballad": 0.6 },
+          "progression_id": "envy_007"
+        },
+        {
+          "chords": ["i", "♯iv°", "♭VI", "♭II"],
+          "genres": { "Horror Score": 0.9, "Orchestral": 0.7, "Darkwave": 0.6 },
+          "progression_id": "envy_008"
+        },
+        {
+          "chords": ["i", "V", "♭II", "♯iv°"],
+          "genres": { "Symphonic Rock": 0.9, "Eastern Jazz": 0.6, "Film Score": 0.6 },
+          "progression_id": "envy_009"
+        },
+        {
+          "chords": ["i", "♯iv°", "♭VI", "i"],
+          "genres": { "Dark Classical": 1.0, "Tango Noir": 0.7, "Gypsy Jazz": 0.6 },
+          "progression_id": "envy_010"
+        },
+        {
+          "chords": ["i", "V", "♯iv°", "V"],
+          "genres": { "Operatic Metal": 0.8, "Fantasy OST": 0.7, "Score": 0.6 },
+          "progression_id": "envy_011"
+        },
+        {
+          "chords": ["i", "♯iv°", "♭III+", "V"],
+          "genres": { "Neo-Classical": 0.9, "World Fusion": 0.7, "Tragic Romance": 0.6 },
+          "progression_id": "envy_012"
+        }
+      ]
+    },
+    "Aesthetic Awe": {
+      "mode": "Lydian Augmented",
+      "description": "Transcendent beauty, vastness, the sublime.",
+      "characteristics": ["cosmic", "elevated", "reverent"],
+      "progression_pool": [
+        {
+          "chords": ["I", "II", "III+", "I"],
+          "genres": { "Film Score": 1.0, "Jazz Fusion": 0.8, "Orchestral": 0.7 },
+          "progression_id": "awe_001"
+        },
+        {
+          "chords": ["I", "♯iv°", "III+", "II"],
+          "genres": { "Sci-Fi": 0.9, "Experimental Classical": 0.7, "Synth": 0.6 },
+          "progression_id": "awe_002"
+        },
+        {
+          "chords": ["I", "III+", "II", "I"],
+          "genres": { "Dream Sequence": 1.0, "Ambient": 0.7, "Fusion": 0.6 },
+          "progression_id": "awe_003"
+        },
+        {
+          "chords": ["I", "II", "♯iv°", "III+"],
+          "genres": { "Score": 0.9, "Fantasy": 0.8, "Neo-Classical": 0.6 },
+          "progression_id": "awe_004"
+        },
+        {
+          "chords": ["I", "vi", "III+", "I"],
+          "genres": { "Prog": 0.9, "Art Music": 0.7, "Film": 0.6 },
+          "progression_id": "awe_005"
+        },
+        {
+          "chords": ["I", "V", "II", "III+"],
+          "genres": { "Orchestral Ambient": 1.0, "Dream Jazz": 0.8, "Cinematic": 0.6 },
+          "progression_id": "awe_006"
+        },
+        {
+          "chords": ["I", "III+", "♯iv°", "I"],
+          "genres": { "Modern Jazz": 0.9, "Mystical Score": 0.8, "Space Opera": 0.6 },
+          "progression_id": "awe_007"
+        },
+        {
+          "chords": ["I", "II", "V", "III+"],
+          "genres": { "Fusion": 0.9, "Soundtrack": 0.7, "New Age": 0.6 },
+          "progression_id": "awe_008"
+        },
+        {
+          "chords": ["I", "III+", "II", "V"],
+          "genres": { "Game Music": 0.9, "Fantasy OST": 0.7, "Dream Pop": 0.6 },
+          "progression_id": "awe_009"
+        },
+        {
+          "chords": ["I", "vi", "II", "III+"],
+          "genres": { "Epic Score": 0.9, "Space Music": 0.7, "Film": 0.6 },
+          "progression_id": "awe_010"
+        },
+        {
+          "chords": ["I", "II", "♯iv°", "I"],
+          "genres": { "Mystery Score": 0.8, "Sci-Fi Ambient": 0.7, "Orchestral": 0.6 },
+          "progression_id": "awe_011"
+        },
+        {
+          "chords": ["I", "V", "III+", "I"],
+          "genres": { "Fusion": 0.9, "Synthwave": 0.8, "Soundscape": 0.6 },
+          "progression_id": "awe_012"
+        }
+      ]
+    }
+  },
+  "parser_rules": {
+    "emotion_keywords": {
+      "Joy": ["happy", "joy", "excited", "cheerful", "uplifted", "bright", "celebratory", "euphoric", "blissful"],
+      "Sadness": ["sad", "depressed", "grieving", "blue", "mournful", "melancholy", "sorrowful", "dejected", "despondent"],
+      "Fear": ["afraid", "scared", "anxious", "nervous", "terrified", "worried", "tense", "apprehensive", "paranoid"],
+      "Anger": ["angry", "furious", "frustrated", "pissed", "irritated", "rage", "aggressive", "hostile", "wrathful"],
+      "Disgust": ["disgusted", "grossed out", "repulsed", "nauseated", "revolted", "sickened", "repelled"],
+      "Surprise": ["surprised", "shocked", "amazed", "startled", "unexpected", "wonder", "astonished", "bewildered"],
+      "Trust": ["trust", "safe", "secure", "supported", "bonded", "intimate", "comfortable", "confident", "assured"],
+      "Anticipation": ["anticipation", "expectation", "eager", "hopeful", "building", "yearning", "excitement", "suspense"],
+      "Shame": ["guilt", "shame", "regret", "embarrassed", "remorseful", "apologetic", "humiliated", "mortified"],
+      "Love": ["love", "romantic", "affection", "caring", "warm", "tender", "devoted", "passionate", "adoring"],
+      "Envy": ["jealous", "envious", "spiteful", "competitive", "bitter", "possessive", "resentful", "covetous"],
+      "Aesthetic Awe": ["awe", "wonder", "sublime", "inspired", "majestic", "transcendent", "beautiful", "breathtaking", "magnificent"]
+    },
+    "intensity_modifiers": {
+      "very": 1.5,
+      "extremely": 1.8,
+      "incredibly": 1.7,
+      "slightly": 0.5,
+      "a bit": 0.7,
+      "kind of": 0.8,
+      "somewhat": 0.6,
+      "really": 1.3,
+      "deeply": 1.4,
+      "mildly": 0.4
+    },
+    "conjunction_handling": {
+      "but": "contrast_blend",
+      "and": "additive_blend", 
+      "with": "additive_blend",
+      "yet": "contrast_blend",
+      "however": "contrast_blend",
+      "plus": "additive_blend"
+    }
+  },
+  "genre_catalog": [
+    "Pop", "Rock", "Jazz", "Classical", "Electronic", "Hip-Hop", "R&B", "Soul", "Country", "Folk",
+    "Blues", "Funk", "Reggae", "Metal", "Punk", "Indie", "Alternative", "Prog", "Ambient", "EDM",
+    "House", "Techno", "Trance", "Dubstep", "Trap", "Lo-fi", "Chillhop", "Bossa Nova", "Latin",
+    "World", "Cinematic", "Soundtrack", "Film Score", "Game OST", "Trailer", "Orchestral", "Chamber",
+    "Symphonic", "Opera", "Musical Theatre", "Gospel", "Spiritual", "New Age", "Meditation", "Drone",
+    "Noise", "Industrial", "Darkwave", "Synthwave", "Vaporwave", "Post-Rock", "Shoegaze", "Dream Pop"
+  ]
+}

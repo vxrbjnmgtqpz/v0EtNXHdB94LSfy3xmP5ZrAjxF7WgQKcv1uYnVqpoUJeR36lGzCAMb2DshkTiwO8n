@@ -1,0 +1,1160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chord Progression Chat</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .chat-container {
+            width: 90%;
+            max-width: 500px;
+            height: 90vh;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f8f9fa;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            display: flex;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message.agent {
+            justify-content: flex-start;
+        }
+
+        .message-bubble {
+            max-width: 80%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            font-size: 14px;
+            line-height: 1.4;
+            word-wrap: break-word;
+        }
+
+        .message.user .message-bubble {
+            background: #007AFF;
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message.agent .message-bubble {
+            background: #34C759;
+            color: white;
+            border-bottom-left-radius: 4px;
+        }
+
+        .message.thinking .message-bubble {
+            background: #e9ecef;
+            color: #6c757d;
+            border-bottom-left-radius: 4px;
+            font-style: italic;
+        }
+
+        .chat-input-container {
+            padding: 15px 20px;
+            background: white;
+            border-top: 1px solid #e9ecef;
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #e9ecef;
+            border-radius: 25px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .chat-input:focus {
+            border-color: #007AFF;
+        }
+
+        .send-button {
+            background: #007AFF;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 44px;
+            height: 44px;
+            cursor: pointer;
+            font-size: 18px;
+            transition: background-color 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .send-button:hover {
+            background: #0056CC;
+        }
+
+        .send-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #666;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-10px); }
+        }
+
+        .chord-display {
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            font-size: 16px;
+            margin: 8px 0;
+        }
+
+        .connection-status {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            padding: 5px 10px;
+            border-radius: 10px;
+            font-size: 12px;
+            color: white;
+        }
+
+        .connection-status.connected {
+            background: #34C759;
+        }
+
+        .connection-status.disconnected {
+            background: #FF3B30;
+        }
+
+        .examples {
+            text-align: center;
+            color: #666;
+            font-size: 12px;
+            margin: 20px 0;
+        }
+
+        .example-prompt {
+            display: inline-block;
+            background: #e9ecef;
+            padding: 4px 8px;
+            margin: 2px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .example-prompt:hover {
+            background: #dee2e6;
+        }
+
+        .play-button {
+            background: #FF9500;
+            color: white;
+            border: none;
+            border-radius: 15px;
+            padding: 6px 12px;
+            margin: 8px 0;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background-color 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .play-button:hover {
+            background: #CC7700;
+        }
+
+        .play-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .chord-playback {
+            margin-top: 8px;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            font-size: 11px;
+        }
+    </style>
+</head>
+<body>
+    <div class="connection-status disconnected" id="connectionStatus">Disconnected</div>
+    
+    <div class="chat-container">
+        <div class="chat-header">
+            🎼 Integrated Music Theory Assistant
+        </div>
+        
+        <div class="chat-messages" id="chatMessages">
+            <div class="message agent">
+                <div class="message-bubble">
+                    👋 Hi! I'm your integrated music theory assistant. I can help you with:
+                    <br><br>
+                    🎵 <strong>Emotional Progressions:</strong> "I feel romantic and nostalgic"<br>
+                    🎼 <strong>Music Theory:</strong> "Show me a Jazz progression in Dorian mode"<br>
+                    🎶 <strong>Individual Chords:</strong> "What chord represents deep sadness?"<br>
+                    🔍 <strong>Style Comparisons:</strong> "How would happiness sound in Jazz vs Classical?"<br>
+                    📚 <strong>Educational:</strong> "Explain why minor chords sound sad"
+                    <br><br>
+                    🎵 <strong>Audio Playback:</strong> Generated progressions include play buttons!
+                </div>
+            </div>
+            
+            <div class="examples">
+                Try these examples:<br>
+                <span class="example-prompt" onclick="sendExample('happy and excited')">happy and excited</span>
+                <span class="example-prompt" onclick="sendExample('sad and melancholy')">sad and melancholy</span>
+                <span class="example-prompt" onclick="sendExample('Jazz progression in Dorian mode')">Jazz progression in Dorian</span>
+                <span class="example-prompt" onclick="sendExample('What chord represents love?')">What chord represents love?</span>
+                <span class="example-prompt" onclick="sendExample('Compare sadness in Classical vs Jazz')">Compare sadness in Classical vs Jazz</span>
+            </div>
+        </div>
+        
+        <div class="chat-input-container">
+            <input 
+                type="text" 
+                class="chat-input" 
+                id="chatInput" 
+                placeholder="Ask about music theory, emotions, or request progressions..."
+                maxlength="200"
+            >
+            <button class="send-button" id="sendButton" onclick="sendMessage()">
+                ➤
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const SERVER_URL = 'http://localhost:5002';  // Updated to use port 5002
+        
+        // DOM elements
+        const chatMessages = document.getElementById('chatMessages');
+        const chatInput = document.getElementById('chatInput');
+        const sendButton = document.getElementById('sendButton');
+        const connectionStatus = document.getElementById('connectionStatus');
+        
+        // State
+        let isConnected = false;
+        let isProcessing = false;
+        let audioContext = null;
+        
+        // Audio Engine for Chord Playback
+        class ChordPlayer {
+            constructor() {
+                this.audioContext = null;
+                this.isPlaying = false;
+                this.initAudio();
+            }
+            
+            async initAudio() {
+                try {
+                    this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                } catch (error) {
+                    console.warn('Web Audio API not supported:', error);
+                }
+            }
+            
+            // Roman numeral to semitone mapping (C major scale)
+            getRomanNumeralSemitones(romanNumeral) {
+                const romanToSemitone = {
+                    // Major chords (uppercase)
+                    'I': [0, 4, 7],      // C major
+                    'II': [2, 6, 9],     // D major  
+                    'III': [4, 8, 11],   // E major
+                    'IV': [5, 9, 0],     // F major
+                    'V': [7, 11, 2],     // G major
+                    'VI': [9, 1, 4],     // A major
+                    'VII': [11, 3, 6],   // B major
+                    
+                    // Minor chords (lowercase)
+                    'i': [0, 3, 7],      // C minor
+                    'ii': [2, 5, 9],     // D minor
+                    'iii': [4, 7, 11],   // E minor
+                    'iv': [5, 8, 0],     // F minor
+                    'v': [7, 10, 2],     // G minor
+                    'vi': [9, 0, 4],     // A minor
+                    'vii': [11, 2, 6],   // B minor
+                    
+                    // Diminished chords
+                    'i°': [0, 3, 6],     // C diminished
+                    'ii°': [2, 5, 8],    // D diminished
+                    'iii°': [4, 7, 10],  // E diminished
+                    'iv°': [5, 8, 11],   // F diminished
+                    'v°': [7, 10, 1],    // G diminished
+                    'vi°': [9, 0, 3],    // A diminished
+                    'vii°': [11, 2, 5],  // B diminished
+                    
+                    // Augmented chords
+                    'I+': [0, 4, 8],     // C augmented
+                    'II+': [2, 6, 10],   // D augmented
+                    'III+': [4, 8, 0],   // E augmented
+                    'IV+': [5, 9, 1],    // F augmented
+                    'V+': [7, 11, 3],    // G augmented
+                    'VI+': [9, 1, 5],    // A augmented
+                    'VII+': [11, 3, 7],  // B augmented
+                    
+                    // Extended chords with flat symbols
+                    '♭II': [1, 5, 8],    // Db major
+                    '♭III': [3, 7, 10],  // Eb major
+                    '♭V': [6, 10, 1],    // Gb major
+                    '♭VI': [8, 0, 3],    // Ab major
+                    '♭VII': [10, 2, 5],  // Bb major
+                    
+                    // Half-diminished
+                    'iiø': [2, 5, 8, 0], // D half-diminished
+                    'viiø': [11, 2, 5, 9], // B half-diminished
+                };
+                
+                return romanToSemitone[romanNumeral] || [0, 4, 7]; // Default to C major
+            }
+            
+            // Convert semitones to frequencies (Middle C = C4 = 261.63 Hz)
+            semitonesToFrequencies(semitones, baseOctave = 4) {
+                const baseFreq = 261.63; // C4
+                return semitones.map(semitone => {
+                    const octaveAdjustment = Math.floor(semitone / 12);
+                    const actualSemitone = semitone % 12;
+                    const octave = baseOctave + octaveAdjustment;
+                    return baseFreq * Math.pow(2, (actualSemitone + (octave - 4) * 12) / 12);
+                });
+            }
+            
+            // Create an oscillator for a single note
+            createOscillator(frequency, startTime, duration) {
+                if (!this.audioContext) return null;
+                
+                const oscillator = this.audioContext.createOscillator();
+                const gainNode = this.audioContext.createGain();
+                
+                // Set up the oscillator
+                oscillator.type = 'triangle';
+                oscillator.frequency.setValueAtTime(frequency, startTime);
+                
+                // Set up the envelope (ADSR)
+                gainNode.gain.setValueAtTime(0, startTime);
+                gainNode.gain.linearRampToValueAtTime(0.3, startTime + 0.1); // Attack
+                gainNode.gain.exponentialRampToValueAtTime(0.2, startTime + 0.3); // Decay
+                gainNode.gain.setValueAtTime(0.2, startTime + duration - 0.2); // Sustain
+                gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + duration); // Release
+                
+                // Connect the nodes
+                oscillator.connect(gainNode);
+                gainNode.connect(this.audioContext.destination);
+                
+                return { oscillator, gainNode };
+            }
+            
+            // Play a single chord with enhanced error handling
+            async playChord(romanNumeral, duration = 2.0) {
+                if (!this.audioContext) {
+                    console.warn('Audio context not available');
+                    throw new Error('Audio not supported in this browser');
+                }
+                
+                try {
+                    // Resume audio context if suspended (browser autoplay policy)
+                    if (this.audioContext.state === 'suspended') {
+                        await this.audioContext.resume();
+                    }
+                    
+                    // Validate chord input
+                    if (!romanNumeral || typeof romanNumeral !== 'string') {
+                        throw new Error('Invalid chord specified');
+                    }
+                    
+                    const semitones = this.getRomanNumeralSemitones(romanNumeral);
+                    const frequencies = this.semitonesToFrequencies(semitones);
+                    const startTime = this.audioContext.currentTime + 0.1;
+                    
+                    // Create oscillators for each note in the chord
+                    const oscillators = frequencies.map(freq => 
+                        this.createOscillator(freq, startTime, duration)
+                    ).filter(osc => osc !== null);
+                    
+                    if (oscillators.length === 0) {
+                        throw new Error('Could not create audio for this chord');
+                    }
+                    
+                    // Start all oscillators
+                    oscillators.forEach(({ oscillator }) => {
+                        oscillator.start(startTime);
+                        oscillator.stop(startTime + duration);
+                    });
+                    
+                    return new Promise(resolve => {
+                        setTimeout(resolve, duration * 1000 + 100);
+                    });
+                    
+                } catch (error) {
+                    console.error('Chord playback error:', error);
+                    throw error;
+                }
+            }
+            
+            // Play a chord progression
+            async playProgression(chords, chordDuration = 1.5, gap = 0.2) {
+                if (this.isPlaying) return;
+                
+                this.isPlaying = true;
+                
+                try {
+                    for (let i = 0; i < chords.length; i++) {
+                        console.log(`Playing chord ${i + 1}/${chords.length}: ${chords[i]}`);
+                        await this.playChord(chords[i], chordDuration);
+                        
+                        // Small gap between chords (except for the last one)
+                        if (i < chords.length - 1) {
+                            await new Promise(resolve => setTimeout(resolve, gap * 1000));
+                        }
+                    }
+                } finally {
+                    this.isPlaying = false;
+                }
+            }
+            
+            // Get note names from Roman numeral for display
+            getChordNotes(romanNumeral) {
+                const noteNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+                const semitones = this.getRomanNumeralSemitones(romanNumeral);
+                return semitones.map(semitone => noteNames[semitone % 12]);
+            }
+        }
+        
+        // Initialize chord player
+        const chordPlayer = new ChordPlayer();
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            chatInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+            
+            checkConnection();
+            setInterval(checkConnection, 5000); // Check connection every 5 seconds
+        });
+        
+        // Connection management
+        async function checkConnection() {
+            try {
+                const response = await fetch(`${SERVER_URL}/health`);
+                if (response.ok) {
+                    setConnectionStatus(true);
+                } else {
+                    setConnectionStatus(false);
+                }
+            } catch (error) {
+                setConnectionStatus(false);
+            }
+        }
+        
+        function setConnectionStatus(connected) {
+            isConnected = connected;
+            connectionStatus.textContent = connected ? 'Connected' : 'Disconnected';
+            connectionStatus.className = `connection-status ${connected ? 'connected' : 'disconnected'}`;
+        }
+        
+        // Message handling with multi-model support
+        function addMessage(content, type = 'agent', isThinking = false, responseData = null) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type} ${isThinking ? 'thinking' : ''}`;
+            
+            const bubbleDiv = document.createElement('div');
+            bubbleDiv.className = 'message-bubble';
+            
+            if (isThinking) {
+                bubbleDiv.innerHTML = `
+                    <div class="typing-indicator">
+                        <span class="typing-dot"></span>
+                        <span class="typing-dot"></span>
+                        <span class="typing-dot"></span>
+                        <span style="margin-left: 8px;">${content}</span>
+                    </div>
+                `;
+            } else {
+                // Handle markdown-style formatting
+                let formattedContent = content
+                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                    .replace(/\n/g, '<br>');
+                
+                bubbleDiv.innerHTML = formattedContent;
+                
+                // Add interactive features for integrated responses
+                if (responseData) {
+                    addInteractiveFeatures(bubbleDiv, responseData);
+                }
+            }
+            
+            messageDiv.appendChild(bubbleDiv);
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            
+            return messageDiv;
+        }
+        
+        function addInteractiveFeatures(bubbleDiv, responseData) {
+            // Add playback controls for chord progressions or single chords
+            const chords = responseData.chords || [];
+            if (chords.length > 0) {
+                addChordPlayback(bubbleDiv, chords);
+            } else if (responseData.chord && responseData.chord.roman_numeral) {
+                // Single chord playback
+                addSingleChordPlayback(bubbleDiv, responseData.chord);
+            }
+            
+            // Add detailed emotion display for single chord responses
+            if (responseData.intent === 'single_chord' && responseData.chord && responseData.chord.emotion_weights) {
+                addEmotionBreakdown(bubbleDiv, responseData.chord.emotion_weights);
+            }
+            
+            // Add individual chord analysis breakdown for progression analysis
+            if (responseData.progression_breakdown && responseData.individual_analysis) {
+                addIndividualAnalysisBreakdown(bubbleDiv, responseData.individual_analysis, responseData.chords);
+            }
+            
+            // Add model information
+            if (responseData.models_used) {
+                addModelInfo(bubbleDiv, responseData);
+            }
+            
+            // Add follow-up suggestions
+            if (responseData.suggestions) {
+                addSuggestions(bubbleDiv, responseData.suggestions);
+            }
+            
+            // Add analysis data if available
+            if (responseData.intent) {
+                addAnalysisInfo(bubbleDiv, responseData);
+            }
+        }
+        
+        function addSingleChordPlayback(parentDiv, chordData) {
+            const playbackDiv = document.createElement('div');
+            playbackDiv.className = 'chord-playback';
+            
+            const playButton = document.createElement('button');
+            playButton.className = 'play-button';
+            playButton.innerHTML = '▶️ Play Chord';
+            playButton.onclick = () => playSingleChord(chordData.roman_numeral || chordData.chord_symbol, playButton);
+            
+            playbackDiv.appendChild(playButton);
+            
+            // Show chord notes for reference
+            const notesDiv = document.createElement('div');
+            notesDiv.style.fontSize = '10px';
+            notesDiv.style.color = '#666';
+            notesDiv.style.marginTop = '4px';
+            const notes = chordPlayer.getChordNotes(chordData.roman_numeral || chordData.chord_symbol);
+            notesDiv.textContent = `Notes: ${notes.join('-')}`;
+            playbackDiv.appendChild(notesDiv);
+            
+            parentDiv.appendChild(playbackDiv);
+        }
+        
+        function addEmotionBreakdown(parentDiv, emotionWeights) {
+            const emotionDiv = document.createElement('div');
+            emotionDiv.style.marginTop = '10px';
+            emotionDiv.style.padding = '8px';
+            emotionDiv.style.background = 'rgba(0,0,0,0.05)';
+            emotionDiv.style.borderRadius = '8px';
+            
+            const title = document.createElement('div');
+            title.style.fontSize = '12px';
+            title.style.fontWeight = 'bold';
+            title.style.marginBottom = '6px';
+            title.textContent = '🎭 Detailed Emotion Analysis:';
+            emotionDiv.appendChild(title);
+            
+            // Sort emotions by weight and show non-zero ones
+            const sortedEmotions = Object.entries(emotionWeights)
+                .filter(([_, weight]) => weight > 0)
+                .sort(([, a], [, b]) => b - a);
+            
+            if (sortedEmotions.length === 0) {
+                const noEmotions = document.createElement('div');
+                noEmotions.style.fontSize = '11px';
+                noEmotions.style.color = '#666';
+                noEmotions.textContent = 'No specific emotions detected';
+                emotionDiv.appendChild(noEmotions);
+            } else {
+                sortedEmotions.forEach(([emotion, weight]) => {
+                    const emotionRow = document.createElement('div');
+                    emotionRow.style.fontSize = '11px';
+                    emotionRow.style.marginBottom = '3px';
+                    emotionRow.style.display = 'flex';
+                    emotionRow.style.justifyContent = 'space-between';
+                    
+                    const emotionName = document.createElement('span');
+                    emotionName.textContent = emotion;
+                    
+                    const emotionBar = document.createElement('div');
+                    emotionBar.style.width = '60px';
+                    emotionBar.style.height = '8px';
+                    emotionBar.style.background = '#ddd';
+                    emotionBar.style.borderRadius = '4px';
+                    emotionBar.style.overflow = 'hidden';
+                    
+                    const emotionFill = document.createElement('div');
+                    emotionFill.style.width = `${weight * 100}%`;
+                    emotionFill.style.height = '100%';
+                    emotionFill.style.background = weight > 0.7 ? '#ff4757' : weight > 0.4 ? '#ffa726' : '#66bb6a';
+                    emotionBar.appendChild(emotionFill);
+                    
+                    const emotionValue = document.createElement('span');
+                    emotionValue.textContent = `${(weight * 100).toFixed(0)}%`;
+                    emotionValue.style.fontSize = '10px';
+                    emotionValue.style.color = '#666';
+                    
+                    emotionRow.appendChild(emotionName);
+                    emotionRow.appendChild(emotionBar);
+                    emotionRow.appendChild(emotionValue);
+                    emotionDiv.appendChild(emotionRow);
+                });
+            }
+            
+            parentDiv.appendChild(emotionDiv);
+        }
+        
+        function addChordPlayback(parentDiv, chords) {
+            const playbackDiv = document.createElement('div');
+            playbackDiv.className = 'chord-playback';
+            
+            const playButton = document.createElement('button');
+            playButton.className = 'play-button';
+            playButton.innerHTML = '▶️ Play Progression';
+            playButton.onclick = () => playChordProgression(chords, playButton);
+            
+            const individualButton = document.createElement('button');
+            individualButton.className = 'play-button';
+            individualButton.innerHTML = '🎵 Play Individual';
+            individualButton.onclick = () => playIndividualChords(chords);
+            
+            playbackDiv.appendChild(playButton);
+            playbackDiv.appendChild(individualButton);
+            
+            // Show chord notes for reference
+            const notesDiv = document.createElement('div');
+            notesDiv.style.fontSize = '10px';
+            notesDiv.style.color = '#666';
+            notesDiv.style.marginTop = '4px';
+            const chordNotes = chords.map(chord => {
+                const notes = chordPlayer.getChordNotes(chord);
+                return `${chord}: ${notes.join('-')}`;
+            }).join(' | ');
+            notesDiv.textContent = chordNotes;
+            playbackDiv.appendChild(notesDiv);
+            
+            parentDiv.appendChild(playbackDiv);
+        }
+        
+        function addModelInfo(parentDiv, responseData) {
+            const infoDiv = document.createElement('div');
+            infoDiv.style.fontSize = '11px';
+            infoDiv.style.color = '#888';
+            infoDiv.style.marginTop = '8px';
+            infoDiv.style.padding = '6px';
+            infoDiv.style.background = 'rgba(0,0,0,0.05)';
+            infoDiv.style.borderRadius = '6px';
+            
+            const modelsUsed = responseData.models_used.join(', ');
+            const confidence = (responseData.confidence * 100).toFixed(0);
+            infoDiv.innerHTML = `🤖 Models: ${modelsUsed} | Intent: ${responseData.intent} (${confidence}% confidence)`;
+            
+            parentDiv.appendChild(infoDiv);
+        }
+        
+        function addSuggestions(parentDiv, suggestions) {
+            const suggestionsDiv = document.createElement('div');
+            suggestionsDiv.style.marginTop = '10px';
+            
+            const title = document.createElement('div');
+            title.style.fontSize = '12px';
+            title.style.fontWeight = 'bold';
+            title.style.marginBottom = '5px';
+            title.textContent = '💡 Try next:';
+            suggestionsDiv.appendChild(title);
+            
+            suggestions.slice(0, 3).forEach(suggestion => {
+                const suggestionBtn = document.createElement('button');
+                suggestionBtn.className = 'play-button';
+                suggestionBtn.style.fontSize = '10px';
+                suggestionBtn.style.margin = '2px';
+                suggestionBtn.style.background = '#6c757d';
+                suggestionBtn.textContent = suggestion;
+                suggestionBtn.onclick = () => {
+                    chatInput.value = suggestion;
+                    sendMessage();
+                };
+                suggestionsDiv.appendChild(suggestionBtn);
+            });
+            
+            parentDiv.appendChild(suggestionsDiv);
+        }
+        
+        function addAnalysisInfo(parentDiv, responseData) {
+            // Add expandable analysis section for theory/educational responses
+            if (responseData.primary_result && (responseData.intent === 'theory_request' || responseData.intent === 'educational')) {
+                const analysisDiv = document.createElement('div');
+                analysisDiv.style.marginTop = '8px';
+                
+                const toggleBtn = document.createElement('button');
+                toggleBtn.className = 'play-button';
+                toggleBtn.style.fontSize = '10px';
+                toggleBtn.style.background = '#17a2b8';
+                toggleBtn.textContent = '📊 Show Analysis';
+                
+                const detailsDiv = document.createElement('div');
+                detailsDiv.style.display = 'none';
+                detailsDiv.style.fontSize = '11px';
+                detailsDiv.style.marginTop = '5px';
+                detailsDiv.style.padding = '8px';
+                detailsDiv.style.background = 'rgba(0,0,0,0.05)';
+                detailsDiv.style.borderRadius = '4px';
+                
+                if (responseData.primary_result.style) {
+                    detailsDiv.innerHTML += `<strong>Style:</strong> ${responseData.primary_result.style}<br>`;
+                }
+                if (responseData.primary_result.mode) {
+                    detailsDiv.innerHTML += `<strong>Mode:</strong> ${responseData.primary_result.mode}<br>`;
+                }
+                if (responseData.emotions) {
+                    const topEmotions = Object.entries(responseData.emotions)
+                        .sort(([,a], [,b]) => b - a)
+                        .slice(0, 3)
+                        .map(([emotion, weight]) => `${emotion} (${(weight * 100).toFixed(0)}%)`)
+                        .join(', ');
+                    detailsDiv.innerHTML += `<strong>Emotions:</strong> ${topEmotions}<br>`;
+                }
+                
+                let isExpanded = false;
+                toggleBtn.onclick = () => {
+                    isExpanded = !isExpanded;
+                    detailsDiv.style.display = isExpanded ? 'block' : 'none';
+                    toggleBtn.textContent = isExpanded ? '📊 Hide Analysis' : '📊 Show Analysis';
+                };
+                
+                analysisDiv.appendChild(toggleBtn);
+                analysisDiv.appendChild(detailsDiv);
+                parentDiv.appendChild(analysisDiv);
+            }
+        }
+        
+        function removeMessage(messageElement) {
+            if (messageElement && messageElement.parentNode) {
+                messageElement.parentNode.removeChild(messageElement);
+            }
+        }
+        
+        async function sendMessage() {
+            if (!isConnected) {
+                alert('Not connected to server. Please refresh the page or check the server.');
+                return;
+            }
+            
+            if (isProcessing) return;
+            
+            const message = chatInput.value.trim();
+            
+            // Enhanced input validation
+            if (!message) {
+                chatInput.focus();
+                return;
+            }
+            
+            // Check for extremely long input
+            if (message.length > 500) {
+                alert('Message too long. Please keep it under 500 characters.');
+                return;
+            }
+            
+            // Check for suspicious patterns that might break the system
+            const suspiciousPatterns = [
+                /script/i,
+                /javascript/i,
+                /<[^>]*>/,  // HTML tags
+                /\{\{.*\}\}/, // Template injection
+            ];
+            
+            for (const pattern of suspiciousPatterns) {
+                if (pattern.test(message)) {
+                    alert('Invalid characters detected. Please use plain text.');
+                    return;
+                }
+            }
+            
+            // Add user message
+            addMessage(message, 'user');
+            chatInput.value = '';
+            
+            // Disable input
+            isProcessing = true;
+            sendButton.disabled = true;
+            chatInput.disabled = true;
+            
+            // Add thinking message
+            const thinkingMessage = addMessage('Processing with AI music models...', 'agent', true);
+            
+            try {
+                // Use streaming approach with oboe.js-like behavior
+                await streamResponse(message, thinkingMessage);
+            } catch (error) {
+                removeMessage(thinkingMessage);
+                console.error('Full error details:', error);
+                
+                // Provide more helpful error messages
+                let errorMessage = '❌ Something went wrong. ';
+                if (error.message.includes('Failed to fetch')) {
+                    errorMessage += 'Cannot connect to the server. Please check your connection.';
+                } else if (error.message.includes('timeout')) {
+                    errorMessage += 'Request timed out. Please try again.';
+                } else if (error.message.includes('500')) {
+                    errorMessage += 'Server error. The AI models might be busy.';
+                } else {
+                    errorMessage += `Error: ${error.message}`;
+                }
+                
+                addMessage(errorMessage, 'agent');
+            } finally {
+                // Re-enable input
+                isProcessing = false;
+                sendButton.disabled = false;
+                chatInput.disabled = false;
+                chatInput.focus();
+            }
+        }
+        
+        async function streamResponse(message, thinkingMessage) {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+            
+            try {
+                const response = await fetch(`${SERVER_URL}/chat/integrated`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ 
+                        message: message,
+                        context: {} // Can be extended for conversation memory
+                    }),
+                    signal: controller.signal
+                });
+                
+                clearTimeout(timeoutId);
+                
+                if (!response.ok) {
+                    let errorMsg = `Server returned ${response.status}`;
+                    if (response.status === 500) {
+                        errorMsg += ' - Internal server error (AI models may be busy)';
+                    } else if (response.status === 404) {
+                        errorMsg += ' - Endpoint not found';
+                    } else if (response.status === 429) {
+                        errorMsg += ' - Too many requests, please wait';
+                    }
+                    throw new Error(errorMsg);
+                }
+                
+                const data = await response.json();
+                
+                // Handle errors from the integrated server
+                if (data.error) {
+                    throw new Error(`AI Processing Error: ${data.error}`);
+                }
+                
+                // Validate response structure
+                if (!data.message && !data.chords && !data.chord) {
+                    throw new Error('Invalid response format from server');
+                }
+                
+                // Remove thinking message
+                removeMessage(thinkingMessage);
+                
+                // Add response with full integrated data for features
+                addMessage(data.message || 'Response received successfully', 'agent', false, data);
+                
+                // Optional: Log response data for debugging
+                console.log('Integrated response:', data);
+                console.log('Intent detected:', data.intent);
+                console.log('Models used:', data.models_used);
+                console.log('Confidence:', data.confidence);
+                
+            } catch (error) {
+                clearTimeout(timeoutId);
+                
+                if (error.name === 'AbortError') {
+                    throw new Error('Request timed out after 30 seconds');
+                }
+                
+                throw error;
+            }
+        }
+        
+        // Audio playback functions
+        async function playChordProgression(chords, buttonElement) {
+            if (chordPlayer.isPlaying) return;
+            
+            const originalText = buttonElement.innerHTML;
+            buttonElement.innerHTML = '⏹️ Playing...';
+            buttonElement.disabled = true;
+            
+            try {
+                await chordPlayer.playProgression(chords, 1.5, 0.3);
+            } catch (error) {
+                console.error('Playback error:', error);
+                alert('Audio playback failed. Please check your browser audio settings.');
+            } finally {
+                buttonElement.innerHTML = originalText;
+                buttonElement.disabled = false;
+            }
+        }
+        
+        async function playSingleChord(chord, buttonElement) {
+            if (chordPlayer.isPlaying) return;
+            
+            const originalText = buttonElement.innerHTML;
+            buttonElement.innerHTML = '⏹️ Playing...';
+            buttonElement.disabled = true;
+            
+            try {
+                await chordPlayer.playChord(chord, 3.0);
+            } catch (error) {
+                console.error('Playback error:', error);
+                alert('Audio playback failed. Please check your browser audio settings.');
+            } finally {
+                buttonElement.innerHTML = originalText;
+                buttonElement.disabled = false;
+            }
+        }
+        
+        async function playIndividualChords(chords) {
+            if (chordPlayer.isPlaying) return;
+            
+            // Create a modal or alert to show individual chord playback
+            const chordList = chords.map((chord, index) => 
+                `${index + 1}. ${chord} (${chordPlayer.getChordNotes(chord).join('-')})`
+            ).join('\n');
+            
+            const selectedIndex = prompt(
+                `Select a chord to play:\n\n${chordList}\n\nEnter number (1-${chords.length}):`
+            );
+            
+            const index = parseInt(selectedIndex) - 1;
+            if (index >= 0 && index < chords.length) {
+                try {
+                    await chordPlayer.playChord(chords[index], 3.0);
+                } catch (error) {
+                    console.error('Playback error:', error);
+                    alert('Audio playback failed. Please check your browser audio settings.');
+                }
+            }
+        }
+        
+        function sendExample(exampleText) {
+            chatInput.value = exampleText;
+            sendMessage();
+        }
+        
+        // Handle browser tab visibility for connection management
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden) {
+                checkConnection();
+            }
+        });
+        
+        function addIndividualAnalysisBreakdown(parentDiv, individualAnalysis, chords) {
+            if (!individualAnalysis || !Array.isArray(individualAnalysis) || individualAnalysis.length === 0) {
+                return;
+            }
+            
+            const breakdownDiv = document.createElement('div');
+            breakdownDiv.style.marginTop = '12px';
+            breakdownDiv.style.padding = '10px';
+            breakdownDiv.style.background = 'rgba(0,0,0,0.03)';
+            breakdownDiv.style.borderRadius = '8px';
+            breakdownDiv.style.border = '1px solid rgba(0,0,0,0.1)';
+            
+            const titleDiv = document.createElement('div');
+            titleDiv.style.fontWeight = 'bold';
+            titleDiv.style.fontSize = '12px';
+            titleDiv.style.marginBottom = '8px';
+            titleDiv.style.color = '#333';
+            titleDiv.textContent = '🎵 Detailed Emotion Analysis:';
+            breakdownDiv.appendChild(titleDiv);
+            
+            // Create analysis for each chord
+            individualAnalysis.forEach((analysis, index) => {
+                if (!analysis) return;
+                
+                const chordDiv = document.createElement('div');
+                chordDiv.style.marginBottom = '8px';
+                chordDiv.style.padding = '6px';
+                chordDiv.style.background = 'rgba(255,255,255,0.5)';
+                chordDiv.style.borderRadius = '6px';
+                chordDiv.style.fontSize = '11px';
+                
+                // Chord header with play button
+                const headerDiv = document.createElement('div');
+                headerDiv.style.display = 'flex';
+                headerDiv.style.alignItems = 'center';
+                headerDiv.style.marginBottom = '4px';
+                
+                const chordName = chords && chords[index] ? chords[index] : `Chord ${index + 1}`;
+                const chordLabel = document.createElement('span');
+                chordLabel.style.fontWeight = 'bold';
+                chordLabel.style.marginRight = '8px';
+                chordLabel.textContent = `${index + 1}. ${chordName}`;
+                headerDiv.appendChild(chordLabel);
+                
+                // Individual chord play button
+                const playBtn = document.createElement('button');
+                playBtn.className = 'play-button';
+                playBtn.style.fontSize = '9px';
+                playBtn.style.padding = '2px 6px';
+                playBtn.style.background = '#007bff';
+                playBtn.innerHTML = '▶️';
+                playBtn.onclick = async () => {
+                    try {
+                        await playSingleChord(chordName, playBtn);
+                    } catch (error) {
+                        console.error('Chord playback error:', error);
+                    }
+                };
+                headerDiv.appendChild(playBtn);
+                
+                chordDiv.appendChild(headerDiv);
+                
+                // Display emotion weights
+                if (analysis.emotion_weights && Object.keys(analysis.emotion_weights).length > 0) {
+                    const emotionsDiv = document.createElement('div');
+                    emotionsDiv.style.marginBottom = '4px';
+                    
+                    const topEmotions = Object.entries(analysis.emotion_weights)
+                        .sort(([,a], [,b]) => b - a)
+                        .slice(0, 3)
+                        .filter(([,weight]) => weight > 0);
+                    
+                    if (topEmotions.length > 0) {
+                        const emotionText = topEmotions
+                            .map(([emotion, weight]) => `${emotion} (${(weight * 100).toFixed(0)}%)`)
+                            .join(', ');
+                        emotionsDiv.innerHTML = `<span style="color: #666;">🎭 </span>${emotionText}`;
+                    } else {
+                        emotionsDiv.innerHTML = `<span style="color: #666;">🎭 Neutral emotional content</span>`;
+                    }
+                    
+                    chordDiv.appendChild(emotionsDiv);
+                }
+                
+                // Display musical context
+                if (analysis.mode_context || analysis.style_context) {
+                    const contextDiv = document.createElement('div');
+                    contextDiv.style.color = '#666';
+                    contextDiv.style.fontSize = '10px';
+                    const mode = analysis.mode_context || 'Unknown';
+                    const style = analysis.style_context || 'Unknown';
+                    contextDiv.innerHTML = `🎼 Context: ${mode} (${style})`;
+                    chordDiv.appendChild(contextDiv);
+                }
+                
+                if (analysis.emotional_score !== undefined) {
+                    const scoreDiv = document.createElement('div');
+                    scoreDiv.style.color = '#666';
+                    scoreDiv.style.fontSize = '10px';
+                    scoreDiv.innerHTML = `🎯 Emotional fit: ${(analysis.emotional_score * 100).toFixed(0)}%`;
+                    chordDiv.appendChild(scoreDiv);
+                }
+                
+                // Display notes if available
+                if (analysis.notes) {
+                    const notesDiv = document.createElement('div');
+                    notesDiv.style.color = '#666';
+                    notesDiv.style.fontSize = '10px';
+                    notesDiv.innerHTML = `🎵 Notes: ${analysis.notes}`;
+                    chordDiv.appendChild(notesDiv);
+                }
+                
+                // Show error if present
+                if (analysis.error) {
+                    const errorDiv = document.createElement('div');
+                    errorDiv.style.color = '#dc3545';
+                    errorDiv.style.fontSize = '10px';
+                    errorDiv.innerHTML = `❌ ${analysis.error}`;
+                    chordDiv.appendChild(errorDiv);
+                }
+                
+                breakdownDiv.appendChild(chordDiv);
+            });
+            
+            parentDiv.appendChild(breakdownDiv);
+        }
+    </script>
+</body>
+</html>

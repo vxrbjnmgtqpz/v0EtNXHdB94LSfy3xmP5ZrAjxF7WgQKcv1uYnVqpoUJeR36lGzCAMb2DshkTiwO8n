@@ -1,0 +1,33 @@
+{
+  "circleOfFifths": {
+    "major": [
+      "C",
+      "G",
+      "D",
+      "A",
+      "E",
+      "B",
+      "F#",
+      "Db",
+      "Ab",
+      "Eb",
+      "Bb",
+      "F"
+    ],
+    "minor": [
+      "Am",
+      "Em",
+      "Bm",
+      "F#m",
+      "C#m",
+      "G#m",
+      "D#m",
+      "Bbm",
+      "Fm",
+      "Cm",
+      "Gm",
+      "Dm"
+    ],
+    "steps": 12
+  }
+}

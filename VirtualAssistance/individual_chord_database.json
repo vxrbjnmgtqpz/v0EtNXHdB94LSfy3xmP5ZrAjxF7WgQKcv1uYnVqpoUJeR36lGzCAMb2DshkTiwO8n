@@ -1,0 +1,1575 @@
+{
+  "database_info": {
+    "version": "1.3",
+    "description": "Individual chord-to-emotion mapping database across musical contexts",
+    "total_contexts": 9,
+    "total_chords": 66,
+    "created": "2025-07-01",
+    "updated": "2025-07-02",
+    "architecture_notes": [
+      "This database maps individual chords to emotional weights across different musical contexts",
+      "Contexts include modal frameworks (Ionian, Aeolian, Dorian, etc.) and stylistic frameworks (Jazz, Blues)",
+      "Each chord includes 12-dimensional emotion weights for the core emotion model",
+      "Supports both traditional triads and extended harmony (7ths, 9ths, alterations)",
+      "Designed for single chord selection based on emotional prompts",
+      "Version 1.3: Separated mode_context (modal frameworks) from style_context (genre frameworks)"
+    ]
+  },
+  "chord_to_emotion_map": [
+    {
+      "chord": "I",
+      "symbol": "C",
+      "emotion_weights": {
+        "Joy": 1.0,
+        "Trust": 0.7,
+        "Love": 0.6,
+        "Surprise": 0.3,
+        "Sadness": 0.0,
+        "Anger": 0.0,
+        "Fear": 0.0,
+        "Disgust": 0.0,
+        "Anticipation": 0.2,
+        "Shame": 0.0,
+        "Envy": 0.0,
+        "Aesthetic Awe": 0.4
+      },
+      "chord_id": "classical_ionian_I",
+      "mode_context": "Ionian",
+      "style_context": "Classical"
+    },
+    {
+      "chord": "IV",
+      "symbol": "F",
+      "emotion_weights": {
+        "Joy": 0.8,
+        "Trust": 0.6,
+        "Love": 0.5,
+        "Surprise": 0.2,
+        "Sadness": 0.1,
+        "Anticipation": 0.3,
+        "Aesthetic Awe": 0.4,
+        "Fear": 0.0,
+        "Disgust": 0.0,
+        "Shame": 0.0,
+        "Anger": 0.0,
+        "Envy": 0.0
+      },
+      "chord_id": "classical_ionian_IV",
+      "mode_context": "Ionian",
+      "style_context": "Classical"
+    },
+    {
+      "chord": "V",
+      "symbol": "G",
+      "emotion_weights": {
+        "Anticipation": 0.9,
+        "Joy": 0.4,
+        "Love": 0.3,
+        "Trust": 0.2,
+        "Surprise": 0.4,
+        "Fear": 0.2,
+        "Sadness": 0.1,
+        "Anger": 0.1,
+        "Shame": 0.0,
+        "Disgust": 0.0,
+        "Aesthetic Awe": 0.3,
+        "Envy": 0.0
+      },
+      "chord_id": "classical_ionian_V",
+      "mode_context": "Ionian",
+      "style_context": "Classical"
+    },
+    {
+      "chord": "vi",
+      "symbol": "Am",
+      "emotion_weights": {
+        "Sadness": 0.7,
+        "Trust": 0.5,
+        "Love": 0.5,
+        "Shame": 0.3,
+        "Anticipation": 0.2,
+        "Joy": 0.2,
+        "Fear": 0.1,
+        "Aesthetic Awe": 0.1,
+        "Anger": 0.0,
+        "Disgust": 0.0,
+        "Surprise": 0.0,
+        "Envy": 0.0
+      },
+      "chord_id": "classical_ionian_vi",
+      "mode_context": "Ionian",
+      "style_context": "Classical"
+    },
+    {
+      "chord": "ii",
+      "symbol": "Dm",
+      "emotion_weights": {
+        "Sadness": 0.4,
+        "Trust": 0.3,
+        "Anticipation": 0.5,
+        "Joy": 0.3,
+        "Love": 0.2,
+        "Fear": 0.0,
+        "Anger": 0.0,
+        "Disgust": 0.0,
+        "Surprise": 0.0,
+        "Shame": 0.0,
+        "Envy": 0.0,
+        "Aesthetic Awe": 0.0
+      },
+      "chord_id": "classical_ionian_ii",
+      "mode_context": "Ionian",
+      "style_context": "Classical"
+    },
+    {
+      "chord": "iii",
+      "symbol": "Em",
+      "emotion_weights": {
+        "Sadness": 0.5,
+        "Trust": 0.3,
+        "Surprise": 0.3,
+        "Anticipation": 0.4,
+        "Love": 0.2,
+        "Envy": 0.1,
+        "Joy": 0.0,
+        "Fear": 0.0,
+        "Anger": 0.0,
+        "Disgust": 0.0,
+        "Shame": 0.0,
+        "Aesthetic Awe": 0.0
+      },
+      "chord_id": "classical_ionian_iii",
+      "mode_context": "Ionian",
+      "style_context": "Classical"
+    },
+    {
+      "chord": "i",
+      "symbol": "Am",
+      "emotion_weights": {
+        "Sadness": 1.0,
+        "Shame": 0.6,
+        "Trust": 0.2,
+        "Love": 0.1,
+        "Fear": 0.3,
+        "Anticipation": 0.3,
+        "Envy": 0.2,
+        "Joy": 0.0,
+        "Anger": 0.0,
+        "Disgust": 0.0,
+        "Surprise": 0.0,
+        "Aesthetic Awe": 0.0
+      },
+      "chord_id": "classical_aeolian_i",
+      "mode_context": "Aeolian",
+      "style_context": "Classical"
+    },
+    {
+      "chord": "iv",
+      "symbol": "Dm",
+      "emotion_weights": {
+        "Sadness": 0.8,
+        "Shame": 0.6,
+        "Fear": 0.3,
+        "Trust": 0.3,
+        "Anger": 0.1,
+        "Love": 0.2,
+        "Joy": 0.0,
+        "Disgust": 0.0,
+        "Surprise": 0.0,
+        "Anticipation": 0.0,
+        "Envy": 0.0,
+        "Aesthetic Awe": 0.0
+      },
+      "chord_id": "classical_aeolian_iv",
+      "mode_context": "Aeolian",
+      "style_context": "Classical"
+    },
+    {
+      "chord": "v",
+      "symbol": "Em",
+      "emotion_weights": {
+        "Sadness": 0.7,
+        "Fear": 0.5,
+        "Shame": 0.4,
+        "Anticipation": 0.3,
+        "Love": 0.2,
+        "Joy": 0.0,
+        "Trust": 0.0,
+        "Anger": 0.0,
+        "Disgust": 0.0,
+        "Surprise": 0.0,
+        "Envy": 0.0,
+        "Aesthetic Awe": 0.0
+      },
+      "chord_id": "classical_aeolian_v",
+      "mode_context": "Aeolian",
+      "style_context": "Classical"
+    },
+    {
+      "chord": "\u266dVI",
+      "symbol": "F",
+      "emotion_weights": {
+        "Shame": 0.5,
+        "Sadness": 0.4,
+        "Love": 0.3,
+        "Envy": 0.3,
+        "Trust": 0.3,
+        "Joy": 0.2,
+        "Fear": 0.0,
+        "Anger": 0.0,
+        "Disgust": 0.0,
+        "Surprise": 0.0,
+        "Anticipation": 0.0,
+        "Aesthetic Awe": 0.0
+      },
+      "chord_id": "classical_aeolian_\u266dVI",
+      "mode_context": "Aeolian",
+      "style_context": "Classical"
+    },
+    {
+      "chord": "\u266dVII",
+      "symbol": "G",
+      "emotion_weights": {
+        "Anticipation": 0.5,
+        "Surprise": 0.4,
+        "Fear": 0.2,
+        "Sadness": 0.3,
+        "Joy": 0.2,
+        "Trust": 0.2,
+        "Shame": 0.2,
+        "Love": 0.0,
+        "Anger": 0.0,
+        "Disgust": 0.0,
+        "Envy": 0.0,
+        "Aesthetic Awe": 0.0
+      },
+      "chord_id": "classical_aeolian_\u266dVII",
+      "mode_context": "Aeolian",
+      "style_context": "Classical"
+    },
+    {
+      "chord": "\u266dIII",
+      "symbol": "C",
+      "emotion_weights": {
+        "Shame": 0.4,
+        "Envy": 0.3,
+        "Sadness": 0.3,
+        "Joy": 0.2,
+        "Love": 0.2,
+        "Trust": 0.2,
+        "Fear": 0.0,
+        "Anger": 0.0,
+        "Disgust": 0.0,
+        "Surprise": 0.0,
+        "Anticipation": 0.0,
+        "Aesthetic Awe": 0.0
+      },
+      "chord_id": "classical_aeolian_\u266dIII",
+      "mode_context": "Aeolian",
+      "style_context": "Classical"
+    },
+    {
+      "chord": "i",
+      "symbol": "Dm",
+      "emotion_weights": {
+        "Sadness": 0.7,
+        "Trust": 0.5,
+        "Love": 0.4,
+        "Shame": 0.3,
+        "Fear": 0.2,
+        "Aesthetic Awe": 0.3,
+        "Joy": 0.0,
+        "Anger": 0.0,
+        "Disgust": 0.0,
+        "Surprise": 0.0,
+        "Anticipation": 0.0,
+        "Envy": 0.0
+      },
+      "chord_id": "classical_dorian_i",
+      "mode_context": "Dorian",
+      "style_context": "Classical"
+    },
+    {
+      "chord": "ii",
+      "symbol": "Em",
+      "emotion_weights": {
+        "Sadness": 0.4,
+        "Trust": 0.3,
+        "Anticipation": 0.5,
+        "Surprise": 0.3,
+        "Fear": 0.2,
+        "Joy": 0.2,
+        "Anger": 0.0,
+        "Disgust": 0.0,
+        "Shame": 0.0,
+        "Love": 0.0,
+        "Envy": 0.0,
+        "Aesthetic Awe": 0.0
+      },
+      "chord_id": "classical_dorian_ii",
+      "mode_context": "Dorian",
+      "style_context": "Classical"
+    },
+    {
+      "chord": "\u266dIII",
+      "symbol": "F",
+      "emotion_weights": {
+        "Love": 0.5,
+        "Sadness": 0.4,
+        "Envy": 0.2,
+        "Shame": 0.2,
+        "Joy": 0.0,
+        "Trust": 0.0,
+        "Fear": 0.0,
+        "Anger": 0.0,
+        "Disgust": 0.0,
+        "Surprise": 0.0,
+        "Anticipation": 0.0,
+        "Aesthetic Awe": 0.0
+      },
+      "chord_id": "classical_dorian_\u266dIII",
+      "mode_context": "Dorian",
+      "style_context": "Classical"
+    },
+    {
+      "chord": "IV",
+      "symbol": "G",
+      "emotion_weights": {
+        "Joy": 0.6,
+        "Trust": 0.7,
+        "Love": 0.3,
+        "Aesthetic Awe": 0.5,
+        "Sadness": 0.0,
+        "Fear": 0.0,
+        "Anger": 0.0,
+        "Disgust": 0.0,
+        "Surprise": 0.0,
+        "Anticipation": 0.0,
+        "Shame": 0.0,
+        "Envy": 0.0
+      },
+      "chord_id": "classical_dorian_IV",
+      "mode_context": "Dorian",
+      "style_context": "Classical"
+    },
+    {
+      "chord": "v",
+      "symbol": "Am",
+      "emotion_weights": {
+        "Anticipation": 0.6,
+        "Fear": 0.3,
+        "Sadness": 0.4,
+        "Shame": 0.2,
+        "Joy": 0.0,
+        "Trust": 0.0,
+        "Love": 0.0,
+        "Anger": 0.0,
+        "Disgust": 0.0,
+        "Surprise": 0.0,
+        "Envy": 0.0,
+        "Aesthetic Awe": 0.0
+      },
+      "chord_id": "classical_dorian_v",
+      "mode_context": "Dorian",
+      "style_context": "Classical"
+    },
+    {
+      "chord": "vi\u00b0",
+      "symbol": "Bdim",
+      "emotion_weights": {
+        "Fear": 0.7,
+        "Disgust": 0.5,
+        "Shame": 0.4,
+        "Anticipation": 0.3,
+        "Joy": 0.0,
+        "Trust": 0.0,
+        "Love": 0.0,
+        "Anger": 0.0,
+        "Surprise": 0.0,
+        "Sadness": 0.0,
+        "Envy": 0.0,
+        "Aesthetic Awe": 0.0
+      },
+      "chord_id": "classical_dorian_vi\u00b0",
+      "mode_context": "Dorian",
+      "style_context": "Classical"
+    },
+    {
+      "chord": "\u266dVII",
+      "symbol": "C",
+      "emotion_weights": {
+        "Surprise": 0.5,
+        "Love": 0.4,
+        "Envy": 0.3,
+        "Joy": 0.3,
+        "Sadness": 0.0,
+        "Trust": 0.0,
+        "Fear": 0.0,
+        "Anger": 0.0,
+        "Disgust": 0.0,
+        "Anticipation": 0.0,
+        "Shame": 0.0,
+        "Aesthetic Awe": 0.0
+      },
+      "chord_id": "classical_dorian_\u266dVII",
+      "mode_context": "Dorian",
+      "style_context": "Classical"
+    },
+    {
+      "chord": "maj7",
+      "symbol": "Cmaj7",
+      "emotion_weights": {
+        "Joy": 0.8,
+        "Love": 0.7,
+        "Trust": 0.6,
+        "Aesthetic Awe": 0.6,
+        "Sadness": 0.3,
+        "Surprise": 0.2,
+        "Fear": 0.0,
+        "Anger": 0.0,
+        "Disgust": 0.0,
+        "Anticipation": 0.0,
+        "Shame": 0.0,
+        "Envy": 0.0
+      },
+      "chord_id": "jazz_ionian_maj7",
+      "style_context": "Jazz",
+      "mode_context": "Ionian"
+    },
+    {
+      "chord": "min7",
+      "symbol": "Am7",
+      "emotion_weights": {
+        "Sadness": 0.6,
+        "Trust": 0.5,
+        "Love": 0.4,
+        "Shame": 0.3,
+        "Joy": 0.3,
+        "Fear": 0.0,
+        "Anger": 0.0,
+        "Disgust": 0.0,
+        "Surprise": 0.0,
+        "Anticipation": 0.0,
+        "Envy": 0.0,
+        "Aesthetic Awe": 0.0
+      },
+      "chord_id": "jazz_ionian_min7",
+      "style_context": "Jazz",
+      "mode_context": "Ionian"
+    },
+    {
+      "chord": "7",
+      "symbol": "G7",
+      "emotion_weights": {
+        "Anticipation": 0.9,
+        "Surprise": 0.6,
+        "Trust": 0.4,
+        "Aesthetic Awe": 0.3,
+        "Anger": 0.2,
+        "Fear": 0.3,
+        "Joy": 0.0,
+        "Sadness": 0.0,
+        "Disgust": 0.0,
+        "Shame": 0.0,
+        "Love": 0.0,
+        "Envy": 0.0
+      },
+      "chord_id": "jazz_ionian_7",
+      "style_context": "Jazz",
+      "mode_context": "Ionian"
+    },
+    {
+      "chord": "\u00f87",
+      "symbol": "Am7b5",
+      "emotion_weights": {
+        "Fear": 0.8,
+        "Shame": 0.5,
+        "Sadness": 0.4,
+        "Disgust": 0.4,
+        "Anticipation": 0.5,
+        "Joy": 0.0,
+        "Trust": 0.0,
+        "Love": 0.0,
+        "Anger": 0.0,
+        "Surprise": 0.0,
+        "Envy": 0.0,
+        "Aesthetic Awe": 0.0
+      },
+      "chord_id": "jazz_ionian_\u00f87",
+      "style_context": "Jazz",
+      "mode_context": "Ionian"
+    },
+    {
+      "chord": "dim7",
+      "symbol": "G#dim7",
+      "emotion_weights": {
+        "Fear": 1.0,
+        "Disgust": 0.6,
+        "Shame": 0.6,
+        "Anticipation": 0.7,
+        "Surprise": 0.5,
+        "Joy": 0.0,
+        "Sadness": 0.0,
+        "Trust": 0.0,
+        "Love": 0.0,
+        "Anger": 0.0,
+        "Envy": 0.0,
+        "Aesthetic Awe": 0.0
+      },
+      "chord_id": "jazz_ionian_dim7",
+      "style_context": "Jazz",
+      "mode_context": "Ionian"
+    },
+    {
+      "chord": "maj9",
+      "symbol": "Cmaj9",
+      "emotion_weights": {
+        "Aesthetic Awe": 1.0,
+        "Joy": 0.7,
+        "Love": 0.7,
+        "Trust": 0.6,
+        "Sadness": 0.0,
+        "Fear": 0.0,
+        "Anger": 0.0,
+        "Disgust": 0.0,
+        "Surprise": 0.0,
+        "Anticipation": 0.0,
+        "Shame": 0.0,
+        "Envy": 0.0
+      },
+      "chord_id": "jazz_ionian_maj9",
+      "style_context": "Jazz",
+      "mode_context": "Ionian"
+    },
+    {
+      "chord": "min9",
+      "symbol": "Am9",
+      "emotion_weights": {
+        "Love": 0.6,
+        "Sadness": 0.6,
+        "Trust": 0.5,
+        "Aesthetic Awe": 0.4,
+        "Joy": 0.0,
+        "Fear": 0.0,
+        "Anger": 0.0,
+        "Disgust": 0.0,
+        "Surprise": 0.0,
+        "Anticipation": 0.0,
+        "Shame": 0.0,
+        "Envy": 0.0
+      },
+      "chord_id": "jazz_ionian_min9",
+      "style_context": "Jazz",
+      "mode_context": "Ionian"
+    },
+    {
+      "chord": "13",
+      "symbol": "G13",
+      "emotion_weights": {
+        "Surprise": 0.7,
+        "Joy": 0.5,
+        "Anticipation": 0.6,
+        "Love": 0.4,
+        "Sadness": 0.0,
+        "Fear": 0.0,
+        "Anger": 0.0,
+        "Disgust": 0.0,
+        "Trust": 0.0,
+        "Shame": 0.0,
+        "Envy": 0.0,
+        "Aesthetic Awe": 0.0
+      },
+      "chord_id": "jazz_ionian_13",
+      "style_context": "Jazz",
+      "mode_context": "Ionian"
+    },
+    {
+      "chord": "sus7",
+      "symbol": "Gsus7",
+      "emotion_weights": {
+        "Anticipation": 0.8,
+        "Surprise": 0.6,
+        "Trust": 0.3,
+        "Love": 0.3,
+        "Joy": 0.0,
+        "Sadness": 0.0,
+        "Fear": 0.0,
+        "Anger": 0.0,
+        "Disgust": 0.0,
+        "Shame": 0.0,
+        "Envy": 0.0,
+        "Aesthetic Awe": 0.0
+      },
+      "chord_id": "jazz_ionian_sus7",
+      "style_context": "Jazz",
+      "mode_context": "Ionian"
+    },
+    {
+      "chord": "7\u266d9",
+      "symbol": "G7b9",
+      "emotion_weights": {
+        "Anger": 0.8,
+        "Fear": 0.6,
+        "Surprise": 0.5,
+        "Envy": 0.4,
+        "Joy": 0.0,
+        "Sadness": 0.0,
+        "Trust": 0.0,
+        "Love": 0.0,
+        "Disgust": 0.0,
+        "Anticipation": 0.0,
+        "Shame": 0.0,
+        "Aesthetic Awe": 0.0
+      },
+      "chord_id": "jazz_ionian_7\u266d9",
+      "style_context": "Jazz",
+      "mode_context": "Ionian"
+    },
+    {
+      "chord": "7\u266f9",
+      "symbol": "G7#9",
+      "emotion_weights": {
+        "Anger": 1.0,
+        "Surprise": 0.6,
+        "Disgust": 0.5,
+        "Aesthetic Awe": 0.4,
+        "Joy": 0.0,
+        "Sadness": 0.0,
+        "Trust": 0.0,
+        "Love": 0.0,
+        "Fear": 0.0,
+        "Anticipation": 0.0,
+        "Shame": 0.0,
+        "Envy": 0.0
+      },
+      "chord_id": "jazz_ionian_7\u266f9",
+      "style_context": "Jazz",
+      "mode_context": "Ionian"
+    },
+    {
+      "chord": "alt",
+      "symbol": "G7alt",
+      "emotion_weights": {
+        "Surprise": 0.9,
+        "Fear": 0.7,
+        "Anger": 0.7,
+        "Aesthetic Awe": 0.6,
+        "Envy": 0.5,
+        "Joy": 0.0,
+        "Sadness": 0.0,
+        "Trust": 0.0,
+        "Love": 0.0,
+        "Disgust": 0.0,
+        "Anticipation": 0.0,
+        "Shame": 0.0
+      },
+      "chord_id": "jazz_ionian_alt",
+      "style_context": "Jazz",
+      "mode_context": "Ionian"
+    },
+    {
+      "chord": "I7",
+      "symbol": "C7",
+      "emotion_weights": {
+        "Joy": 0.8,
+        "Trust": 0.6,
+        "Sadness": 0.4,
+        "Love": 0.4,
+        "Shame": 0.2,
+        "Aesthetic Awe": 0.3,
+        "Surprise": 0.4,
+        "Fear": 0.0,
+        "Anger": 0.0,
+        "Disgust": 0.0,
+        "Anticipation": 0.0,
+        "Envy": 0.0
+      },
+      "chord_id": "blues_mixolydian_I7",
+      "style_context": "Blues",
+      "mode_context": "Mixolydian"
+    },
+    {
+      "chord": "IV7",
+      "symbol": "F7",
+      "emotion_weights": {
+        "Joy": 0.7,
+        "Love": 0.6,
+        "Sadness": 0.3,
+        "Trust": 0.6,
+        "Surprise": 0.4,
+        "Anticipation": 0.5,
+        "Fear": 0.0,
+        "Anger": 0.0,
+        "Disgust": 0.0,
+        "Shame": 0.0,
+        "Envy": 0.0,
+        "Aesthetic Awe": 0.0
+      },
+      "chord_id": "blues_mixolydian_IV7",
+      "style_context": "Blues",
+      "mode_context": "Mixolydian"
+    },
+    {
+      "chord": "V7",
+      "symbol": "G7",
+      "emotion_weights": {
+        "Anticipation": 0.8,
+        "Trust": 0.4,
+        "Surprise": 0.5,
+        "Joy": 0.4,
+        "Anger": 0.3,
+        "Sadness": 0.3,
+        "Fear": 0.0,
+        "Love": 0.0,
+        "Disgust": 0.0,
+        "Shame": 0.0,
+        "Envy": 0.0,
+        "Aesthetic Awe": 0.0
+      },
+      "chord_id": "blues_mixolydian_V7",
+      "style_context": "Blues",
+      "mode_context": "Mixolydian"
+    },
+    {
+      "chord": "\u266dVII",
+      "symbol": "Bb",
+      "emotion_weights": {
+        "Surprise": 0.5,
+        "Love": 0.5,
+        "Envy": 0.4,
+        "Aesthetic Awe": 0.4,
+        "Joy": 0.3,
+        "Trust": 0.2,
+        "Sadness": 0.0,
+        "Fear": 0.0,
+        "Anger": 0.0,
+        "Disgust": 0.0,
+        "Anticipation": 0.0,
+        "Shame": 0.0
+      },
+      "chord_id": "blues_aeolian_\u266dVII",
+      "style_context": "Blues",
+      "mode_context": "Aeolian"
+    },
+    {
+      "chord": "\u266dIII",
+      "symbol": "Eb",
+      "emotion_weights": {
+        "Sadness": 0.5,
+        "Shame": 0.3,
+        "Trust": 0.3,
+        "Love": 0.4,
+        "Joy": 0.2,
+        "Fear": 0.0,
+        "Anger": 0.0,
+        "Disgust": 0.0,
+        "Surprise": 0.0,
+        "Anticipation": 0.0,
+        "Envy": 0.0,
+        "Aesthetic Awe": 0.0
+      },
+      "chord_id": "blues_aeolian_\u266dIII",
+      "style_context": "Blues",
+      "mode_context": "Aeolian"
+    },
+    {
+      "chord": "iv",
+      "symbol": "Fm",
+      "emotion_weights": {
+        "Sadness": 0.7,
+        "Love": 0.5,
+        "Shame": 0.3,
+        "Fear": 0.2,
+        "Joy": 0.0,
+        "Trust": 0.0,
+        "Anger": 0.0,
+        "Disgust": 0.0,
+        "Surprise": 0.0,
+        "Anticipation": 0.0,
+        "Envy": 0.0,
+        "Aesthetic Awe": 0.0
+      },
+      "chord_id": "blues_aeolian_iv",
+      "style_context": "Blues",
+      "mode_context": "Aeolian"
+    },
+    {
+      "chord": "\u266dVI",
+      "symbol": "Ab",
+      "emotion_weights": {
+        "Shame": 0.5,
+        "Sadness": 0.4,
+        "Envy": 0.4,
+        "Love": 0.3,
+        "Joy": 0.2,
+        "Trust": 0.0,
+        "Fear": 0.0,
+        "Anger": 0.0,
+        "Disgust": 0.0,
+        "Surprise": 0.0,
+        "Anticipation": 0.0,
+        "Aesthetic Awe": 0.0
+      },
+      "chord_id": "blues_aeolian_\u266dVI",
+      "style_context": "Blues",
+      "mode_context": "Aeolian"
+    },
+    {
+      "chord": "i",
+      "symbol": "Am",
+      "emotion_weights": {
+        "Sadness": 0.9,
+        "Shame": 0.6,
+        "Trust": 0.4,
+        "Love": 0.3,
+        "Aesthetic Awe": 0.4,
+        "Joy": 0.0,
+        "Anger": 0.0,
+        "Fear": 0.0,
+        "Disgust": 0.0,
+        "Surprise": 0.0,
+        "Anticipation": 0.0,
+        "Envy": 0.0
+      },
+      "chord_id": "classical_harmonic minor_i",
+      "mode_context": "Harmonic Minor",
+      "style_context": "Classical"
+    },
+    {
+      "chord": "ii\u00b0",
+      "symbol": "Bdim",
+      "emotion_weights": {
+        "Fear": 0.8,
+        "Shame": 0.5,
+        "Disgust": 0.4,
+        "Anticipation": 0.4,
+        "Joy": 0.0,
+        "Sadness": 0.0,
+        "Anger": 0.0,
+        "Surprise": 0.0,
+        "Trust": 0.0,
+        "Love": 0.0,
+        "Envy": 0.0,
+        "Aesthetic Awe": 0.0
+      },
+      "chord_id": "classical_harmonic minor_ii\u00b0",
+      "mode_context": "Harmonic Minor",
+      "style_context": "Classical"
+    },
+    {
+      "chord": "\u266dIII+",
+      "symbol": "Caug",
+      "emotion_weights": {
+        "Aesthetic Awe": 0.8,
+        "Surprise": 0.7,
+        "Anticipation": 0.4,
+        "Sadness": 0.4,
+        "Love": 0.4,
+        "Envy": 0.3,
+        "Joy": 0.0,
+        "Anger": 0.0,
+        "Fear": 0.0,
+        "Disgust": 0.0,
+        "Trust": 0.0,
+        "Shame": 0.0
+      },
+      "chord_id": "classical_harmonic minor_\u266dIII+",
+      "mode_context": "Harmonic Minor",
+      "style_context": "Classical"
+    },
+    {
+      "chord": "iv",
+      "symbol": "Dm",
+      "emotion_weights": {
+        "Sadness": 0.7,
+        "Trust": 0.5,
+        "Love": 0.4,
+        "Shame": 0.3,
+        "Joy": 0.0,
+        "Anger": 0.0,
+        "Fear": 0.0,
+        "Disgust": 0.0,
+        "Surprise": 0.0,
+        "Anticipation": 0.0,
+        "Envy": 0.0,
+        "Aesthetic Awe": 0.0
+      },
+      "chord_id": "classical_harmonic minor_iv",
+      "mode_context": "Harmonic Minor",
+      "style_context": "Classical"
+    },
+    {
+      "chord": "V7",
+      "symbol": "E7",
+      "emotion_weights": {
+        "Anticipation": 1.0,
+        "Fear": 0.5,
+        "Surprise": 0.5,
+        "Anger": 0.3,
+        "Joy": 0.2,
+        "Trust": 0.1,
+        "Sadness": 0.0,
+        "Disgust": 0.0,
+        "Shame": 0.0,
+        "Love": 0.0,
+        "Envy": 0.0,
+        "Aesthetic Awe": 0.0
+      },
+      "chord_id": "classical_harmonic minor_V7",
+      "mode_context": "Harmonic Minor",
+      "style_context": "Classical"
+    },
+    {
+      "chord": "\u266dVI",
+      "symbol": "F",
+      "emotion_weights": {
+        "Shame": 0.7,
+        "Sadness": 0.5,
+        "Love": 0.4,
+        "Envy": 0.4,
+        "Joy": 0.0,
+        "Anger": 0.0,
+        "Fear": 0.0,
+        "Disgust": 0.0,
+        "Surprise": 0.0,
+        "Trust": 0.0,
+        "Anticipation": 0.0,
+        "Aesthetic Awe": 0.0
+      },
+      "chord_id": "classical_harmonic minor_\u266dVI",
+      "mode_context": "Harmonic Minor",
+      "style_context": "Classical"
+    },
+    {
+      "chord": "vii\u00b0",
+      "symbol": "G#dim",
+      "emotion_weights": {
+        "Fear": 1.0,
+        "Disgust": 0.6,
+        "Shame": 0.5,
+        "Surprise": 0.4,
+        "Joy": 0.0,
+        "Sadness": 0.0,
+        "Anger": 0.0,
+        "Trust": 0.0,
+        "Anticipation": 0.0,
+        "Love": 0.0,
+        "Envy": 0.0,
+        "Aesthetic Awe": 0.0
+      },
+      "chord_id": "classical_harmonic minor_vii\u00b0",
+      "mode_context": "Harmonic Minor",
+      "style_context": "Classical"
+    },
+    {
+      "chord": "i",
+      "symbol": "Am",
+      "emotion_weights": {
+        "Sadness": 0.7,
+        "Love": 0.5,
+        "Shame": 0.4,
+        "Aesthetic Awe": 0.4,
+        "Joy": 0.0,
+        "Anger": 0.0,
+        "Fear": 0.0,
+        "Disgust": 0.0,
+        "Surprise": 0.0,
+        "Trust": 0.0,
+        "Anticipation": 0.0,
+        "Envy": 0.0
+      },
+      "chord_id": "classical_melodic minor_i",
+      "mode_context": "Melodic Minor",
+      "style_context": "Classical"
+    },
+    {
+      "chord": "ii",
+      "symbol": "Bm",
+      "emotion_weights": {
+        "Trust": 0.6,
+        "Anticipation": 0.5,
+        "Joy": 0.3,
+        "Surprise": 0.3,
+        "Sadness": 0.0,
+        "Anger": 0.0,
+        "Fear": 0.0,
+        "Disgust": 0.0,
+        "Shame": 0.0,
+        "Love": 0.0,
+        "Envy": 0.0,
+        "Aesthetic Awe": 0.0
+      },
+      "chord_id": "classical_melodic minor_ii",
+      "mode_context": "Melodic Minor",
+      "style_context": "Classical"
+    },
+    {
+      "chord": "\u266dIII+",
+      "symbol": "Caug",
+      "emotion_weights": {
+        "Aesthetic Awe": 0.9,
+        "Surprise": 0.7,
+        "Anticipation": 0.3,
+        "Love": 0.4,
+        "Envy": 0.2,
+        "Joy": 0.0,
+        "Sadness": 0.0,
+        "Anger": 0.0,
+        "Fear": 0.0,
+        "Disgust": 0.0,
+        "Trust": 0.0,
+        "Shame": 0.0
+      },
+      "chord_id": "classical_melodic minor_\u266dIII+",
+      "mode_context": "Melodic Minor",
+      "style_context": "Classical"
+    },
+    {
+      "chord": "IV",
+      "symbol": "D",
+      "emotion_weights": {
+        "Trust": 0.7,
+        "Joy": 0.5,
+        "Love": 0.4,
+        "Aesthetic Awe": 0.3,
+        "Sadness": 0.0,
+        "Anger": 0.0,
+        "Fear": 0.0,
+        "Disgust": 0.0,
+        "Surprise": 0.0,
+        "Anticipation": 0.0,
+        "Shame": 0.0,
+        "Envy": 0.0
+      },
+      "chord_id": "classical_melodic minor_IV",
+      "mode_context": "Melodic Minor",
+      "style_context": "Classical"
+    },
+    {
+      "chord": "V7",
+      "symbol": "E7",
+      "emotion_weights": {
+        "Anticipation": 0.9,
+        "Surprise": 0.6,
+        "Anger": 0.4,
+        "Fear": 0.3,
+        "Joy": 0.2,
+        "Trust": 0.1,
+        "Sadness": 0.0,
+        "Disgust": 0.0,
+        "Shame": 0.0,
+        "Love": 0.0,
+        "Envy": 0.0,
+        "Aesthetic Awe": 0.0
+      },
+      "chord_id": "classical_melodic minor_V7",
+      "mode_context": "Melodic Minor",
+      "style_context": "Classical"
+    },
+    {
+      "chord": "vi\u00b0",
+      "symbol": "F#dim",
+      "emotion_weights": {
+        "Fear": 0.8,
+        "Disgust": 0.5,
+        "Shame": 0.4,
+        "Surprise": 0.3,
+        "Joy": 0.0,
+        "Sadness": 0.0,
+        "Anger": 0.0,
+        "Trust": 0.0,
+        "Anticipation": 0.0,
+        "Love": 0.0,
+        "Envy": 0.0,
+        "Aesthetic Awe": 0.0
+      },
+      "chord_id": "classical_melodic minor_vi\u00b0",
+      "mode_context": "Melodic Minor",
+      "style_context": "Classical"
+    },
+    {
+      "chord": "vii\u00b0",
+      "symbol": "G#dim",
+      "emotion_weights": {
+        "Fear": 0.9,
+        "Shame": 0.5,
+        "Anticipation": 0.4,
+        "Disgust": 0.4,
+        "Joy": 0.0,
+        "Sadness": 0.0,
+        "Anger": 0.0,
+        "Surprise": 0.0,
+        "Trust": 0.0,
+        "Love": 0.0,
+        "Envy": 0.0,
+        "Aesthetic Awe": 0.0
+      },
+      "chord_id": "classical_melodic minor_vii\u00b0",
+      "mode_context": "Melodic Minor",
+      "style_context": "Classical"
+    },
+    {
+      "chord": "i",
+      "symbol": "Am",
+      "emotion_weights": {
+        "Sadness": 0.9,
+        "Shame": 0.6,
+        "Aesthetic Awe": 0.5,
+        "Love": 0.3,
+        "Joy": 0.0,
+        "Anger": 0.0,
+        "Fear": 0.0,
+        "Disgust": 0.0,
+        "Surprise": 0.0,
+        "Trust": 0.0,
+        "Anticipation": 0.0,
+        "Envy": 0.0
+      },
+      "chord_id": "classical_hungarian minor_i",
+      "mode_context": "Hungarian Minor",
+      "style_context": "Classical"
+    },
+    {
+      "chord": "ii\u00b0",
+      "symbol": "Bdim",
+      "emotion_weights": {
+        "Fear": 0.8,
+        "Disgust": 0.5,
+        "Shame": 0.4,
+        "Anticipation": 0.4,
+        "Joy": 0.0,
+        "Sadness": 0.0,
+        "Anger": 0.0,
+        "Surprise": 0.0,
+        "Trust": 0.0,
+        "Love": 0.0,
+        "Envy": 0.0,
+        "Aesthetic Awe": 0.0
+      },
+      "chord_id": "classical_hungarian minor_ii\u00b0",
+      "mode_context": "Hungarian Minor",
+      "style_context": "Classical"
+    },
+    {
+      "chord": "\u266dIII+",
+      "symbol": "Caug",
+      "emotion_weights": {
+        "Aesthetic Awe": 1.0,
+        "Surprise": 0.8,
+        "Anticipation": 0.4,
+        "Love": 0.5,
+        "Envy": 0.3,
+        "Joy": 0.0,
+        "Sadness": 0.0,
+        "Anger": 0.0,
+        "Fear": 0.0,
+        "Disgust": 0.0,
+        "Trust": 0.0,
+        "Shame": 0.0
+      },
+      "chord_id": "classical_hungarian minor_\u266dIII+",
+      "mode_context": "Hungarian Minor",
+      "style_context": "Classical"
+    },
+    {
+      "chord": "IV",
+      "symbol": "D",
+      "emotion_weights": {
+        "Love": 0.6,
+        "Trust": 0.5,
+        "Aesthetic Awe": 0.4,
+        "Joy": 0.0,
+        "Sadness": 0.0,
+        "Anger": 0.0,
+        "Fear": 0.0,
+        "Disgust": 0.0,
+        "Surprise": 0.0,
+        "Anticipation": 0.0,
+        "Shame": 0.0,
+        "Envy": 0.0
+      },
+      "chord_id": "classical_hungarian minor_IV",
+      "mode_context": "Hungarian Minor",
+      "style_context": "Classical"
+    },
+    {
+      "chord": "V7",
+      "symbol": "E7",
+      "emotion_weights": {
+        "Anticipation": 1.0,
+        "Fear": 0.6,
+        "Surprise": 0.5,
+        "Anger": 0.4,
+        "Joy": 0.2,
+        "Trust": 0.1,
+        "Sadness": 0.0,
+        "Disgust": 0.0,
+        "Shame": 0.0,
+        "Love": 0.0,
+        "Envy": 0.0,
+        "Aesthetic Awe": 0.0
+      },
+      "chord_id": "classical_hungarian minor_V7",
+      "mode_context": "Hungarian Minor",
+      "style_context": "Classical"
+    },
+    {
+      "chord": "\u266dVI",
+      "symbol": "F",
+      "emotion_weights": {
+        "Shame": 0.7,
+        "Sadness": 0.6,
+        "Envy": 0.5,
+        "Love": 0.4,
+        "Joy": 0.0,
+        "Anger": 0.0,
+        "Fear": 0.0,
+        "Disgust": 0.0,
+        "Surprise": 0.0,
+        "Trust": 0.0,
+        "Anticipation": 0.0,
+        "Aesthetic Awe": 0.0
+      },
+      "chord_id": "classical_hungarian minor_\u266dVI",
+      "mode_context": "Hungarian Minor",
+      "style_context": "Classical"
+    },
+    {
+      "chord": "vii\u00b0",
+      "symbol": "G#dim",
+      "emotion_weights": {
+        "Fear": 1.0,
+        "Shame": 0.5,
+        "Surprise": 0.4,
+        "Disgust": 0.4,
+        "Joy": 0.0,
+        "Sadness": 0.0,
+        "Anger": 0.0,
+        "Trust": 0.0,
+        "Anticipation": 0.0,
+        "Love": 0.0,
+        "Envy": 0.0,
+        "Aesthetic Awe": 0.0
+      },
+      "chord_id": "classical_hungarian minor_vii\u00b0",
+      "mode_context": "Hungarian Minor",
+      "style_context": "Classical"
+    },
+    {
+      "chord": "i\u00b0",
+      "symbol": "Adim",
+      "emotion_weights": {
+        "Fear": 1.0,
+        "Shame": 0.7,
+        "Sadness": 0.6,
+        "Disgust": 0.5,
+        "Aesthetic Awe": 0.2,
+        "Joy": 0.0,
+        "Anger": 0.0,
+        "Surprise": 0.0,
+        "Trust": 0.0,
+        "Anticipation": 0.0,
+        "Love": 0.0,
+        "Envy": 0.0
+      },
+      "chord_id": "classical_locrian_i\u00b0",
+      "mode_context": "Locrian",
+      "style_context": "Classical"
+    },
+    {
+      "chord": "\u266dII",
+      "symbol": "Bb",
+      "emotion_weights": {
+        "Anger": 0.6,
+        "Fear": 0.8,
+        "Disgust": 0.5,
+        "Surprise": 0.4,
+        "Trust": 0.3,
+        "Anticipation": 0.2,
+        "Joy": 0.0,
+        "Sadness": 0.0,
+        "Shame": 0.0,
+        "Love": 0.0,
+        "Envy": 0.0,
+        "Aesthetic Awe": 0.0
+      },
+      "chord_id": "classical_locrian_\u266dII",
+      "mode_context": "Locrian",
+      "style_context": "Classical"
+    },
+    {
+      "chord": "\u266diii",
+      "symbol": "Cm",
+      "emotion_weights": {
+        "Sadness": 0.5,
+        "Love": 0.4,
+        "Trust": 0.3,
+        "Shame": 0.3,
+        "Joy": 0.0,
+        "Anger": 0.0,
+        "Fear": 0.0,
+        "Disgust": 0.0,
+        "Surprise": 0.0,
+        "Anticipation": 0.0,
+        "Envy": 0.0,
+        "Aesthetic Awe": 0.0
+      },
+      "chord_id": "classical_locrian_\u266diii",
+      "mode_context": "Locrian",
+      "style_context": "Classical"
+    },
+    {
+      "chord": "iv",
+      "symbol": "Dm",
+      "emotion_weights": {
+        "Sadness": 0.6,
+        "Fear": 0.5,
+        "Aesthetic Awe": 0.3,
+        "Trust": 0.2,
+        "Joy": 0.0,
+        "Anger": 0.0,
+        "Disgust": 0.0,
+        "Surprise": 0.0,
+        "Anticipation": 0.0,
+        "Shame": 0.0,
+        "Love": 0.0,
+        "Envy": 0.0
+      },
+      "chord_id": "classical_locrian_iv",
+      "mode_context": "Locrian",
+      "style_context": "Classical"
+    },
+    {
+      "chord": "\u266dV",
+      "symbol": "Eb",
+      "emotion_weights": {
+        "Fear": 0.6,
+        "Disgust": 0.5,
+        "Surprise": 0.5,
+        "Anger": 0.3,
+        "Joy": 0.2,
+        "Trust": 0.2,
+        "Sadness": 0.0,
+        "Anticipation": 0.0,
+        "Shame": 0.0,
+        "Love": 0.0,
+        "Envy": 0.0,
+        "Aesthetic Awe": 0.0
+      },
+      "chord_id": "classical_locrian_\u266dV",
+      "mode_context": "Locrian",
+      "style_context": "Classical"
+    },
+    {
+      "chord": "\u266dVI",
+      "symbol": "F",
+      "emotion_weights": {
+        "Sadness": 0.5,
+        "Shame": 0.5,
+        "Envy": 0.4,
+        "Love": 0.3,
+        "Joy": 0.0,
+        "Anger": 0.0,
+        "Fear": 0.0,
+        "Disgust": 0.0,
+        "Surprise": 0.0,
+        "Trust": 0.0,
+        "Anticipation": 0.0,
+        "Aesthetic Awe": 0.0
+      },
+      "chord_id": "classical_locrian_\u266dVI",
+      "mode_context": "Locrian",
+      "style_context": "Classical"
+    },
+    {
+      "chord": "\u266dVII",
+      "symbol": "G",
+      "emotion_weights": {
+        "Surprise": 0.4,
+        "Fear": 0.3,
+        "Trust": 0.3,
+        "Joy": 0.2,
+        "Shame": 0.2,
+        "Sadness": 0.0,
+        "Anger": 0.0,
+        "Disgust": 0.0,
+        "Anticipation": 0.0,
+        "Love": 0.0,
+        "Envy": 0.0,
+        "Aesthetic Awe": 0.0
+      },
+      "chord_id": "classical_locrian_\u266dVII",
+      "mode_context": "Locrian",
+      "style_context": "Classical"
+    }
+  ],
+  "musical_contexts": [
+    {
+      "context": "Ionian",
+      "description": "Major scale harmony, bright and resolved",
+      "characteristics": [
+        "stable",
+        "happy",
+        "resolved"
+      ],
+      "typical_chords": [
+        "I",
+        "ii",
+        "iii",
+        "IV",
+        "V",
+        "vi",
+        "vii\u00b0"
+      ]
+    },
+    {
+      "context": "Aeolian",
+      "description": "Natural minor scale harmony, melancholic and introspective",
+      "characteristics": [
+        "dark",
+        "emotional",
+        "introspective"
+      ],
+      "typical_chords": [
+        "i",
+        "ii\u00b0",
+        "\u266dIII",
+        "iv",
+        "v",
+        "\u266dVI",
+        "\u266dVII"
+      ]
+    },
+    {
+      "context": "Dorian",
+      "description": "Minor with raised 6th, hopeful melancholy",
+      "characteristics": [
+        "bittersweet",
+        "sophisticated",
+        "Celtic"
+      ],
+      "typical_chords": [
+        "i",
+        "ii",
+        "\u266dIII",
+        "IV",
+        "v",
+        "vi\u00b0",
+        "\u266dVII"
+      ]
+    },
+    {
+      "context": "Jazz",
+      "description": "Extended harmony with 7ths, 9ths, and alterations",
+      "characteristics": [
+        "sophisticated",
+        "chromatic",
+        "expressive"
+      ],
+      "typical_chords": [
+        "maj7",
+        "min7",
+        "7",
+        "\u00f87",
+        "dim7",
+        "sus",
+        "alt"
+      ]
+    },
+    {
+      "context": "Blues",
+      "description": "Dominant 7th based harmony with blue notes",
+      "characteristics": [
+        "soulful",
+        "expressive",
+        "cyclical"
+      ],
+      "typical_chords": [
+        "I7",
+        "IV7",
+        "V7",
+        "iv",
+        "\u266dVII",
+        "\u266dIII"
+      ]
+    },
+    {
+      "context": "Harmonic Minor",
+      "description": "Minor scale with raised 7th, creating dramatic tension",
+      "characteristics": [
+        "exotic",
+        "dramatic",
+        "operatic",
+        "tragic"
+      ],
+      "typical_chords": [
+        "i",
+        "ii\u00b0",
+        "\u266dIII+",
+        "iv",
+        "V7",
+        "\u266dVI",
+        "vii\u00b0"
+      ]
+    },
+    {
+      "context": "Melodic Minor",
+      "description": "Minor scale with raised 6th and 7th, smooth and sophisticated",
+      "characteristics": [
+        "smooth",
+        "modern",
+        "sophisticated",
+        "jazzy"
+      ],
+      "typical_chords": [
+        "i",
+        "ii",
+        "\u266dIII+",
+        "IV",
+        "V7",
+        "vi\u00b0",
+        "vii\u00b0"
+      ]
+    },
+    {
+      "context": "Hungarian Minor",
+      "description": "Harmonic minor with raised 4th, creating exotic Romani/Eastern European colors",
+      "characteristics": [
+        "exotic",
+        "dramatic",
+        "mysterious",
+        "passionate",
+        "gypsy"
+      ],
+      "typical_chords": [
+        "i",
+        "ii\u00b0",
+        "\u266dIII+",
+        "IV",
+        "V7",
+        "\u266dVI",
+        "vii\u00b0"
+      ]
+    },
+    {
+      "context": "Locrian",
+      "description": "Unstable mode with diminished tonic, expressing anxiety and collapse",
+      "characteristics": [
+        "unstable",
+        "anxious",
+        "dissonant",
+        "chaotic",
+        "experimental"
+      ],
+      "typical_chords": [
+        "i\u00b0",
+        "\u266dII",
+        "\u266diii",
+        "iv",
+        "\u266dV",
+        "\u266dVI",
+        "\u266dVII"
+      ]
+    }
+  ]
+}

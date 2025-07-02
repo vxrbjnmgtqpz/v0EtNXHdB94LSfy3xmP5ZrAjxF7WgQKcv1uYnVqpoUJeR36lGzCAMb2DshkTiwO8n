@@ -41,7 +41,7 @@ target_sources(TOASTer PRIVATE
 )
 
 # Add header files
-target_include_directories(MIDILink PRIVATE 
+target_include_directories(TOASTer PRIVATE 
     Source
     ../JSONMIDI_Framework/include
 )

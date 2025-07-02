@@ -1,0 +1,3090 @@
+{
+  "Blues": {
+    "Ionian": {
+      "tonic": {
+        "7th": [
+          "I7",
+          "bIII7"
+        ],
+        "9th": [
+          "I9",
+          "bIII9"
+        ],
+        "augmented": [
+          "I+"
+        ],
+        "suspended": [
+          "Isus4"
+        ]
+      },
+      "subdominant": {
+        "7th": [
+          "IV7",
+          "bVI7"
+        ],
+        "9th": [
+          "IV9",
+          "bVI9"
+        ],
+        "augmented": [
+          "IV+"
+        ],
+        "suspended": [
+          "IVsus4"
+        ]
+      },
+      "dominant": {
+        "7th": [
+          "V7",
+          "bVII7"
+        ],
+        "9th": [
+          "V9",
+          "bVII9"
+        ],
+        "augmented": [
+          "V+"
+        ],
+        "suspended": [
+          "Vsus4"
+        ]
+      },
+      "other": {
+        "7th": [
+          "vi7"
+        ],
+        "9th": [
+          "vi9"
+        ],
+        "augmented": [
+          "bII+"
+        ],
+        "suspended": []
+      }
+    },
+    "Dorian": {
+      "tonic": {
+        "7th": [
+          "I7",
+          "bIII7"
+        ],
+        "9th": [
+          "I9",
+          "bIII9"
+        ],
+        "augmented": [
+          "I+"
+        ],
+        "suspended": [
+          "Isus4"
+        ]
+      },
+      "subdominant": {
+        "7th": [
+          "IV7",
+          "bVI7"
+        ],
+        "9th": [
+          "IV9",
+          "bVI9"
+        ],
+        "augmented": [
+          "IV+"
+        ],
+        "suspended": [
+          "IVsus4"
+        ]
+      },
+      "dominant": {
+        "7th": [
+          "V7",
+          "bVII7"
+        ],
+        "9th": [
+          "V9",
+          "bVII9"
+        ],
+        "augmented": [
+          "V+"
+        ],
+        "suspended": [
+          "Vsus4"
+        ]
+      },
+      "other": {
+        "7th": [
+          "vi7"
+        ],
+        "9th": [
+          "vi9"
+        ],
+        "augmented": [
+          "bII+"
+        ],
+        "suspended": []
+      }
+    },
+    "Phrygian": {
+      "tonic": {
+        "7th": [
+          "I7",
+          "bIII7"
+        ],
+        "9th": [
+          "I9",
+          "bIII9"
+        ],
+        "augmented": [
+          "I+"
+        ],
+        "suspended": [
+          "Isus4"
+        ]
+      },
+      "subdominant": {
+        "7th": [
+          "IV7",
+          "bVI7"
+        ],
+        "9th": [
+          "IV9",
+          "bVI9"
+        ],
+        "augmented": [
+          "IV+"
+        ],
+        "suspended": [
+          "IVsus4"
+        ]
+      },
+      "dominant": {
+        "7th": [
+          "V7",
+          "bVII7"
+        ],
+        "9th": [
+          "V9",
+          "bVII9"
+        ],
+        "augmented": [
+          "V+"
+        ],
+        "suspended": [
+          "Vsus4"
+        ]
+      },
+      "other": {
+        "7th": [
+          "vi7"
+        ],
+        "9th": [
+          "vi9"
+        ],
+        "augmented": [
+          "bII+"
+        ],
+        "suspended": []
+      }
+    },
+    "Lydian": {
+      "tonic": {
+        "7th": [
+          "I7",
+          "bIII7"
+        ],
+        "9th": [
+          "I9",
+          "bIII9"
+        ],
+        "augmented": [
+          "I+"
+        ],
+        "suspended": [
+          "Isus4"
+        ]
+      },
+      "subdominant": {
+        "7th": [
+          "IV7",
+          "bVI7"
+        ],
+        "9th": [
+          "IV9",
+          "bVI9"
+        ],
+        "augmented": [
+          "IV+"
+        ],
+        "suspended": [
+          "IVsus4"
+        ]
+      },
+      "dominant": {
+        "7th": [
+          "V7",
+          "bVII7"
+        ],
+        "9th": [
+          "V9",
+          "bVII9"
+        ],
+        "augmented": [
+          "V+"
+        ],
+        "suspended": [
+          "Vsus4"
+        ]
+      },
+      "other": {
+        "7th": [
+          "vi7"
+        ],
+        "9th": [
+          "vi9"
+        ],
+        "augmented": [
+          "bII+"
+        ],
+        "suspended": []
+      }
+    },
+    "Mixolydian": {
+      "tonic": {
+        "7th": [
+          "I7",
+          "bIII7"
+        ],
+        "9th": [
+          "I9",
+          "bIII9"
+        ],
+        "augmented": [
+          "I+"
+        ],
+        "suspended": [
+          "Isus4"
+        ]
+      },
+      "subdominant": {
+        "7th": [
+          "IV7",
+          "bVI7"
+        ],
+        "9th": [
+          "IV9",
+          "bVI9"
+        ],
+        "augmented": [
+          "IV+"
+        ],
+        "suspended": [
+          "IVsus4"
+        ]
+      },
+      "dominant": {
+        "7th": [
+          "V7",
+          "bVII7"
+        ],
+        "9th": [
+          "V9",
+          "bVII9"
+        ],
+        "augmented": [
+          "V+"
+        ],
+        "suspended": [
+          "Vsus4"
+        ]
+      },
+      "other": {
+        "7th": [
+          "vi7"
+        ],
+        "9th": [
+          "vi9"
+        ],
+        "augmented": [
+          "bII+"
+        ],
+        "suspended": []
+      }
+    },
+    "Aeolian": {
+      "tonic": {
+        "7th": [
+          "I7",
+          "bIII7"
+        ],
+        "9th": [
+          "I9",
+          "bIII9"
+        ],
+        "augmented": [
+          "I+"
+        ],
+        "suspended": [
+          "Isus4"
+        ]
+      },
+      "subdominant": {
+        "7th": [
+          "IV7",
+          "bVI7"
+        ],
+        "9th": [
+          "IV9",
+          "bVI9"
+        ],
+        "augmented": [
+          "IV+"
+        ],
+        "suspended": [
+          "IVsus4"
+        ]
+      },
+      "dominant": {
+        "7th": [
+          "V7",
+          "bVII7"
+        ],
+        "9th": [
+          "V9",
+          "bVII9"
+        ],
+        "augmented": [
+          "V+"
+        ],
+        "suspended": [
+          "Vsus4"
+        ]
+      },
+      "other": {
+        "7th": [
+          "vi7"
+        ],
+        "9th": [
+          "vi9"
+        ],
+        "augmented": [
+          "bII+"
+        ],
+        "suspended": []
+      }
+    },
+    "Locrian": {
+      "tonic": {
+        "7th": [
+          "I7",
+          "bIII7"
+        ],
+        "9th": [
+          "I9",
+          "bIII9"
+        ],
+        "augmented": [
+          "I+"
+        ],
+        "suspended": [
+          "Isus4"
+        ]
+      },
+      "subdominant": {
+        "7th": [
+          "IV7",
+          "bVI7"
+        ],
+        "9th": [
+          "IV9",
+          "bVI9"
+        ],
+        "augmented": [
+          "IV+"
+        ],
+        "suspended": [
+          "IVsus4"
+        ]
+      },
+      "dominant": {
+        "7th": [
+          "V7",
+          "bVII7"
+        ],
+        "9th": [
+          "V9",
+          "bVII9"
+        ],
+        "augmented": [
+          "V+"
+        ],
+        "suspended": [
+          "Vsus4"
+        ]
+      },
+      "other": {
+        "7th": [
+          "vi7"
+        ],
+        "9th": [
+          "vi9"
+        ],
+        "augmented": [
+          "bII+"
+        ],
+        "suspended": []
+      }
+    }
+  },
+  "Jazz": {
+    "Ionian": {
+      "tonic": {
+        "triad": [
+          "I"
+        ],
+        "7th": [
+          "IM7"
+        ],
+        "9th": [
+          "IM9",
+          "I6/9"
+        ],
+        "augmented": [
+          "I+",
+          "IM7#5"
+        ],
+        "suspended": [
+          "Isus4",
+          "Isus2"
+        ]
+      },
+      "subdominant": {
+        "triad": [
+          "ii",
+          "IV"
+        ],
+        "7th": [
+          "ii7",
+          "IVM7"
+        ],
+        "9th": [
+          "ii9",
+          "ii11",
+          "IVM9"
+        ],
+        "augmented": [
+          "ii+",
+          "IV+"
+        ],
+        "suspended": [
+          "iisus4",
+          "IVsus4"
+        ]
+      },
+      "dominant": {
+        "triad": [
+          "V"
+        ],
+        "7th": [
+          "V7",
+          "V7alt"
+        ],
+        "9th": [
+          "V9",
+          "V13",
+          "V7b9",
+          "V7#11"
+        ],
+        "augmented": [
+          "V+",
+          "V7#5"
+        ],
+        "suspended": [
+          "Vsus4",
+          "V7sus4"
+        ]
+      },
+      "other": {
+        "triad": [
+          "iii",
+          "vi",
+          "vii°"
+        ],
+        "7th": [
+          "iii7",
+          "vi7",
+          "viiø7"
+        ],
+        "9th": [
+          "iii9",
+          "vi9",
+          "viiø9"
+        ],
+        "augmented": [
+          "iii+",
+          "vi+"
+        ],
+        "suspended": [
+          "iiisus4",
+          "visus4"
+        ]
+      }
+    },
+    "Dorian": {
+      "tonic": {
+        "triad": [
+          "i"
+        ],
+        "7th": [
+          "i7",
+          "i6"
+        ],
+        "9th": [
+          "i9",
+          "i6/9"
+        ],
+        "augmented": [
+          "i+"
+        ],
+        "suspended": [
+          "isus4"
+        ]
+      },
+      "subdominant": {
+        "triad": [
+          "ii",
+          "IV"
+        ],
+        "7th": [
+          "ii7",
+          "IVM7"
+        ],
+        "9th": [
+          "ii9",
+          "IVM9"
+        ],
+        "augmented": [
+          "ii+",
+          "IV+"
+        ],
+        "suspended": [
+          "iisus4",
+          "IVsus4"
+        ]
+      },
+      "dominant": {
+        "triad": [
+          "V",
+          "bVII"
+        ],
+        "7th": [
+          "V7",
+          "bVII7"
+        ],
+        "9th": [
+          "V9",
+          "bVII9"
+        ],
+        "augmented": [
+          "V+"
+        ],
+        "suspended": [
+          "Vsus4",
+          "bVIIsus4"
+        ]
+      },
+      "other": {
+        "triad": [
+          "bIII",
+          "vi"
+        ],
+        "7th": [
+          "bIIIM7",
+          "vi7"
+        ],
+        "9th": [
+          "bIIIM9",
+          "vi9"
+        ],
+        "augmented": [
+          "bIII+"
+        ],
+        "suspended": [
+          "bIIIsus4"
+        ]
+      }
+    },
+    "Mixolydian": {
+      "tonic": {
+        "triad": [
+          "I"
+        ],
+        "7th": [
+          "I7"
+        ],
+        "9th": [
+          "I9",
+          "I13"
+        ],
+        "augmented": [
+          "I+"
+        ],
+        "suspended": [
+          "Isus4"
+        ]
+      },
+      "subdominant": {
+        "triad": [
+          "ii",
+          "IV"
+        ],
+        "7th": [
+          "ii7",
+          "IVM7"
+        ],
+        "9th": [
+          "ii9",
+          "IVM9"
+        ],
+        "augmented": [
+          "ii+",
+          "IV+"
+        ],
+        "suspended": [
+          "iisus4",
+          "IVsus4"
+        ]
+      },
+      "dominant": {
+        "triad": [
+          "V",
+          "bVII"
+        ],
+        "7th": [
+          "V7",
+          "bVII7"
+        ],
+        "9th": [
+          "V9",
+          "bVII9"
+        ],
+        "augmented": [
+          "V+"
+        ],
+        "suspended": [
+          "Vsus4",
+          "bVIIsus4"
+        ]
+      },
+      "other": {
+        "triad": [
+          "iii",
+          "vi"
+        ],
+        "7th": [
+          "iii7",
+          "vi7"
+        ],
+        "9th": [
+          "iii9",
+          "vi9"
+        ],
+        "augmented": [
+          "iii+"
+        ],
+        "suspended": [
+          "iiisus4"
+        ]
+      }
+    }
+  },
+  "Classical": {
+    "Ionian": {
+      "tonic": {
+        "triad": [
+          "I"
+        ],
+        "7th": [
+          "IM7"
+        ],
+        "9th": [
+          "IM9"
+        ],
+        "augmented": [
+          "I+"
+        ],
+        "suspended": [
+          "Isus4",
+          "Isus2"
+        ]
+      },
+      "subdominant": {
+        "triad": [
+          "ii",
+          "IV"
+        ],
+        "7th": [
+          "ii7",
+          "IVM7"
+        ],
+        "9th": [
+          "ii9",
+          "IVM9"
+        ],
+        "augmented": [
+          "ii+",
+          "IV+"
+        ],
+        "suspended": [
+          "iisus4",
+          "IVsus4",
+          "IVsus2"
+        ]
+      },
+      "dominant": {
+        "triad": [
+          "vii°",
+          "V"
+        ],
+        "7th": [
+          "viiø7",
+          "V7"
+        ],
+        "9th": [
+          "viiø9",
+          "V9"
+        ],
+        "augmented": [
+          "V+"
+        ],
+        "suspended": [
+          "Vsus4"
+        ]
+      },
+      "other": {
+        "triad": [
+          "iii",
+          "vi"
+        ],
+        "7th": [
+          "iii7",
+          "vi7"
+        ],
+        "9th": [
+          "iii9",
+          "vi9"
+        ],
+        "augmented": [
+          "iii+",
+          "vi+"
+        ],
+        "suspended": [
+          "iiisus4",
+          "visus4"
+        ]
+      }
+    },
+    "Dorian": {
+      "tonic": {
+        "triad": [
+          "i"
+        ],
+        "7th": [
+          "i7"
+        ],
+        "9th": [
+          "i9"
+        ],
+        "augmented": [
+          "i+"
+        ],
+        "suspended": [
+          "isus4"
+        ]
+      },
+      "subdominant": {
+        "triad": [
+          "ii",
+          "IV"
+        ],
+        "7th": [
+          "ii7",
+          "IVM7"
+        ],
+        "9th": [
+          "ii9",
+          "IVM9"
+        ],
+        "augmented": [
+          "ii+",
+          "IV+"
+        ],
+        "suspended": [
+          "iisus4",
+          "IVsus2"
+        ]
+      },
+      "dominant": {
+        "triad": [
+          "bVII",
+          "v"
+        ],
+        "7th": [
+          "bVII7",
+          "v7"
+        ],
+        "9th": [
+          "bVII9",
+          "v9"
+        ],
+        "augmented": [
+          "v+"
+        ],
+        "suspended": [
+          "Vsus4",
+          "bVIIsus4"
+        ]
+      },
+      "other": {
+        "triad": [
+          "bIII",
+          "vi"
+        ],
+        "7th": [
+          "bIII7",
+          "vi7"
+        ],
+        "9th": [
+          "bIII9",
+          "vi9"
+        ],
+        "augmented": [
+          "bIII+"
+        ],
+        "suspended": [
+          "bIIIsus4"
+        ]
+      }
+    },
+    "Phrygian": {
+      "tonic": {
+        "triad": [
+          "i"
+        ],
+        "7th": [
+          "i7"
+        ],
+        "9th": [
+          "i9"
+        ],
+        "augmented": [
+          "i+"
+        ],
+        "suspended": [
+          "isus4"
+        ]
+      },
+      "subdominant": {
+        "triad": [
+          "iv",
+          "bII"
+        ],
+        "7th": [
+          "iv7",
+          "bII7"
+        ],
+        "9th": [
+          "iv9",
+          "bII9"
+        ],
+        "augmented": [
+          "iv+",
+          "bII+"
+        ],
+        "suspended": [
+          "ivsus4",
+          "bIIsus4"
+        ]
+      },
+      "dominant": {
+        "triad": [
+          "bVII",
+          "v"
+        ],
+        "7th": [
+          "bVII7",
+          "v7"
+        ],
+        "9th": [
+          "bVII9",
+          "v9"
+        ],
+        "augmented": [
+          "v+"
+        ],
+        "suspended": [
+          "Vsus4",
+          "bVIIsus4"
+        ]
+      },
+      "other": {
+        "triad": [
+          "bIII",
+          "bVI"
+        ],
+        "7th": [
+          "bIII7",
+          "bVI7"
+        ],
+        "9th": [
+          "bIII9",
+          "bVI9"
+        ],
+        "augmented": [
+          "bIII+",
+          "bVI+"
+        ],
+        "suspended": [
+          "bIIIsus4"
+        ]
+      }
+    },
+    "Lydian": {
+      "tonic": {
+        "triad": [
+          "I"
+        ],
+        "7th": [
+          "IM7"
+        ],
+        "9th": [
+          "IM9"
+        ],
+        "augmented": [
+          "I+"
+        ],
+        "suspended": [
+          "Isus4"
+        ]
+      },
+      "subdominant": {
+        "triad": [
+          "ii",
+          "#iv°"
+        ],
+        "7th": [
+          "ii7",
+          "#ivø7"
+        ],
+        "9th": [
+          "ii9",
+          "#ivø9"
+        ],
+        "augmented": [
+          "ii+"
+        ],
+        "suspended": [
+          "iisus4",
+          "#ivsus4"
+        ]
+      },
+      "dominant": {
+        "triad": [
+          "vii",
+          "V"
+        ],
+        "7th": [
+          "vii7",
+          "V7"
+        ],
+        "9th": [
+          "vii9",
+          "V9"
+        ],
+        "augmented": [
+          "V+"
+        ],
+        "suspended": [
+          "Vsus4"
+        ]
+      },
+      "other": {
+        "triad": [
+          "II",
+          "iii",
+          "vi"
+        ],
+        "7th": [
+          "II7",
+          "iii7",
+          "vi7"
+        ],
+        "9th": [
+          "II9",
+          "iii9",
+          "vi9"
+        ],
+        "augmented": [
+          "II+",
+          "iii+"
+        ],
+        "suspended": [
+          "IIsus4"
+        ]
+      }
+    },
+    "Mixolydian": {
+      "tonic": {
+        "triad": [
+          "I"
+        ],
+        "7th": [
+          "I7"
+        ],
+        "9th": [
+          "I9"
+        ],
+        "augmented": [
+          "I+"
+        ],
+        "suspended": [
+          "Isus4"
+        ]
+      },
+      "subdominant": {
+        "triad": [
+          "ii",
+          "IV"
+        ],
+        "7th": [
+          "ii7",
+          "IVM7"
+        ],
+        "9th": [
+          "ii9",
+          "IVM9"
+        ],
+        "augmented": [
+          "ii+",
+          "IV+"
+        ],
+        "suspended": [
+          "iisus4",
+          "IVsus4"
+        ]
+      },
+      "dominant": {
+        "triad": [
+          "bVII",
+          "v"
+        ],
+        "7th": [
+          "bVII7",
+          "v7"
+        ],
+        "9th": [
+          "bVII9",
+          "v9"
+        ],
+        "augmented": [
+          "v+"
+        ],
+        "suspended": [
+          "Vsus4",
+          "bVIIsus4"
+        ]
+      },
+      "other": {
+        "triad": [
+          "iii",
+          "vi"
+        ],
+        "7th": [
+          "iii7",
+          "vi7"
+        ],
+        "9th": [
+          "iii9",
+          "vi9"
+        ],
+        "augmented": [
+          "iii+"
+        ],
+        "suspended": [
+          "iiisus4"
+        ]
+      }
+    },
+    "Aeolian": {
+      "tonic": {
+        "triad": [
+          "i"
+        ],
+        "7th": [
+          "i7"
+        ],
+        "9th": [
+          "i9"
+        ],
+        "augmented": [
+          "i+"
+        ],
+        "suspended": [
+          "isus4"
+        ]
+      },
+      "subdominant": {
+        "triad": [
+          "ii°",
+          "iv"
+        ],
+        "7th": [
+          "iiø7",
+          "iv7"
+        ],
+        "9th": [
+          "iiø9",
+          "iv9"
+        ],
+        "augmented": [
+          "iv+"
+        ],
+        "suspended": [
+          "iisus4",
+          "ivsus4"
+        ]
+      },
+      "dominant": {
+        "triad": [
+          "bVII",
+          "v"
+        ],
+        "7th": [
+          "bVII7",
+          "v7"
+        ],
+        "9th": [
+          "bVII9",
+          "v9"
+        ],
+        "augmented": [
+          "v+"
+        ],
+        "suspended": [
+          "Vsus4"
+        ]
+      },
+      "other": {
+        "triad": [
+          "bIII",
+          "bVI"
+        ],
+        "7th": [
+          "bIII7",
+          "bVI7"
+        ],
+        "9th": [
+          "bIII9",
+          "bVI9"
+        ],
+        "augmented": [
+          "bIII+",
+          "bVI+"
+        ],
+        "suspended": [
+          "bIIIsus4"
+        ]
+      }
+    },
+    "Locrian": {
+      "tonic": {
+        "triad": [
+          "i°"
+        ],
+        "7th": [
+          "iø7"
+        ],
+        "9th": [
+          "iø9"
+        ],
+        "augmented": [],
+        "suspended": [
+          "isus4"
+        ]
+      },
+      "subdominant": {
+        "triad": [
+          "iv",
+          "bVI"
+        ],
+        "7th": [
+          "iv7",
+          "bVI7"
+        ],
+        "9th": [
+          "iv9",
+          "bVI9"
+        ],
+        "augmented": [
+          "bVI+"
+        ],
+        "suspended": [
+          "ivsus4",
+          "bVIsus4"
+        ]
+      },
+      "dominant": {
+        "triad": [
+          "bVII",
+          "bV"
+        ],
+        "7th": [
+          "bVII7",
+          "bV7"
+        ],
+        "9th": [
+          "bVII9",
+          "bV9"
+        ],
+        "augmented": [],
+        "suspended": [
+          "Vsus4"
+        ]
+      },
+      "other": {
+        "triad": [
+          "bII",
+          "biii"
+        ],
+        "7th": [
+          "bII7",
+          "biii7"
+        ],
+        "9th": [
+          "bII9",
+          "biii9"
+        ],
+        "augmented": [
+          "bII+",
+          "biii+"
+        ],
+        "suspended": [
+          "bIIsus4",
+          "biiisus4"
+        ]
+      }
+    },
+    "HarmonicMinor": {
+      "tonic": {
+        "triad": [
+          "i"
+        ],
+        "7th": [
+          "i7"
+        ],
+        "9th": [
+          "i9"
+        ],
+        "augmented": [
+          "i+"
+        ],
+        "suspended": [
+          "isus4"
+        ]
+      },
+      "subdominant": {
+        "triad": [
+          "ii°",
+          "iv"
+        ],
+        "7th": [
+          "iiø7",
+          "iv7"
+        ],
+        "9th": [
+          "iiø9",
+          "iv9"
+        ],
+        "augmented": [
+          "iv+"
+        ],
+        "suspended": [
+          "iisus4",
+          "ivsus4"
+        ]
+      },
+      "dominant": {
+        "triad": [
+          "V",
+          "vii°"
+        ],
+        "7th": [
+          "V7",
+          "viiø7"
+        ],
+        "9th": [
+          "V9",
+          "viiø9"
+        ],
+        "augmented": [
+          "V+"
+        ],
+        "suspended": [
+          "Vsus4"
+        ]
+      },
+      "other": {
+        "triad": [
+          "bIII+",
+          "bVI"
+        ],
+        "7th": [
+          "bIII+7",
+          "bVIM7"
+        ],
+        "9th": [
+          "bIII+9",
+          "bVIM9"
+        ],
+        "augmented": [
+          "bIII+",
+          "bVI+"
+        ],
+        "suspended": [
+          "bIIIsus4",
+          "bVIsus4"
+        ]
+      }
+    },
+    "MelodicMinor": {
+      "tonic": {
+        "triad": [
+          "i"
+        ],
+        "7th": [
+          "i7"
+        ],
+        "9th": [
+          "i9"
+        ],
+        "augmented": [
+          "i+"
+        ],
+        "suspended": [
+          "isus4"
+        ]
+      },
+      "subdominant": {
+        "triad": [
+          "ii",
+          "IV"
+        ],
+        "7th": [
+          "ii7",
+          "IV7"
+        ],
+        "9th": [
+          "ii9",
+          "IV9"
+        ],
+        "augmented": [
+          "ii+",
+          "IV+"
+        ],
+        "suspended": [
+          "iisus4",
+          "IVsus4"
+        ]
+      },
+      "dominant": {
+        "triad": [
+          "V",
+          "vii°"
+        ],
+        "7th": [
+          "V7",
+          "viiø7"
+        ],
+        "9th": [
+          "V9",
+          "viiø9"
+        ],
+        "augmented": [
+          "V+"
+        ],
+        "suspended": [
+          "Vsus4"
+        ]
+      },
+      "other": {
+        "triad": [
+          "bIII+",
+          "vi"
+        ],
+        "7th": [
+          "bIII+7",
+          "vi7"
+        ],
+        "9th": [
+          "bIII+9",
+          "vi9"
+        ],
+        "augmented": [
+          "bIII+",
+          "vi+"
+        ],
+        "suspended": [
+          "bIIIsus4",
+          "visus4"
+        ]
+      }
+    }
+  },
+  "Pop": {
+    "Ionian": {
+      "tonic": {
+        "triad": [
+          "I"
+        ],
+        "7th": [
+          "IM7"
+        ],
+        "9th": [
+          "Iadd9",
+          "IM9"
+        ],
+        "augmented": [
+          "I+"
+        ],
+        "suspended": [
+          "Isus4",
+          "Isus2"
+        ]
+      },
+      "subdominant": {
+        "triad": [
+          "ii",
+          "IV"
+        ],
+        "7th": [
+          "ii7",
+          "IVM7"
+        ],
+        "9th": [
+          "iiadd9",
+          "ii9",
+          "IVadd9"
+        ],
+        "augmented": [
+          "ii+",
+          "IV+"
+        ],
+        "suspended": [
+          "iisus4",
+          "IVsus4",
+          "IVsus2"
+        ]
+      },
+      "dominant": {
+        "triad": [
+          "V"
+        ],
+        "7th": [
+          "V7"
+        ],
+        "9th": [
+          "Vadd9",
+          "V9"
+        ],
+        "augmented": [
+          "V+"
+        ],
+        "suspended": [
+          "Vsus4"
+        ]
+      },
+      "other": {
+        "triad": [
+          "iii",
+          "vi"
+        ],
+        "7th": [
+          "iii7",
+          "vi7"
+        ],
+        "9th": [
+          "iiiadd9",
+          "viadd9"
+        ],
+        "augmented": [
+          "iii+",
+          "vi+"
+        ],
+        "suspended": [
+          "iiisus4",
+          "visus4"
+        ]
+      }
+    },
+    "Aeolian": {
+      "tonic": {
+        "triad": [
+          "i"
+        ],
+        "7th": [
+          "i7"
+        ],
+        "9th": [
+          "iadd9"
+        ],
+        "augmented": [
+          "i+"
+        ],
+        "suspended": [
+          "isus4"
+        ]
+      },
+      "subdominant": {
+        "triad": [
+          "ii°",
+          "iv",
+          "IV"
+        ],
+        "7th": [
+          "iiø7",
+          "iv7",
+          "IVM7"
+        ],
+        "9th": [
+          "ivadd9",
+          "IVadd9"
+        ],
+        "augmented": [
+          "iv+",
+          "IV+"
+        ],
+        "suspended": [
+          "iisus4",
+          "ivsus4",
+          "IVsus4"
+        ]
+      },
+      "dominant": {
+        "triad": [
+          "V",
+          "bVII"
+        ],
+        "7th": [
+          "V7",
+          "bVII7"
+        ],
+        "9th": [
+          "Vadd9",
+          "bVIIadd9"
+        ],
+        "augmented": [
+          "V+"
+        ],
+        "suspended": [
+          "Vsus4",
+          "bVIIsus4"
+        ]
+      },
+      "other": {
+        "triad": [
+          "bIII",
+          "bVI"
+        ],
+        "7th": [
+          "bIIIM7",
+          "bVIM7"
+        ],
+        "9th": [
+          "bIIIadd9",
+          "bVIadd9"
+        ],
+        "augmented": [
+          "bIII+",
+          "bVI+"
+        ],
+        "suspended": [
+          "bIIIsus4",
+          "bVIsus4"
+        ]
+      }
+    },
+    "Mixolydian": {
+      "tonic": {
+        "triad": [
+          "I"
+        ],
+        "7th": [
+          "I7"
+        ],
+        "9th": [
+          "Iadd9"
+        ],
+        "augmented": [
+          "I+"
+        ],
+        "suspended": [
+          "Isus4"
+        ]
+      },
+      "subdominant": {
+        "triad": [
+          "ii",
+          "IV"
+        ],
+        "7th": [
+          "ii7",
+          "IVM7"
+        ],
+        "9th": [
+          "iiadd9",
+          "IVadd9"
+        ],
+        "augmented": [
+          "ii+",
+          "IV+"
+        ],
+        "suspended": [
+          "iisus4",
+          "IVsus4"
+        ]
+      },
+      "dominant": {
+        "triad": [
+          "bVII",
+          "V"
+        ],
+        "7th": [
+          "bVII7",
+          "V7"
+        ],
+        "9th": [
+          "bVIIadd9",
+          "Vadd9"
+        ],
+        "augmented": [
+          "V+"
+        ],
+        "suspended": [
+          "bVIIsus4",
+          "Vsus4"
+        ]
+      },
+      "other": {
+        "triad": [
+          "iii",
+          "vi"
+        ],
+        "7th": [
+          "iii7",
+          "vi7"
+        ],
+        "9th": [
+          "iiiadd9",
+          "viadd9"
+        ],
+        "augmented": [
+          "iii+"
+        ],
+        "suspended": [
+          "iiisus4",
+          "visus4"
+        ]
+      }
+    }
+  },
+  "Rock": {
+    "Ionian": {
+      "tonic": {
+        "triad": [
+          "I"
+        ],
+        "7th": [
+          "I7"
+        ],
+        "9th": [
+          "Iadd9"
+        ],
+        "augmented": [
+          "I+"
+        ],
+        "suspended": [
+          "Isus4",
+          "Isus2"
+        ]
+      },
+      "subdominant": {
+        "triad": [
+          "ii",
+          "IV"
+        ],
+        "7th": [
+          "ii7",
+          "IV7"
+        ],
+        "9th": [
+          "iiadd9",
+          "IVadd9"
+        ],
+        "augmented": [
+          "ii+",
+          "IV+"
+        ],
+        "suspended": [
+          "iisus4",
+          "IVsus4"
+        ]
+      },
+      "dominant": {
+        "triad": [
+          "V"
+        ],
+        "7th": [
+          "V7"
+        ],
+        "9th": [
+          "Vadd9"
+        ],
+        "augmented": [
+          "V+"
+        ],
+        "suspended": [
+          "Vsus4"
+        ]
+      },
+      "other": {
+        "triad": [
+          "iii",
+          "vi"
+        ],
+        "7th": [
+          "iii7",
+          "vi7"
+        ],
+        "9th": [
+          "iiiadd9",
+          "viadd9"
+        ],
+        "augmented": [
+          "iii+",
+          "vi+"
+        ],
+        "suspended": [
+          "iiisus4",
+          "visus4"
+        ]
+      }
+    },
+    "Mixolydian": {
+      "tonic": {
+        "triad": [
+          "I"
+        ],
+        "7th": [
+          "I7"
+        ],
+        "9th": [
+          "Iadd9"
+        ],
+        "augmented": [
+          "I+"
+        ],
+        "suspended": [
+          "Isus4"
+        ]
+      },
+      "subdominant": {
+        "triad": [
+          "ii",
+          "IV"
+        ],
+        "7th": [
+          "ii7",
+          "IV7"
+        ],
+        "9th": [
+          "iiadd9",
+          "IVadd9"
+        ],
+        "augmented": [
+          "ii+",
+          "IV+"
+        ],
+        "suspended": [
+          "iisus4",
+          "IVsus4"
+        ]
+      },
+      "dominant": {
+        "triad": [
+          "bVII",
+          "V"
+        ],
+        "7th": [
+          "bVII7",
+          "V7"
+        ],
+        "9th": [
+          "bVIIadd9",
+          "Vadd9"
+        ],
+        "augmented": [
+          "V+"
+        ],
+        "suspended": [
+          "bVIIsus4",
+          "Vsus4"
+        ]
+      },
+      "other": {
+        "triad": [
+          "iii",
+          "vi"
+        ],
+        "7th": [
+          "iii7",
+          "vi7"
+        ],
+        "9th": [
+          "iiiadd9",
+          "viadd9"
+        ],
+        "augmented": [
+          "iii+"
+        ],
+        "suspended": [
+          "iiisus4",
+          "visus4"
+        ]
+      }
+    },
+    "Aeolian": {
+      "tonic": {
+        "triad": [
+          "i"
+        ],
+        "7th": [
+          "i7"
+        ],
+        "9th": [
+          "iadd9"
+        ],
+        "augmented": [
+          "i+"
+        ],
+        "suspended": [
+          "isus4"
+        ]
+      },
+      "subdominant": {
+        "triad": [
+          "ii°",
+          "iv"
+        ],
+        "7th": [
+          "iiø7",
+          "iv7"
+        ],
+        "9th": [
+          "ivadd9"
+        ],
+        "augmented": [
+          "iv+"
+        ],
+        "suspended": [
+          "iisus4",
+          "ivsus4"
+        ]
+      },
+      "dominant": {
+        "triad": [
+          "bVII",
+          "V"
+        ],
+        "7th": [
+          "bVII7",
+          "V7"
+        ],
+        "9th": [
+          "bVIIadd9"
+        ],
+        "augmented": [
+          "V+"
+        ],
+        "suspended": [
+          "bVIIsus4",
+          "Vsus4"
+        ]
+      },
+      "other": {
+        "triad": [
+          "bIII",
+          "bVI"
+        ],
+        "7th": [
+          "bIIIM7",
+          "bVIM7"
+        ],
+        "9th": [
+          "bIIIadd9",
+          "bVIadd9"
+        ],
+        "augmented": [
+          "bIII+",
+          "bVI+"
+        ],
+        "suspended": [
+          "bIIIsus4",
+          "bVIsus4"
+        ]
+      }
+    },
+    "Dorian": {
+      "tonic": {
+        "triad": [
+          "i"
+        ],
+        "7th": [
+          "i7"
+        ],
+        "9th": [
+          "iadd9"
+        ],
+        "augmented": [
+          "i+"
+        ],
+        "suspended": [
+          "isus4"
+        ]
+      },
+      "subdominant": {
+        "triad": [
+          "ii",
+          "IV"
+        ],
+        "7th": [
+          "ii7",
+          "IVM7"
+        ],
+        "9th": [
+          "iiadd9",
+          "IVadd9"
+        ],
+        "augmented": [
+          "ii+",
+          "IV+"
+        ],
+        "suspended": [
+          "iisus4",
+          "IVsus4"
+        ]
+      },
+      "dominant": {
+        "triad": [
+          "bVII",
+          "V"
+        ],
+        "7th": [
+          "bVII7",
+          "V7"
+        ],
+        "9th": [
+          "bVIIadd9",
+          "Vadd9"
+        ],
+        "augmented": [
+          "V+"
+        ],
+        "suspended": [
+          "bVIIsus4",
+          "Vsus4"
+        ]
+      },
+      "other": {
+        "triad": [
+          "bIII",
+          "vi"
+        ],
+        "7th": [
+          "bIIIM7",
+          "vi7"
+        ],
+        "9th": [
+          "bIIIadd9",
+          "viadd9"
+        ],
+        "augmented": [
+          "bIII+"
+        ],
+        "suspended": [
+          "bIIIsus4",
+          "visus4"
+        ]
+      }
+    }
+  },
+  "Folk": {
+    "Ionian": {
+      "tonic": {
+        "triad": [
+          "I"
+        ],
+        "7th": [
+          "IM7"
+        ],
+        "9th": [
+          "Iadd9"
+        ],
+        "augmented": [
+          "I+"
+        ],
+        "suspended": [
+          "Isus4",
+          "Isus2"
+        ]
+      },
+      "subdominant": {
+        "triad": [
+          "ii",
+          "IV"
+        ],
+        "7th": [
+          "ii7",
+          "IVM7"
+        ],
+        "9th": [
+          "iiadd9",
+          "IVadd9"
+        ],
+        "augmented": [
+          "ii+",
+          "IV+"
+        ],
+        "suspended": [
+          "iisus4",
+          "IVsus4",
+          "IVsus2"
+        ]
+      },
+      "dominant": {
+        "triad": [
+          "V",
+          "vii°"
+        ],
+        "7th": [
+          "V7",
+          "viiø7"
+        ],
+        "9th": [
+          "Vadd9"
+        ],
+        "augmented": [
+          "V+"
+        ],
+        "suspended": [
+          "Vsus4"
+        ]
+      },
+      "other": {
+        "triad": [
+          "iii",
+          "vi"
+        ],
+        "7th": [
+          "iii7",
+          "vi7"
+        ],
+        "9th": [
+          "iiiadd9",
+          "viadd9"
+        ],
+        "augmented": [
+          "iii+",
+          "vi+"
+        ],
+        "suspended": [
+          "iiisus4",
+          "visus4"
+        ]
+      }
+    },
+    "Dorian": {
+      "tonic": {
+        "triad": [
+          "i"
+        ],
+        "7th": [
+          "i7"
+        ],
+        "9th": [
+          "iadd9"
+        ],
+        "augmented": [
+          "i+"
+        ],
+        "suspended": [
+          "isus4",
+          "isus2"
+        ]
+      },
+      "subdominant": {
+        "triad": [
+          "ii",
+          "IV"
+        ],
+        "7th": [
+          "ii7",
+          "IVM7"
+        ],
+        "9th": [
+          "iiadd9",
+          "IVadd9"
+        ],
+        "augmented": [
+          "ii+",
+          "IV+"
+        ],
+        "suspended": [
+          "iisus4",
+          "IVsus4"
+        ]
+      },
+      "dominant": {
+        "triad": [
+          "bVII",
+          "V"
+        ],
+        "7th": [
+          "bVII7",
+          "V7"
+        ],
+        "9th": [
+          "bVIIadd9",
+          "Vadd9"
+        ],
+        "augmented": [
+          "V+"
+        ],
+        "suspended": [
+          "bVIIsus4",
+          "Vsus4"
+        ]
+      },
+      "other": {
+        "triad": [
+          "bIII",
+          "vi"
+        ],
+        "7th": [
+          "bIIIM7",
+          "vi7"
+        ],
+        "9th": [
+          "bIIIadd9",
+          "viadd9"
+        ],
+        "augmented": [
+          "bIII+"
+        ],
+        "suspended": [
+          "bIIIsus4",
+          "visus4"
+        ]
+      }
+    },
+    "Mixolydian": {
+      "tonic": {
+        "triad": [
+          "I"
+        ],
+        "7th": [
+          "I7"
+        ],
+        "9th": [
+          "Iadd9"
+        ],
+        "augmented": [
+          "I+"
+        ],
+        "suspended": [
+          "Isus4"
+        ]
+      },
+      "subdominant": {
+        "triad": [
+          "ii",
+          "IV"
+        ],
+        "7th": [
+          "ii7",
+          "IVM7"
+        ],
+        "9th": [
+          "iiadd9",
+          "IVadd9"
+        ],
+        "augmented": [
+          "ii+",
+          "IV+"
+        ],
+        "suspended": [
+          "iisus4",
+          "IVsus4"
+        ]
+      },
+      "dominant": {
+        "triad": [
+          "bVII",
+          "V"
+        ],
+        "7th": [
+          "bVII7",
+          "V7"
+        ],
+        "9th": [
+          "bVIIadd9",
+          "Vadd9"
+        ],
+        "augmented": [
+          "V+"
+        ],
+        "suspended": [
+          "bVIIsus4",
+          "Vsus4"
+        ]
+      },
+      "other": {
+        "triad": [
+          "iii",
+          "vi"
+        ],
+        "7th": [
+          "iii7",
+          "vi7"
+        ],
+        "9th": [
+          "iiiadd9",
+          "viadd9"
+        ],
+        "augmented": [
+          "iii+"
+        ],
+        "suspended": [
+          "iiisus4",
+          "visus4"
+        ]
+      }
+    },
+    "Aeolian": {
+      "tonic": {
+        "triad": [
+          "i"
+        ],
+        "7th": [
+          "i7"
+        ],
+        "9th": [
+          "iadd9"
+        ],
+        "augmented": [
+          "i+"
+        ],
+        "suspended": [
+          "isus4"
+        ]
+      },
+      "subdominant": {
+        "triad": [
+          "ii°",
+          "iv"
+        ],
+        "7th": [
+          "iiø7",
+          "iv7"
+        ],
+        "9th": [
+          "ivadd9"
+        ],
+        "augmented": [
+          "iv+"
+        ],
+        "suspended": [
+          "iisus4",
+          "ivsus4"
+        ]
+      },
+      "dominant": {
+        "triad": [
+          "bVII",
+          "V"
+        ],
+        "7th": [
+          "bVII7",
+          "V7"
+        ],
+        "9th": [
+          "bVIIadd9"
+        ],
+        "augmented": [
+          "V+"
+        ],
+        "suspended": [
+          "bVIIsus4",
+          "Vsus4"
+        ]
+      },
+      "other": {
+        "triad": [
+          "bIII",
+          "bVI"
+        ],
+        "7th": [
+          "bIIIM7",
+          "bVIM7"
+        ],
+        "9th": [
+          "bIIIadd9",
+          "bVIadd9"
+        ],
+        "augmented": [
+          "bIII+",
+          "bVI+"
+        ],
+        "suspended": [
+          "bIIIsus4",
+          "bVIsus4"
+        ]
+      }
+    }
+  },
+  "RnB": {
+    "Ionian": {
+      "tonic": {
+        "triad": [
+          "I"
+        ],
+        "7th": [
+          "IM7",
+          "I6"
+        ],
+        "9th": [
+          "IM9",
+          "I6/9",
+          "IM7#11"
+        ],
+        "augmented": [
+          "I+",
+          "IM7#5"
+        ],
+        "suspended": [
+          "Isus4",
+          "Isus2"
+        ]
+      },
+      "subdominant": {
+        "triad": [
+          "ii",
+          "IV"
+        ],
+        "7th": [
+          "ii7",
+          "ii9",
+          "IVM7"
+        ],
+        "9th": [
+          "ii9",
+          "ii11",
+          "ii13",
+          "IVM9"
+        ],
+        "augmented": [
+          "ii+",
+          "IV+"
+        ],
+        "suspended": [
+          "iisus4",
+          "IVsus4"
+        ]
+      },
+      "dominant": {
+        "triad": [
+          "V"
+        ],
+        "7th": [
+          "V7",
+          "V13"
+        ],
+        "9th": [
+          "V9",
+          "V13",
+          "V7alt",
+          "V7#11"
+        ],
+        "augmented": [
+          "V+",
+          "V7#5"
+        ],
+        "suspended": [
+          "Vsus4",
+          "V7sus4"
+        ]
+      },
+      "other": {
+        "triad": [
+          "iii",
+          "vi"
+        ],
+        "7th": [
+          "iii7",
+          "vi7",
+          "vi9"
+        ],
+        "9th": [
+          "iii9",
+          "vi9",
+          "vi11"
+        ],
+        "augmented": [
+          "iii+",
+          "vi+"
+        ],
+        "suspended": [
+          "iiisus4",
+          "visus4"
+        ]
+      }
+    },
+    "Dorian": {
+      "tonic": {
+        "triad": [
+          "i"
+        ],
+        "7th": [
+          "i7",
+          "i9"
+        ],
+        "9th": [
+          "i9",
+          "i11",
+          "i6/9"
+        ],
+        "augmented": [
+          "i+"
+        ],
+        "suspended": [
+          "isus4"
+        ]
+      },
+      "subdominant": {
+        "triad": [
+          "ii",
+          "IV"
+        ],
+        "7th": [
+          "ii7",
+          "IVM7"
+        ],
+        "9th": [
+          "ii9",
+          "ii11",
+          "IVM9"
+        ],
+        "augmented": [
+          "ii+",
+          "IV+"
+        ],
+        "suspended": [
+          "iisus4",
+          "IVsus4"
+        ]
+      },
+      "dominant": {
+        "triad": [
+          "V",
+          "bVII"
+        ],
+        "7th": [
+          "V7",
+          "bVII7",
+          "bVIIM7"
+        ],
+        "9th": [
+          "V9",
+          "V13",
+          "bVII9"
+        ],
+        "augmented": [
+          "V+"
+        ],
+        "suspended": [
+          "Vsus4",
+          "bVIIsus4"
+        ]
+      },
+      "other": {
+        "triad": [
+          "bIII",
+          "vi"
+        ],
+        "7th": [
+          "bIIIM7",
+          "vi7"
+        ],
+        "9th": [
+          "bIIIM9",
+          "vi9"
+        ],
+        "augmented": [
+          "bIII+"
+        ],
+        "suspended": [
+          "bIIIsus4",
+          "visus4"
+        ]
+      }
+    },
+    "Aeolian": {
+      "tonic": {
+        "triad": [
+          "i"
+        ],
+        "7th": [
+          "i7",
+          "i6"
+        ],
+        "9th": [
+          "i9",
+          "i6/9"
+        ],
+        "augmented": [
+          "i+"
+        ],
+        "suspended": [
+          "isus4"
+        ]
+      },
+      "subdominant": {
+        "triad": [
+          "ii°",
+          "iv",
+          "IV"
+        ],
+        "7th": [
+          "iiø7",
+          "iv7",
+          "IVM7"
+        ],
+        "9th": [
+          "iv9",
+          "IVM9"
+        ],
+        "augmented": [
+          "iv+",
+          "IV+"
+        ],
+        "suspended": [
+          "iisus4",
+          "ivsus4",
+          "IVsus4"
+        ]
+      },
+      "dominant": {
+        "triad": [
+          "V",
+          "v",
+          "bVII"
+        ],
+        "7th": [
+          "V7",
+          "v7",
+          "bVII7"
+        ],
+        "9th": [
+          "V9",
+          "v9",
+          "bVII9"
+        ],
+        "augmented": [
+          "V+",
+          "v+"
+        ],
+        "suspended": [
+          "Vsus4",
+          "vsus4",
+          "bVIIsus4"
+        ]
+      },
+      "other": {
+        "triad": [
+          "bIII",
+          "bVI"
+        ],
+        "7th": [
+          "bIIIM7",
+          "bVIM7"
+        ],
+        "9th": [
+          "bIIIM9",
+          "bVIM9"
+        ],
+        "augmented": [
+          "bIII+",
+          "bVI+"
+        ],
+        "suspended": [
+          "bIIIsus4",
+          "bVIsus4"
+        ]
+      }
+    },
+    "Mixolydian": {
+      "tonic": {
+        "triad": [
+          "I"
+        ],
+        "7th": [
+          "I7",
+          "I13"
+        ],
+        "9th": [
+          "I9",
+          "I13"
+        ],
+        "augmented": [
+          "I+"
+        ],
+        "suspended": [
+          "Isus4"
+        ]
+      },
+      "subdominant": {
+        "triad": [
+          "ii",
+          "IV"
+        ],
+        "7th": [
+          "ii7",
+          "IVM7"
+        ],
+        "9th": [
+          "ii9",
+          "IVM9"
+        ],
+        "augmented": [
+          "ii+",
+          "IV+"
+        ],
+        "suspended": [
+          "iisus4",
+          "IVsus4"
+        ]
+      },
+      "dominant": {
+        "triad": [
+          "bVII",
+          "V"
+        ],
+        "7th": [
+          "bVII7",
+          "bVIIM7",
+          "V7"
+        ],
+        "9th": [
+          "bVII9",
+          "V9"
+        ],
+        "augmented": [
+          "V+"
+        ],
+        "suspended": [
+          "bVIIsus4",
+          "Vsus4"
+        ]
+      },
+      "other": {
+        "triad": [
+          "iii",
+          "vi"
+        ],
+        "7th": [
+          "iii7",
+          "vi7"
+        ],
+        "9th": [
+          "iii9",
+          "vi9"
+        ],
+        "augmented": [
+          "iii+"
+        ],
+        "suspended": [
+          "iiisus4",
+          "visus4"
+        ]
+      }
+    }
+  },
+  "Cinematic": {
+    "Ionian": {
+      "tonic": {
+        "triad": [
+          "I"
+        ],
+        "7th": [
+          "IM7"
+        ],
+        "9th": [
+          "IM9",
+          "IM7#11"
+        ],
+        "augmented": [
+          "I+",
+          "IM7#5"
+        ],
+        "suspended": [
+          "Isus4",
+          "Isus2"
+        ]
+      },
+      "subdominant": {
+        "triad": [
+          "ii",
+          "IV"
+        ],
+        "7th": [
+          "ii7",
+          "IVM7",
+          "ii7b5"
+        ],
+        "9th": [
+          "ii9",
+          "ii11",
+          "IVM9"
+        ],
+        "augmented": [
+          "ii+",
+          "IV+"
+        ],
+        "suspended": [
+          "iisus4",
+          "IVsus4"
+        ]
+      },
+      "dominant": {
+        "triad": [
+          "V"
+        ],
+        "7th": [
+          "V7",
+          "V7sus4"
+        ],
+        "9th": [
+          "V9",
+          "V13",
+          "V7#11"
+        ],
+        "augmented": [
+          "V+",
+          "V7#5"
+        ],
+        "suspended": [
+          "Vsus4",
+          "Vsus2"
+        ]
+      },
+      "other": {
+        "triad": [
+          "iii",
+          "vi",
+          "vii°"
+        ],
+        "7th": [
+          "iii7",
+          "vi7",
+          "viiø7"
+        ],
+        "9th": [
+          "iii9",
+          "vi9",
+          "viiø9"
+        ],
+        "augmented": [
+          "iii+",
+          "vi+"
+        ],
+        "suspended": [
+          "iiisus4",
+          "visus4"
+        ]
+      }
+    },
+    "Aeolian": {
+      "tonic": {
+        "triad": [
+          "i"
+        ],
+        "7th": [
+          "i7",
+          "iM7"
+        ],
+        "9th": [
+          "i9",
+          "iM9"
+        ],
+        "augmented": [
+          "i+"
+        ],
+        "suspended": [
+          "isus4"
+        ]
+      },
+      "subdominant": {
+        "triad": [
+          "ii°",
+          "iv",
+          "IV"
+        ],
+        "7th": [
+          "iiø7",
+          "iv7",
+          "IVM7"
+        ],
+        "9th": [
+          "iv9",
+          "IVM9"
+        ],
+        "augmented": [
+          "iv+",
+          "IV+"
+        ],
+        "suspended": [
+          "iisus4",
+          "ivsus4",
+          "IVsus4"
+        ]
+      },
+      "dominant": {
+        "triad": [
+          "V",
+          "v",
+          "bVII"
+        ],
+        "7th": [
+          "V7",
+          "v7",
+          "bVII7"
+        ],
+        "9th": [
+          "V9",
+          "v9",
+          "bVII9"
+        ],
+        "augmented": [
+          "V+",
+          "v+"
+        ],
+        "suspended": [
+          "Vsus4",
+          "vsus4",
+          "bVIIsus4"
+        ]
+      },
+      "other": {
+        "triad": [
+          "bIII",
+          "bVI",
+          "VII°"
+        ],
+        "7th": [
+          "bIIIM7",
+          "bVIM7",
+          "VIIø7"
+        ],
+        "9th": [
+          "bIIIM9",
+          "bVIM9"
+        ],
+        "augmented": [
+          "bIII+",
+          "bVI+"
+        ],
+        "suspended": [
+          "bIIIsus4",
+          "bVIsus4"
+        ]
+      }
+    },
+    "Dorian": {
+      "tonic": {
+        "triad": [
+          "i"
+        ],
+        "7th": [
+          "i7",
+          "i6"
+        ],
+        "9th": [
+          "i9",
+          "i6/9"
+        ],
+        "augmented": [
+          "i+"
+        ],
+        "suspended": [
+          "isus4"
+        ]
+      },
+      "subdominant": {
+        "triad": [
+          "ii",
+          "IV"
+        ],
+        "7th": [
+          "ii7",
+          "IVM7"
+        ],
+        "9th": [
+          "ii9",
+          "IVM9"
+        ],
+        "augmented": [
+          "ii+",
+          "IV+"
+        ],
+        "suspended": [
+          "iisus4",
+          "IVsus4"
+        ]
+      },
+      "dominant": {
+        "triad": [
+          "V",
+          "bVII"
+        ],
+        "7th": [
+          "V7",
+          "bVII7"
+        ],
+        "9th": [
+          "V9",
+          "bVII9"
+        ],
+        "augmented": [
+          "V+"
+        ],
+        "suspended": [
+          "Vsus4",
+          "bVIIsus4"
+        ]
+      },
+      "other": {
+        "triad": [
+          "bIII",
+          "vi"
+        ],
+        "7th": [
+          "bIIIM7",
+          "vi7"
+        ],
+        "9th": [
+          "bIIIM9",
+          "vi9"
+        ],
+        "augmented": [
+          "bIII+"
+        ],
+        "suspended": [
+          "bIIIsus4",
+          "visus4"
+        ]
+      }
+    },
+    "Phrygian": {
+      "tonic": {
+        "triad": [
+          "i"
+        ],
+        "7th": [
+          "i7"
+        ],
+        "9th": [
+          "i9"
+        ],
+        "augmented": [
+          "i+"
+        ],
+        "suspended": [
+          "isus4"
+        ]
+      },
+      "subdominant": {
+        "triad": [
+          "bII",
+          "iv"
+        ],
+        "7th": [
+          "bIIM7",
+          "iv7"
+        ],
+        "9th": [
+          "bIIM9",
+          "iv9"
+        ],
+        "augmented": [
+          "bII+",
+          "iv+"
+        ],
+        "suspended": [
+          "bIIsus4",
+          "ivsus4"
+        ]
+      },
+      "dominant": {
+        "triad": [
+          "bVII",
+          "V"
+        ],
+        "7th": [
+          "bVII7",
+          "V7"
+        ],
+        "9th": [
+          "bVII9",
+          "V9"
+        ],
+        "augmented": [
+          "V+"
+        ],
+        "suspended": [
+          "bVIIsus4",
+          "Vsus4"
+        ]
+      },
+      "other": {
+        "triad": [
+          "bIII",
+          "bVI"
+        ],
+        "7th": [
+          "bIIIM7",
+          "bVIM7"
+        ],
+        "9th": [
+          "bIIIM9",
+          "bVIM9"
+        ],
+        "augmented": [
+          "bIII+",
+          "bVI+"
+        ],
+        "suspended": [
+          "bIIIsus4",
+          "bVIsus4"
+        ]
+      }
+    }
+  }
+}

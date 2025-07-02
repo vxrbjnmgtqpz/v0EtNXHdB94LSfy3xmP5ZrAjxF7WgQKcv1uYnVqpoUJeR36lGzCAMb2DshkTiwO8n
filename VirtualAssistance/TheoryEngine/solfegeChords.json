@@ -1,0 +1,382 @@
+{
+  "Ionian": {
+    "I": [
+      "Sol",
+      "Mi",
+      "Do"
+    ],
+    "I7": [
+      "Ti",
+      "Sol",
+      "Mi",
+      "Do"
+    ],
+    "I9": [
+      "Re",
+      "Ti",
+      "Sol",
+      "Mi",
+      "Do"
+    ],
+    "ii": [
+      "La",
+      "Fa",
+      "Re"
+    ],
+    "ii7": [
+      "Do",
+      "La",
+      "Fa",
+      "Re"
+    ],
+    "ii9": [
+      "Mi",
+      "Do",
+      "La",
+      "Fa",
+      "Re"
+    ],
+    "iii": [
+      "Ti",
+      "Sol",
+      "Mi"
+    ],
+    "iii7": [
+      "Re",
+      "Ti",
+      "Sol",
+      "Mi"
+    ],
+    "IV": [
+      "Do",
+      "La",
+      "Fa"
+    ],
+    "IV7": [
+      "Mi",
+      "Do",
+      "La",
+      "Fa"
+    ],
+    "V": [
+      "Re",
+      "Ti",
+      "Sol"
+    ],
+    "V7": [
+      "Fa",
+      "Re",
+      "Ti",
+      "Sol"
+    ],
+    "V9": [
+      "Mi",
+      "Fa",
+      "Re",
+      "Ti",
+      "Sol"
+    ],
+    "vi": [
+      "Mi",
+      "Do",
+      "La"
+    ],
+    "vi7": [
+      "Sol",
+      "Mi",
+      "Do",
+      "La"
+    ],
+    "vii\u00ba": [
+      "Re",
+      "Ti",
+      "Fa"
+    ],
+    "vii\u00f87": [
+      "Mi",
+      "Re",
+      "Ti",
+      "Fa"
+    ]
+  },
+  "Dorian": {
+    "i": [
+      "Sol",
+      "Me",
+      "Re"
+    ],
+    "i7": [
+      "Do",
+      "Sol",
+      "Me",
+      "Re"
+    ],
+    "i9": [
+      "Mi",
+      "Do",
+      "Sol",
+      "Me",
+      "Re"
+    ],
+    "ii": [
+      "La",
+      "Fa",
+      "Mi"
+    ],
+    "ii7": [
+      "Ti",
+      "La",
+      "Fa",
+      "Mi"
+    ],
+    "iii": [
+      "Do",
+      "Sol",
+      "Fa"
+    ],
+    "III": [
+      "Re",
+      "Ti",
+      "Sol"
+    ],
+    "IV": [
+      "Mi",
+      "Do",
+      "La"
+    ],
+    "V": [
+      "Fa",
+      "Re",
+      "Ti"
+    ],
+    "v": [
+      "Fa",
+      "Re",
+      "Ti"
+    ],
+    "v7": [
+      "Sol",
+      "Fa",
+      "Re",
+      "Ti"
+    ],
+    "vi\u00ba": [
+      "La",
+      "Fa",
+      "Ti"
+    ],
+    "vii\u00ba": [
+      "Ti",
+      "Sol",
+      "Re"
+    ]
+  },
+  "Phrygian": {
+    "i": [
+      "Sol",
+      "Me",
+      "Ra"
+    ],
+    "ii": [
+      "La",
+      "Fa",
+      "Re"
+    ],
+    "II": [
+      "La",
+      "Fa",
+      "Re"
+    ],
+    "III": [
+      "Ti",
+      "Sol",
+      "Mi"
+    ],
+    "iv": [
+      "Do",
+      "La",
+      "Fa"
+    ],
+    "v\u00ba": [
+      "Re",
+      "Ti",
+      "Fa"
+    ],
+    "VI": [
+      "Mi",
+      "Do",
+      "La"
+    ],
+    "vii\u00ba": [
+      "Fa",
+      "Re",
+      "Ti"
+    ]
+  },
+  "Lydian": {
+    "I": [
+      "Sol",
+      "Mi",
+      "Do"
+    ],
+    "I7": [
+      "Ti",
+      "Sol",
+      "Mi",
+      "Do"
+    ],
+    "ii": [
+      "La",
+      "Fa#",
+      "Re"
+    ],
+    "iii": [
+      "Ti",
+      "Sol#",
+      "Mi"
+    ],
+    "#iv\u00ba": [
+      "Re",
+      "Ti",
+      "Fa#"
+    ],
+    "V": [
+      "Re",
+      "Ti",
+      "Sol"
+    ],
+    "vi": [
+      "Mi",
+      "Do#",
+      "La"
+    ],
+    "vii\u00ba": [
+      "Fa#",
+      "Re",
+      "Ti"
+    ]
+  },
+  "Mixolydian": {
+    "I": [
+      "Sol",
+      "Mi",
+      "Do"
+    ],
+    "I7": [
+      "Te",
+      "Sol",
+      "Mi",
+      "Do"
+    ],
+    "ii": [
+      "La",
+      "Fa",
+      "Re"
+    ],
+    "iii\u00ba": [
+      "Ti",
+      "Sol",
+      "Mi"
+    ],
+    "IV": [
+      "Do",
+      "La",
+      "Fa"
+    ],
+    "v": [
+      "Re",
+      "Ti",
+      "Sol"
+    ],
+    "vi": [
+      "Mi",
+      "Do",
+      "La"
+    ],
+    "bVII": [
+      "Fa",
+      "Re",
+      "Te"
+    ]
+  },
+  "Aeolian": {
+    "i": [
+      "Sol",
+      "Me",
+      "La"
+    ],
+    "i7": [
+      "Do",
+      "Sol",
+      "Me",
+      "La"
+    ],
+    "ii\u00ba": [
+      "Ti",
+      "Sol",
+      "Re"
+    ],
+    "III": [
+      "Do",
+      "La",
+      "Fa"
+    ],
+    "iv": [
+      "Re",
+      "Ti",
+      "Sol"
+    ],
+    "v": [
+      "Mi",
+      "Do",
+      "La"
+    ],
+    "VI": [
+      "Fa",
+      "Re",
+      "Ti"
+    ],
+    "VII": [
+      "Sol",
+      "Mi",
+      "Do"
+    ]
+  },
+  "Locrian": {
+    "i\u00ba": [
+      "Ti",
+      "Sol",
+      "Ra"
+    ],
+    "ii": [
+      "Do",
+      "La",
+      "Fa"
+    ],
+    "III": [
+      "Re",
+      "Ti",
+      "Sol"
+    ],
+    "iv": [
+      "Mi",
+      "Do",
+      "La"
+    ],
+    "v": [
+      "Fa",
+      "Re",
+      "Ti"
+    ],
+    "VI": [
+      "Sol",
+      "Mi",
+      "Do"
+    ],
+    "VII": [
+      "La",
+      "Fa",
+      "Re"
+    ]
+  }
+}

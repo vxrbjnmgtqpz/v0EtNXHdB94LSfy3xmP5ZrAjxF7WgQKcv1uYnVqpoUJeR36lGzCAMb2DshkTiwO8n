@@ -1,0 +1,308 @@
+Notebook[{
+Cell[BoxData[{
+ RowBox[{"(*", " ", 
+  RowBox[{
+   "Solfege", " ", "Theory", " ", "Engine", " ", "for", " ", "MIDI", " ", 
+   "Chord", " ", "Generation"}], " ", "*)"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"ClearAll", "[", "\"\<Global`*\>\"", "]"}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"SetDirectory", "[", 
+   RowBox[{"NotebookDirectory", "[", "]"}], "]"}], ";"}]}], "Input",
+ CellChangeTimes->{{3.9057372835123067`*^9, 3.905737295312307*^9}},
+ CellLabel->"In[1]:=",ExpressionUUID->"a1b2c3d4-e5f6-7890-1234-567890abcdef"],
+
+Cell[BoxData[{
+ RowBox[{"(*", " ", 
+  RowBox[{"Load", " ", "JSON", " ", "data", " ", "files"}], " ", 
+  "*)"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"solfegeChords", " ", "=", " ", 
+   RowBox[{"Import", "[", 
+    RowBox[{"\"\<solfegeChords.json\>\"", ",", " ", "\"\<JSON\>\""}], "]"}]}],
+   ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"legalityClassical", " ", "=", " ", 
+   RowBox[{"Import", "[", 
+    RowBox[{"\"\<legalityClassical.json\>\"", ",", " ", "\"\<JSON\>\""}], 
+    "]"}]}], ";"}]}], "Input",
+ CellChangeTimes->{{3.9057372835123067`*^9, 3.905737295312307*^9}},
+ CellLabel->"In[2]:=",ExpressionUUID->"b2c3d4e5-f6g7-h890-i234-j567890klmno"],
+
+Cell[BoxData[{
+ RowBox[{"(*", " ", 
+  RowBox[{
+  "Solfege", " ", "to", " ", "MIDI", " ", "note", " ", "conversion", " ", 
+   "functions"}], " ", "*)"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"solfegeToMIDI", "[", 
+    RowBox[{"solfege_String", ",", " ", 
+     RowBox[{"rootNote_Integer", ":", "60"}]}], "]"}], " ", ":=", " ", 
+   RowBox[{"Module", "[", 
+    RowBox[{
+     RowBox[{"{", 
+      RowBox[{"solfegeMap", ",", " ", "interval"}], "}"}], ",", 
+     "\[IndentingNewLine]", 
+     RowBox[{
+      RowBox[{"solfegeMap", " ", "=", " ", 
+       RowBox[{"Association", "[", "\[IndentingNewLine]", 
+        RowBox[{
+         RowBox[{"\"\<Do\>\"", " ", "->", " ", "0"}], ",", 
+         "\[IndentingNewLine]", 
+         RowBox[{"\"\<Ra\>\"", " ", "->", " ", "1"}], ",", " ", 
+         RowBox[{"(*", " ", 
+          RowBox[{"b2", " ", "in", " ", "chromatic", " ", "solfege"}], " ", 
+          "*)"}], "\[IndentingNewLine]", 
+         RowBox[{"\"\<Re\>\"", " ", "->", " ", "2"}], ",", 
+         "\[IndentingNewLine]", 
+         RowBox[{"\"\<Me\>\"", " ", "->", " ", "3"}], ",", " ", 
+         RowBox[{"(*", " ", 
+          RowBox[{"b3", " ", "minor", " ", "third"}], " ", 
+          "*)"}], "\[IndentingNewLine]", 
+         RowBox[{"\"\<Mi\>\"", " ", "->", " ", "4"}], ",", 
+         "\[IndentingNewLine]", 
+         RowBox[{"\"\<Fa\>\"", " ", "->", " ", "5"}], ",", 
+         "\[IndentingNewLine]", 
+         RowBox[{"\"\<Fi\>\"", " ", "->", " ", "6"}], ",", " ", 
+         RowBox[{"(*", " ", "#4", " ", "*)"}], "\[IndentingNewLine]", 
+         RowBox[{"\"\<Sol\>\"", " ", "->", " ", "7"}], ",", 
+         "\[IndentingNewLine]", 
+         RowBox[{"\"\<Le\>\"", " ", "->", " ", "8"}], ",", " ", 
+         RowBox[{"(*", " ", "b6", " ", "*)"}], "\[IndentingNewLine]", 
+         RowBox[{"\"\<La\>\"", " ", "->", " ", "9"}], ",", 
+         "\[IndentingNewLine]", 
+         RowBox[{"\"\<Te\>\"", " ", "->", " ", "10"}], ",", " ", 
+         RowBox[{"(*", " ", "b7", " ", "*)"}], "\[IndentingNewLine]", 
+         RowBox[{"\"\<Ti\>\"", " ", "->", " ", "11"}]}], 
+        "\[IndentingNewLine]", "]"}]}], ";", "\[IndentingNewLine]", 
+      RowBox[{"interval", " ", "=", " ", 
+       RowBox[{"Lookup", "[", 
+        RowBox[{"solfegeMap", ",", " ", "solfege", ",", " ", "0"}], "]"}]}], 
+      ";", "\[IndentingNewLine]", 
+      RowBox[{"rootNote", " ", "+", " ", "interval"}]}]}], 
+    "\[IndentingNewLine]", "]"}]}], ";"}]}], "Input",
+ CellChangeTimes->{{3.9057372835123067`*^9, 3.905737295312307*^9}},
+ CellLabel->"In[3]:=",ExpressionUUID->"c3d4e5f6-g7h8-i901-j234-k567890lmnop"],
+
+Cell[BoxData[{
+ RowBox[{"(*", " ", 
+  RowBox[{
+  "Generate", " ", "MIDI", " ", "chord", " ", "from", " ", "solfege", " ", 
+   "representation"}], " ", "*)"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"generateMIDIChord", "[", 
+    RowBox[{
+    "mode_String", ",", " ", "chordSymbol_String", ",", " ", 
+     RowBox[{"rootNote_Integer", ":", "60"}]}], "]"}], " ", ":=", " ", 
+   RowBox[{"Module", "[", 
+    RowBox[{
+     RowBox[{"{", 
+      RowBox[{"solfegeNotes", ",", " ", "midiNotes"}], "}"}], ",", 
+     "\[IndentingNewLine]", 
+     RowBox[{
+      RowBox[{"solfegeNotes", " ", "=", " ", 
+       RowBox[{"Lookup", "[", 
+        RowBox[{
+         RowBox[{"Lookup", "[", 
+          RowBox[{"solfegeChords", ",", " ", "mode", ",", " ", 
+           RowBox[{"Association", "[", "]"}]}], "]"}], ",", " ", 
+         "chordSymbol", ",", " ", 
+         RowBox[{"{", "}"}]}], "]"}]}], ";", "\[IndentingNewLine]", 
+      RowBox[{"If", "[", 
+       RowBox[{
+        RowBox[{
+         RowBox[{"Length", "[", "solfegeNotes", "]"}], " ", "==", " ", "0"}],
+         ",", "\[IndentingNewLine]", 
+        RowBox[{
+         RowBox[{"Print", "[", 
+          RowBox[{"\"\<Warning: Chord \>\"", " ", "<>", " ", "chordSymbol", 
+           " ", "<>", " ", "\"\< not found in mode \>\"", " ", "<>", " ", 
+           "mode"}], "]"}], ";", "\[IndentingNewLine]", 
+         RowBox[{"Return", "[", 
+          RowBox[{"{", "}"}], "]"}]}]}], "\[IndentingNewLine]", "]"}], ";", 
+      "\[IndentingNewLine]", 
+      RowBox[{"midiNotes", " ", "=", " ", 
+       RowBox[{"Table", "[", 
+        RowBox[{
+         RowBox[{"solfegeToMIDI", "[", 
+          RowBox[{"note", ",", " ", "rootNote"}], "]"}], ",", " ", 
+         RowBox[{"{", 
+          RowBox[{"note", ",", " ", "solfegeNotes"}], "}"}]}], "]"}]}], ";", 
+      "\[IndentingNewLine]", 
+      RowBox[{"Sort", "[", "midiNotes", "]"}]}]}], "\[IndentingNewLine]", 
+    "]"}]}], ";"}]}], "Input",
+ CellChangeTimes->{{3.9057372835123067`*^9, 3.905737295312307*^9}},
+ CellLabel->"In[4]:=",ExpressionUUID->"d4e5f6g7-h8i9-j012-k345-l678901mnopq"],
+
+Cell[BoxData[{
+ RowBox[{"(*", " ", 
+  RowBox[{
+  "Generate", " ", "legal", " ", "chord", " ", "progressions", " ", "based", 
+   " ", "on", " ", "classical", " ", "theory"}], " ", 
+  "*)"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"getLegalNextChords", "[", 
+    RowBox[{"mode_String", ",", " ", "currentChord_String"}], "]"}], " ", ":=",
+    " ", 
+   RowBox[{"Module", "[", 
+    RowBox[{
+     RowBox[{"{", "modeProgressions", "}"}], ",", "\[IndentingNewLine]", 
+     RowBox[{
+      RowBox[{"modeProgressions", " ", "=", " ", 
+       RowBox[{"Lookup", "[", 
+        RowBox[{"legalityClassical", ",", " ", "mode", ",", " ", 
+         RowBox[{"Association", "[", "]"}]}], "]"}]}], ";", 
+      "\[IndentingNewLine]", 
+      RowBox[{"Lookup", "[", 
+       RowBox[{"modeProgressions", ",", " ", "currentChord", ",", " ", 
+        RowBox[{"{", "}"}]}], "]"}]}]}], "\[IndentingNewLine]", "]"}]}], 
+  ";"}]}], "Input",
+ CellChangeTimes->{{3.9057372835123067`*^9, 3.905737295312307*^9}},
+ CellLabel->"In[5]:=",ExpressionUUID->"e5f6g7h8-i9j0-k123-l456-m789012nopqr"],
+
+Cell[BoxData[{
+ RowBox[{"(*", " ", 
+  RowBox[{
+  "Generate", " ", "a", " ", "chord", " ", "progression", " ", "using", " ", 
+   "music", " ", "theory", " ", "rules"}], " ", 
+  "*)"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"generateProgression", "[", 
+    RowBox[{
+    "mode_String", ",", " ", "startChord_String", ",", " ", 
+     RowBox[{"length_Integer", ":", "4"}], ",", " ", 
+     RowBox[{"rootNote_Integer", ":", "60"}]}], "]"}], " ", ":=", " ", 
+   RowBox[{"Module", "[", 
+    RowBox[{
+     RowBox[{"{", 
+      RowBox[{
+      "progression", ",", " ", "currentChord", ",", " ", "legalChords", ",", 
+       " ", "nextChord"}], "}"}], ",", "\[IndentingNewLine]", 
+     RowBox[{
+      RowBox[{"progression", " ", "=", " ", 
+       RowBox[{"{", "startChord", "}"}]}], ";", "\[IndentingNewLine]", 
+      RowBox[{"currentChord", " ", "=", " ", "startChord"}], ";", 
+      "\[IndentingNewLine]", 
+      RowBox[{"Do", "[", "\[IndentingNewLine]", 
+       RowBox[{
+        RowBox[{
+         RowBox[{"legalChords", " ", "=", " ", 
+          RowBox[{"getLegalNextChords", "[", 
+           RowBox[{"mode", ",", " ", "currentChord"}], "]"}]}], ";", 
+         "\[IndentingNewLine]", 
+         RowBox[{"If", "[", 
+          RowBox[{
+           RowBox[{
+            RowBox[{"Length", "[", "legalChords", "]"}], " ", ">", " ", "0"}],
+            ",", "\[IndentingNewLine]", 
+           RowBox[{
+            RowBox[{"nextChord", " ", "=", " ", 
+             RowBox[{"RandomChoice", "[", "legalChords", "]"}]}], ";", 
+            "\[IndentingNewLine]", 
+            RowBox[{"AppendTo", "[", 
+             RowBox[{"progression", ",", " ", "nextChord"}], "]"}], ";", 
+            "\[IndentingNewLine]", 
+            RowBox[{"currentChord", " ", "=", " ", "nextChord"}]}], ",", 
+           "\[IndentingNewLine]", 
+           RowBox[{
+            RowBox[{"Print", "[", 
+             RowBox[{"\"\<No legal progressions from \>\"", " ", "<>", " ", 
+              "currentChord"}], "]"}], ";", "\[IndentingNewLine]", 
+            RowBox[{"Break", "[", "]"}]}]}], "\[IndentingNewLine]", "]"}]}], 
+        ",", "\[IndentingNewLine]", 
+        RowBox[{"{", 
+         RowBox[{"i", ",", " ", 
+          RowBox[{"length", " ", "-", " ", "1"}]}], "}"}]}], 
+       "\[IndentingNewLine]", "]"}], ";", "\[IndentingNewLine]", 
+      RowBox[{"Table", "[", 
+       RowBox[{
+        RowBox[{"Association", "[", 
+         RowBox[{
+          RowBox[{"\"\<chord\>\"", " ", "->", " ", "chord"}], ",", " ", 
+          RowBox[{"\"\<midiNotes\>\"", " ", "->", " ", 
+           RowBox[{"generateMIDIChord", "[", 
+            RowBox[{"mode", ",", " ", "chord", ",", " ", "rootNote"}], 
+            "]"}]}]}], "]"}], ",", " ", 
+        RowBox[{"{", 
+         RowBox[{"chord", ",", " ", "progression"}], "}"}]}], "]"}]}]}], 
+    "\[IndentingNewLine]", "]"}]}], ";"}]}], "Input",
+ CellChangeTimes->{{3.9057372835123067`*^9, 3.905737295312307*^9}},
+ CellLabel->"In[6]:=",ExpressionUUID->"f6g7h8i9-j0k1-l234-m567-n890123opqrs"],
+
+Cell[BoxData[{
+ RowBox[{"(*", " ", 
+  RowBox[{"Test", " ", "the", " ", "Theory", " ", "Engine"}], " ", 
+  "*)"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"Print", "[", "\"\<Testing Solfege Theory Engine...\>\"", "]"}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"Print", "[", 
+   RowBox[{"\"\<\\nAvailable modes: \>\"", ",", " ", 
+    RowBox[{"Keys", "[", "solfegeChords", "]"}]}], "]"}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"Print", "[", 
+   RowBox[{"\"\<\\nIonian chords: \>\"", ",", " ", 
+    RowBox[{"Keys", "[", 
+     RowBox[{"solfegeChords", "[", "\"\<Ionian\>\"", "]"}], "]"}]}], "]"}], 
+  ";"}]}], "Input",
+ CellChangeTimes->{{3.9057372835123067`*^9, 3.905737295312307*^9}},
+ CellLabel->"In[7]:=",ExpressionUUID->"g7h8i9j0-k1l2-m345-n678-o901234pqrst"],
+
+Cell[BoxData[{
+ RowBox[{"(*", " ", 
+  RowBox[{
+  "Generate", " ", "a", " ", "sample", " ", "C", " ", "major", " ", 
+   "progression"}], " ", "*)"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"cMajorProgression", " ", "=", " ", 
+   RowBox[{"generateProgression", "[", 
+    RowBox[{"\"\<Ionian\>\"", ",", " ", "\"\<I\>\"", ",", " ", "4", ",", " ",
+      "60"}], "]"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"Print", "[", 
+   RowBox[{"\"\<\\nC Major progression: \>\"", ",", " ", 
+    RowBox[{"cMajorProgression", "[", 
+     RowBox[{"All", ",", " ", "\"\<chord\>\""}], "]"}]}], "]"}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"Print", "[", 
+   RowBox[{"\"\<MIDI notes: \>\"", ",", " ", 
+    RowBox[{"cMajorProgression", "[", 
+     RowBox[{"All", ",", " ", "\"\<midiNotes\>\""}], "]"}]}], "]"}], 
+  ";"}]}], "Input",
+ CellChangeTimes->{{3.9057372835123067`*^9, 3.905737295312307*^9}},
+ CellLabel->"In[8]:=",ExpressionUUID->"h8i9j0k1-l2m3-n456-o789-p012345qrstu"],
+
+Cell[BoxData[{
+ RowBox[{"(*", " ", 
+  RowBox[{
+  "Generate", " ", "an", " ", "A", " ", "minor", " ", "progression"}], " ", 
+  "*)"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"aMinorProgression", " ", "=", " ", 
+   RowBox[{"generateProgression", "[", 
+    RowBox[{"\"\<Aeolian\>\"", ",", " ", "\"\<i\>\"", ",", " ", "4", ",", " ",
+      "57"}], "]"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"Print", "[", 
+   RowBox[{"\"\<\\nA Minor progression: \>\"", ",", " ", 
+    RowBox[{"aMinorProgression", "[", 
+     RowBox[{"All", ",", " ", "\"\<chord\>\""}], "]"}]}], "]"}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"Print", "[", 
+   RowBox[{"\"\<MIDI notes: \>\"", ",", " ", 
+    RowBox[{"aMinorProgression", "[", 
+     RowBox[{"All", ",", " ", "\"\<midiNotes\>\""}], "]"}]}], "]"}], 
+  ";"}]}], "Input",
+ CellChangeTimes->{{3.9057372835123067`*^9, 3.905737295312307*^9}},
+ CellLabel->"In[9]:=",ExpressionUUID->"i9j0k1l2-m3n4-o567-p890-q123456rstuv"]
+
+}, Open]]
