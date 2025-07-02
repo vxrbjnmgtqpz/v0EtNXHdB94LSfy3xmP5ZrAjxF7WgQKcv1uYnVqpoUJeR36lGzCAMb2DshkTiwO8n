@@ -52,6 +52,10 @@ class ConversationMemory:
     
     def store_context(self, session_id: str, response_data: Dict[str, Any]):
         """Store conversation context"""
+        print(f"DEBUG: Storing context for session {session_id}")
+        print(f"DEBUG: Response data keys: {list(response_data.keys())}")
+        print(f"DEBUG: Chords in response: {response_data.get('chords', [])}")
+        
         context = ConversationContext(
             last_response=response_data,
             last_progression=response_data.get('chords', []),
@@ -62,15 +66,23 @@ class ConversationMemory:
             timestamp=time.time()
         )
         self.sessions[session_id] = context
+        print(f"DEBUG: Stored progression: {context.last_progression}")
     
     def get_context(self, session_id: str) -> Optional[ConversationContext]:
         """Retrieve conversation context"""
+        print(f"DEBUG: Getting context for session {session_id}")
+        print(f"DEBUG: Available sessions: {list(self.sessions.keys())}")
+        
         context = self.sessions.get(session_id)
         if context and (time.time() - context.timestamp) < self.max_session_age:
+            print(f"DEBUG: Found valid context with progression: {context.last_progression}")
             return context
         elif context:
             # Clean up expired session
+            print(f"DEBUG: Context expired, cleaning up")
             del self.sessions[session_id]
+        else:
+            print(f"DEBUG: No context found for session")
         return None
     
     def cleanup_expired_sessions(self):
@@ -849,4 +861,4 @@ if __name__ == '__main__':
     print("  POST /chat/analyze   - Progression analysis")
     print()
     
-    app.run(debug=True, host='0.0.0.0', port=5002)
+    app.run(debug=True, host='0.0.0.0', port=5003)
