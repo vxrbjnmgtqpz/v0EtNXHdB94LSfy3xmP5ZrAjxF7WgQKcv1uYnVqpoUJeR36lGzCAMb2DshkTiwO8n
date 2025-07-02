@@ -23,7 +23,7 @@ NetworkConnectionPanel::NetworkConnectionPanel()
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_int_distribution<> dis(1000, 9999);
-    clientId = "MIDILink_" + std::to_string(dis(gen));
+    clientId = "TOASTer_" + std::to_string(dis(gen));
     
     // Initialize TOAST components
     clockArbiter = std::make_unique<TOAST::ClockDriftArbiter>();
@@ -216,8 +216,8 @@ void NetworkConnectionPanel::joinSessionClicked()
         if (sessionManager) {
             // Create client info for joining session
             TOAST::ClientInfo clientInfo;
-            clientInfo.clientId = "MIDILink_" + std::to_string(std::chrono::system_clock::now().time_since_epoch().count());
-            clientInfo.name = "MIDILink Client";
+            clientInfo.clientId = "TOASTer_" + std::to_string(std::chrono::system_clock::now().time_since_epoch().count());
+            clientInfo.name = "TOASTer Client";
             clientInfo.version = "1.0.0";
             clientInfo.capabilities = {"MIDI_IN", "MIDI_OUT", "CLOCK_SYNC"};
             clientInfo.connectTime = std::chrono::duration_cast<std::chrono::milliseconds>(
