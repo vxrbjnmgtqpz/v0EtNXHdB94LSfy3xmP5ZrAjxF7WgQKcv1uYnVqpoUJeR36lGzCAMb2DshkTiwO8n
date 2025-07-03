@@ -15,7 +15,7 @@ JAMNet is a comprehensive framework for streaming multimedia data over the inter
 **What started as MIDIp2p has evolved into the complete JAMNet ecosystem:**
 
 - **JSONMIDI Framework**: Ultra-low latency MIDI streaming (~50μs) with multicast JSONL
-- **JSONADAT Framework**: Professional audio streaming with JELLIE encoding (~200μs)
+- **JDAT Framework**: Professional audio streaming with JELLIE encoding (~200μs)
 - **JSONVID Framework**: Real-time video with JAMCam processing (~300μs)
 
 ## Why JSON? The Architecture Philosophy
@@ -115,7 +115,7 @@ JAMNet provides a **triple-stream architecture** that handles MIDI, audio, and v
 
 | **MIDI Stack**             | **Audio Stack**                 | **Video Stack**            |
 | -------------------------- | ------------------------------- | -------------------------- |
-| **JSONMIDI**               | **JSONADAT**                    | **JSONVID**                |
+| **JSONMIDI**               | **JDAT**                    | **JVID**                |
 | → Events & control data    | → PCM sample chunks (JELLIE)    | → Frame data (JAMCam)      |
 | → <30μs latency (compact)  | → <150μs latency (chunked)      | → <250μs latency (frames)  |
 | → PNTBTR fills lost events | → PNTBTR predicts waveform gaps | → PNTBTR motion prediction |
@@ -152,18 +152,18 @@ Each MIDI event transmitted as ultra-compact JSONL for maximum performance:
 - Session-based routing: `session://jam-session-1/midi`
 - Real-time pub/sub with lock-free subscriber management
 
-### JSONADAT: Audio Streaming Format with JSONL Chunking
+### JDAT: Audio Streaming Format with JSONL Chunking
 
 Each audio slice transmitted as JSONL with JELLIE encoding for efficient streaming:
 
 **Compact Audio JSONL:**
 
 ```jsonl
-{"t":"aud","id":"jsonadat","seq":142,"r":192000,"ch":0,"red":1,"d":[0.0012,0.0034,-0.0005]}
-{"t":"aud","id":"jsonadat","seq":143,"r":192000,"ch":1,"red":1,"d":[0.0015,0.0031,-0.0008]}
+{"t":"aud","id":"jdat","seq":142,"r":192000,"ch":0,"red":1,"d":[0.0012,0.0034,-0.0005]}
+{"t":"aud","id":"jdat","seq":143,"r":192000,"ch":1,"red":1,"d":[0.0015,0.0031,-0.0008]}
 ```
 
-**192kHz ADAT Strategy with JSONL:**
+**192kHz 4-Channel Strategy with JSONL:**
 
 - 4 parallel JSONL streams for 1 mono channel
 - Stream 0: even samples, Stream 1: odd samples (offset timing)
@@ -244,7 +244,7 @@ JAMNet Approach:  [ JSONL ] → [ UDP Multicast ] → [ PNTBTR prediction ] → 
 
 ```
 Application    →    JAMNet multimedia apps with multicast pub/sub
-Encoding      →    Compact JSONL: JSONMIDI / JSONADAT / JSONVID
+Encoding      →    Compact JSONL: JSONMIDI / JDAT / JVID
 Transport     →    TOAST (UDP Multicast, unified across domains)
 Recovery      →    PNTBTR (domain-specific prediction + redundancy)
 Clock Sync    →    Unified timestamp across all multicast streams
@@ -265,7 +265,7 @@ Distribution  →    Session-based multicast routing and subscriber management
 #### Enhanced Latency Targets (End-to-End over LAN with Multicast)
 
 - **JSONMIDI**: <30μs (compact JSONL events, CC, program changes)
-- **JSONADAT**: <150μs (192kHz audio with redundancy and JSONL chunking)
+- **JDAT**: <150μs (192kHz audio with redundancy and JSONL chunking)
 - **JSONVID**: <250μs (72p video with JAMCam processing and JSONL frames)
 - **Clock Synchronization**: <15μs deviation across all multicast streams
 - **Recovery Time**: <25μs for PNTBTR predictions with JSONL efficiency
@@ -298,7 +298,7 @@ JAMNet/
 │   ├── src/                      # Core implementation
 │   ├── examples/                 # MIDI streaming demos
 │   └── Initialization.md         # Complete JSON-MIDI mapping spec
-├── JSONADAT_Framework/           # Audio streaming with JELLIE
+├── JDAT_Framework/           # Audio streaming with JELLIE
 │   ├── include/                  # Audio encoders, ADAT simulation
 │   ├── src/                      # JELLIE implementation
 │   ├── examples/                 # Audio streaming demos
@@ -324,7 +324,7 @@ JAMNet/
 - **Enhanced BassoonParser** with streaming modes (SINGLE_JSON, JSONL_STREAM, COMPACT_JSONL)
 - MIDIp2p as proof of concept with <30μs compact parsing
 
-### Phase 2: UDP + Multicast JSONADAT Audio Streaming ✅ (Weeks 5-8)
+### Phase 2: UDP + Multicast JDAT Audio Streaming ✅ (Weeks 5-8)
 
 - **Enhanced JELLIE encoder/decoder** with JSONL chunking
 - 192kHz ADAT strategy implementation via multicast JSONL
@@ -375,7 +375,7 @@ JAMNet/
 1. Clone the JAMNet repository
 2. Review multimedia specifications:
    - JSONMIDI: `JSONMIDI_Framework/Initialization.md`
-   - JSONADAT: `JSONADAT_Framework/README.md`
+   - JDAT: `JDAT_Framework/README.md`
    - JSONVID: `JSONVID_Framework/README.md`
 3. Build and test individual frameworks
 4. Run examples for each multimedia domain

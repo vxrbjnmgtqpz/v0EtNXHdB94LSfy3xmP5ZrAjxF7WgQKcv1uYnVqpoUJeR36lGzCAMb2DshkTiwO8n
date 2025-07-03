@@ -1,4 +1,19 @@
-Absolutely — here’s the full concept of how `JSONADAT`, `JELLIE`, and your high-speed 192k strategy all tie together, with a structured breakdown and analogies to the MIDI side:
+Absolutely — here's the full concept of how `JDAT`, `JELLIE`, and your high-speed 192k strategy all tie together, with a structured breakdown and analogies to the MIDI side:
+
+---
+
+## 🧠 **System Overview**
+
+You're building a real-time audio+MIDI streaming protocol stack, optimized for ultra-low latency over LAN and metro-scale WAN. The protocol is split into two parallel systems:
+
+| MIDI Stack                 | Audio Stack                     |
+| -------------------------- | ------------------------------- |
+| **MIDIp2p**                | **JELLIE**                      |
+| → `JSONMIDI` format        | → `JDAT` format             |
+| → Sent over TOAST/UDP      | → Sent over TOAST/UDP           |
+| → PNTBTR fills lost events | → PNTBTR predicts waveform gaps |
+
+Both systems ride over **TOAST**, your custom UDP-based protocol, and both use **PNTBTR** as the fallback mechanism to smooth over data loss or jitter.e’s the full concept of how `JSONADAT`, `JELLIE`, and your high-speed 192k strategy all tie together, with a structured breakdown and analogies to the MIDI side:
 
 ---
 
@@ -24,7 +39,7 @@ Both systems ride over **TOAST**, your custom UDP-based protocol, and both use *
 JELLIE is the real-time **audio side** of your ecosystem. Its job:
 
 - Capture **mono PCM audio input**
-- Encode it into **JSONADAT** chunks
+- Encode it into **JDAT** chunks
 - Stream those chunks over TOAST (UDP-only)
 - Recover any dropped packets using **PNTBTR**
 
@@ -36,14 +51,14 @@ Unlike traditional ADAT or binary-based protocols, this system:
 
 ---
 
-## 🎛️ **JSONADAT Format**
+## 🎛️ **JDAT Format**
 
 Each audio slice is a JSON object that might look like:
 
 ```json
 {
   "type": "audio",
-  "id": "jsonadat",
+  "id": "jdat",
   "seq": 142,
   "rate": 96000,
   "channel": 0,
@@ -115,7 +130,7 @@ In `MIDIp2p`, it works at the **event/CC/message** level.
 | Property            | MIDI Stack                    | Audio Stack                         |
 | ------------------- | ----------------------------- | ----------------------------------- |
 | Transport           | `TOAST` (UDP)                 | `TOAST` (UDP)                       |
-| Packet Format       | `JSONMIDI`                    | `JSONADAT`                          |
+| Packet Format       | `JSONMIDI`                    | `JDAT`                          |
 | Recovery Layer      | `PNTBTR` (event smoothing)    | `PNTBTR` (waveform prediction)      |
 | Stream App          | `MIDIp2p`                     | `JELLIE`                            |
 | Stream Method       | Per-channel JSON over UDP     | Redundant mono JSON slices over UDP |
@@ -129,7 +144,7 @@ In `MIDIp2p`, it works at the **event/CC/message** level.
 
 - Finalize interleaved offset logic for `192k = 2x96k`
 - Build reconstructor for receiving end (merging/interpolating the staggered channels)
-- Expand JSONADAT to optionally include parity or predictive hints
+- Expand JDAT to optionally include parity or predictive hints
 - Optimize PNTBTR for waveform fluidity (lookahead blending, zero-crossing heuristics)
 
 Let me know if you want to dive deeper into the **reconstruction logic**, or if you're ready for the **JELLIE sender/receiver loop** scaffolds.

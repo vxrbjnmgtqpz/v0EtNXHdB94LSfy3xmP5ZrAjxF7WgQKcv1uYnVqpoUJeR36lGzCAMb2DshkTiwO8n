@@ -11,14 +11,14 @@ _Building the complete JSON-based audio+MIDI streaming ecosystem with multicast 
 **JAMNet** is a comprehensive real-time audio and MIDI streaming platform built on enhanced JSON-based protocols with **multicast JSONL streaming**. The system consists of two parallel streaming frameworks:
 
 - **MIDIp2p**: MIDI events and control data via **compact JSONMIDI format** with multicast distribution
-- **JELLIE**: Audio sample streaming via **enhanced JSONADAT format** with JSONL chunking
+- **JELLIE**: Audio sample streaming via **enhanced JDAT format** with JSONL chunking
 
 Both systems use the **enhanced TOAST (Transport Oriented Audio Synchronization Tunnel)** UDP-based multicast protocol with **PNTBTR (Predictive Network Temporal Buffered Transmission Recovery)** for musical continuity over packet loss.
 
 ### Current Scope: Enhanced Dual-Stream Architecture with Multicast
 
 - ✅ JSON-based MIDI protocol specification (JSONMIDI) **enhanced with compact JSONL**
-- ✅ JSON-based audio protocol specification (JSONADAT) **enhanced with JSONL chunking**
+- ✅ JSON-based audio protocol specification (JDAT) **enhanced with JSONL chunking**
 - ✅ **Multicast Bassoon.js fork** for ultra-low-latency JSONL parsing (<30μs)
 - 🔄 **UDP-based multicast synchronization tunnel** (Enhanced TOAST)
 - 🔄 **Enhanced musical prediction recovery system** (PNTBTR with JSONL efficiency)
@@ -72,24 +72,24 @@ Both systems use the **enhanced TOAST (Transport Oriented Audio Synchronization 
 {"t":"cc","n":74,"v":45,"c":1,"ts":1234569890}
 ```
 
-### 1.2 Enhanced JSONADAT Audio Format with JSONL Chunking
+### 1.2 Enhanced JDAT Audio Format with JSONL Chunking
 
 **Status: Specification Defined, JSONL Enhancement Needed**
 
-- [ ] Implement **enhanced JSONADAT sample chunk format** with JSONL support
+- [ ] Implement **enhanced JDAT sample chunk format** with JSONL support
 - [ ] Design 192kHz reconstruction from **JSONL offset channels**
 - [ ] Create redundancy and parity mechanisms via **multicast JSONL streams**
 - [ ] Build mono-focused precision encoding with **compact JSONL metadata**
 - [ ] Test ADAT channel utilization strategy with **multicast distribution**
 
-**Enhanced JSONADAT Structure:**
+**Enhanced JDAT Structure:**
 
 **Standard Format:**
 
 ```json
 {
   "type": "audio",
-  "id": "jsonadat",
+  "id": "jdat",
   "seq": 142,
   "rate": 96000,
   "channel": 0,
@@ -103,8 +103,8 @@ Both systems use the **enhanced TOAST (Transport Oriented Audio Synchronization 
 **Compact JSONL Format:**
 
 ```jsonl
-{"t":"aud","id":"jsonadat","seq":142,"r":192000,"ch":0,"red":1,"d":[0.0012,0.0034,-0.0005]}
-{"t":"aud","id":"jsonadat","seq":143,"r":192000,"ch":1,"red":1,"d":[0.0015,0.0031,-0.0008]}
+{"t":"aud","id":"jdat","seq":142,"r":192000,"ch":0,"red":1,"d":[0.0012,0.0034,-0.0005]}
+{"t":"aud","id":"jdat","seq":143,"r":192000,"ch":1,"red":1,"d":[0.0015,0.0031,-0.0008]}
 ```
 
 ### 1.3 Multicast Bassoon.js Fork Implementation

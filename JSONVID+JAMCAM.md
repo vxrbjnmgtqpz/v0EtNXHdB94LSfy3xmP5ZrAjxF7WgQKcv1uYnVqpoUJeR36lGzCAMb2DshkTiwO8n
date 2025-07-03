@@ -1,12 +1,12 @@
-## JSONVID + JAMCam Setup Instructions
+## JVID + JAMCam Setup Instructions
 
-This section outlines how to initialize and prepare the video stream layer for JAMNet using JSONVID and the JAMCam application module.
+This section outlines how to initialize and prepare the video stream layer for JAMNet using JVID and the JAMCam application module.
 
 ### Overview
 
-- **JSONVID** is the video counterpart to JSONADAT.
+- **JVID** is the video counterpart to JDAT.
 - It streams compressed visual data as JSON objects, frame-by-frame, prioritizing ultra-low latency over quality.
-- **JAMCam** is the app-layer interface responsible for capturing, encoding, decoding, and rendering video streams using JSONVID.
+- **JAMCam** is the app-layer interface responsible for capturing, encoding, decoding, and rendering video streams using JVID.
 
 ### 1. Requirements
 
