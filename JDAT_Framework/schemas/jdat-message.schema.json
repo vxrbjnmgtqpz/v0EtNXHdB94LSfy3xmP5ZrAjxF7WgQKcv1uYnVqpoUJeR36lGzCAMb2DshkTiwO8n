@@ -1,0 +1,301 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://jdat.org/schemas/jdat-message.schema.json",
+  "title": "JDAT Message Schema",
+  "description": "Schema for JDAT audio streaming messages in the JELLIE framework",
+  "type": "object",
+  "required": ["type", "id", "seq", "timestamp", "session_id", "message_id"],
+  "properties": {
+    "type": {
+      "type": "string",
+      "enum": [
+        "audio",
+        "handshake",
+        "heartbeat",
+        "error",
+        "control",
+        "stream_info",
+        "adat_sync"
+      ],
+      "description": "Type of JDAT message"
+    },
+    "id": {
+      "type": "string",
+      "const": "jdat",
+      "description": "Protocol identifier"
+    },
+    "seq": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 18446744073709551615,
+      "description": "Sequence number for message ordering"
+    },
+    "timestamp": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Timestamp in microseconds since epoch"
+    },
+    "session_id": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9-]{36}$",
+      "description": "UUID for the streaming session"
+    },
+    "message_id": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9-]{36}$",
+      "description": "Unique message identifier"
+    },
+    "data": {
+      "oneOf": [
+        {
+          "$ref": "#/definitions/audioData"
+        },
+        {
+          "$ref": "#/definitions/streamInfo"
+        },
+        {
+          "$ref": "#/definitions/controlData"
+        },
+        {
+          "$ref": "#/definitions/errorData"
+        },
+        {
+          "$ref": "#/definitions/heartbeatData"
+        },
+        {
+          "$ref": "#/definitions/adatSyncData"
+        }
+      ]
+    }
+  },
+  "definitions": {
+    "audioData": {
+      "type": "object",
+      "required": ["samples", "sample_rate", "channel", "frame_size"],
+      "properties": {
+        "samples": {
+          "type": "array",
+          "items": {
+            "type": "number",
+            "minimum": -1.0,
+            "maximum": 1.0
+          },
+          "minItems": 1,
+          "maxItems": 8192,
+          "description": "Array of 32-bit float audio samples (-1.0 to 1.0)"
+        },
+        "sample_rate": {
+          "type": "integer",
+          "enum": [48000, 96000, 192000],
+          "description": "Audio sample rate in Hz"
+        },
+        "channel": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 255,
+          "description": "Channel/stream identifier (0-255)"
+        },
+        "frame_size": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 8192,
+          "description": "Number of samples in this frame"
+        },
+        "redundancy_level": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 4,
+          "default": 1,
+          "description": "Redundancy factor for error recovery"
+        },
+        "is_interleaved": {
+          "type": "boolean",
+          "default": false,
+          "description": "True if this stream is interleaved for 192k simulation"
+        },
+        "offset_samples": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 0,
+          "description": "Sample offset for interleaved streams"
+        },
+        "adat_channel": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 3,
+          "description": "ADAT channel mapping (0-3)"
+        },
+        "quality": {
+          "type": "string",
+          "enum": ["high_precision", "standard", "compressed"],
+          "default": "high_precision",
+          "description": "Audio quality level"
+        }
+      }
+    },
+    "streamInfo": {
+      "type": "object",
+      "required": ["stream_id", "sample_rate", "quality"],
+      "properties": {
+        "stream_id": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Unique stream identifier"
+        },
+        "sample_rate": {
+          "type": "integer",
+          "enum": [48000, 96000, 192000],
+          "description": "Stream sample rate in Hz"
+        },
+        "quality": {
+          "type": "string",
+          "enum": ["high_precision", "standard", "compressed"],
+          "description": "Audio quality level"
+        },
+        "total_streams": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 4,
+          "default": 1,
+          "description": "Total number of parallel streams"
+        },
+        "use_adat_mapping": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether to use ADAT channel mapping strategy"
+        },
+        "buffer_size_ms": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000,
+          "default": 10,
+          "description": "Buffer size in milliseconds"
+        },
+        "enable_192k_mode": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable 192kHz simulation using interleaved streams"
+        }
+      }
+    },
+    "controlData": {
+      "type": "object",
+      "required": ["command"],
+      "properties": {
+        "command": {
+          "type": "string",
+          "enum": [
+            "start_stream",
+            "stop_stream",
+            "pause_stream",
+            "resume_stream",
+            "set_quality",
+            "set_buffer_size",
+            "enable_redundancy",
+            "sync_clocks",
+            "request_status"
+          ],
+          "description": "Control command"
+        },
+        "parameters": {
+          "type": "object",
+          "description": "Command-specific parameters",
+          "additionalProperties": true
+        }
+      }
+    },
+    "errorData": {
+      "type": "object",
+      "required": ["error_code", "message"],
+      "properties": {
+        "error_code": {
+          "type": "integer",
+          "minimum": 1000,
+          "maximum": 9999,
+          "description": "Numeric error code"
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512,
+          "description": "Human-readable error message"
+        },
+        "details": {
+          "type": "object",
+          "description": "Additional error details",
+          "additionalProperties": true
+        },
+        "recoverable": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether this error is recoverable"
+        }
+      }
+    },
+    "heartbeatData": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["online", "degraded", "recovering"],
+          "default": "online",
+          "description": "Current status of the sender"
+        },
+        "load_percentage": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Current system load percentage"
+        },
+        "buffer_fill": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Audio buffer fill percentage"
+        },
+        "packets_sent": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Total packets sent in this session"
+        },
+        "packets_lost": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Total packets lost in this session"
+        }
+      }
+    },
+    "adatSyncData": {
+      "type": "object",
+      "required": ["sync_word", "channels_active"],
+      "properties": {
+        "sync_word": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4294967295,
+          "description": "ADAT synchronization word"
+        },
+        "channels_active": {
+          "type": "array",
+          "items": {
+            "type": "boolean"
+          },
+          "minItems": 4,
+          "maxItems": 4,
+          "description": "Active status for each of the 4 ADAT channels"
+        },
+        "clock_source": {
+          "type": "string",
+          "enum": ["internal", "external", "word_clock"],
+          "default": "internal",
+          "description": "Clock synchronization source"
+        },
+        "sample_position": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Current sample position in the stream"
+        }
+      }
+    }
+  }
+}

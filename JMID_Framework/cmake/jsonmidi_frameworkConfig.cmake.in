@@ -1,0 +1,10 @@
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+find_dependency(nlohmann_json)
+find_dependency(simdjson)
+find_dependency(Threads)
+
+include("${CMAKE_CURRENT_LIST_DIR}/jsonmidi_frameworkTargets.cmake")
+
+check_required_components(jsonmidi_framework)
