@@ -21,6 +21,10 @@ JAMNet is a comprehensive framework for streaming multimedia data over the inter
 
 **What started as MIDIp2p has evolved into the complete JAMNet ecosystem:**
 
+- **JAM Framework**: Open source UDP GPU JSONL framework (TOAST-optimized fork of Bassoon.js)
+- **JAMer**: Proprietary JAMNet Studio LLC application of the JAM Framework
+- **TOAST Protocol**: Open source Transport Oriented Audio Sync Tunnel
+- **TOASTer App**: Open source TOAST protocol implementation and testing application
 - **JMID Framework**: Open source ultra-low latency MIDI streaming (~50μs) with multicast JSONL
 - **JDAT Framework**: Open source JSON as ADAT with GPU/memory mapped processing over TOAST (~200μs)
 - **JELLIE**: Proprietary JAMNet Studio LLC application of JDAT for single mono signal encoding
@@ -34,6 +38,9 @@ JAMNet is a comprehensive framework for streaming multimedia data over the inter
 
 | **Open Source Frameworks** | **Proprietary Applications** | **Purpose** |
 |---|---|---|
+| JAM Framework | **JAMer** | Core UDP GPU JSONL framework (TOAST-optimized Bassoon.js fork) |
+| TOAST Protocol | *(None - fully open)* | Transport Oriented Audio Sync Tunnel |
+| TOASTer App | *(None - fully open)* | TOAST protocol implementation/testing |
 | JMID Framework | *(None - fully open)* | MIDI streaming protocol |
 | JDAT Framework | **JELLIE** | Audio streaming (single mono signal) |
 | JVID Framework | **JAMCam** | Video streaming (face detection, auto-framing) |

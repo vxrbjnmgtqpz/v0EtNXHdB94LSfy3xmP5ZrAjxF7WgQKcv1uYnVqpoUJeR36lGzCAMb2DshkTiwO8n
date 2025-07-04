@@ -36,12 +36,16 @@ _Building the complete JSON-based audio+MIDI streaming ecosystem with GPU-accele
 The system consists of multiple parallel streaming frameworks:
 
 **Open Source Frameworks:**
+- **JAM Framework**: Core UDP GPU JSONL framework (TOAST-optimized fork of Bassoon.js)
+- **TOAST Protocol**: Transport Oriented Audio Sync Tunnel
+- **TOASTer App**: TOAST protocol implementation and testing application
 - **JMID Framework**: MIDI events and control data via **compact JMID format** with GPU parsing
 - **JDAT Framework**: Open source **JSON as ADAT** with GPU/memory mapped processing over **TOAST (Transport Oriented Audio Sync Tunnel)**
 - **JVID Framework**: Open source video streaming with direct pixel JSONL transmission
 - **PNBTR Framework**: Open source predictive neural buffered transient recovery (dither replacement)
 
 **Proprietary Applications:**
+- **JAMer**: Proprietary JAMNet Studio LLC application of the JAM Framework
 - **JELLIE (JAM Embedded Low-Latency Instrument Encoding)**: Proprietary JAMNet Studio LLC application of JDAT for **single mono signal** transmission. JELLIE divides mono audio into 4 simultaneous PCM JSONL streams (even/odd sample interleaving plus redundancy) modeled after ADAT protocol behavior, prioritizing redundancy over prediction for musical integrity in packet loss environments.
 - **JAMCam**: Proprietary JAMNet Studio LLC application of JVID with face detection, auto-framing, and lighting processing
 
