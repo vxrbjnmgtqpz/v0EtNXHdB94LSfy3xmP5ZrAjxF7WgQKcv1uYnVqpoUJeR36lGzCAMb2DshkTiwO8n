@@ -97,10 +97,12 @@ private:
 };
 
 int main(int argc, char* argv[]) {
-    int port = 8080;
+    int port = 8081; // Default to 8081 for UDP to avoid conflict with TCP
     if (argc > 1) {
         port = std::atoi(argv[1]);
     }
+    
+    std::cout << "🌐 This UDP server can be reached at: 192.168.1.188:" << port << std::endl;
     
     try {
         UDPServer server(port);

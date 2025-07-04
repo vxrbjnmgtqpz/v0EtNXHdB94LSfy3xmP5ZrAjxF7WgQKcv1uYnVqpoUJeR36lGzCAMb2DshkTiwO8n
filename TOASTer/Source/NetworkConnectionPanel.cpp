@@ -32,9 +32,15 @@ NetworkConnectionPanel::NetworkConnectionPanel()
     sessionManager = std::make_unique<TOAST::SessionManager>();
     
     // Set up title
-    titleLabel.setText("TOAST Network Connection", juce::dontSendNotification);
+    titleLabel.setText("🌐 TOAST Network Connection", juce::dontSendNotification);
     titleLabel.setFont(getEmojiCompatibleFont(16.0f));
     addAndMakeVisible(titleLabel);
+    
+    // Add network info label
+    networkInfoLabel.setText("💡 This computer: 192.168.1.188 | For server mode: run servers first", juce::dontSendNotification);
+    networkInfoLabel.setFont(getEmojiCompatibleFont(10.0f));
+    networkInfoLabel.setColour(juce::Label::textColourId, juce::Colours::lightblue);
+    addAndMakeVisible(networkInfoLabel);
     
     // Set up protocol label
     protocolLabel.setText("Protocol:", juce::dontSendNotification);
@@ -48,9 +54,9 @@ NetworkConnectionPanel::NetworkConnectionPanel()
     protocolSelector.setTextWhenNothingSelected("Protocol");
     addAndMakeVisible(protocolSelector);
     
-    // Set up IP address editor
-    ipAddressEditor.setText("127.0.0.1");
-    ipAddressEditor.setTextToShowWhenEmpty("IP Address", juce::Colours::grey);
+    // Set up IP address editor - clear default to force user to enter target IP
+    ipAddressEditor.setText("");
+    ipAddressEditor.setTextToShowWhenEmpty("Target Computer IP (e.g. 192.168.1.100)", juce::Colours::grey);
     addAndMakeVisible(ipAddressEditor);
     
     // Set up port editor  
@@ -109,6 +115,7 @@ void NetworkConnectionPanel::resized()
     auto bounds = getLocalBounds().reduced(10);
     
     titleLabel.setBounds(bounds.removeFromTop(25));
+    networkInfoLabel.setBounds(bounds.removeFromTop(15)); // Network info
     bounds.removeFromTop(5);
     
     // Protocol selector row
