@@ -58,6 +58,7 @@ endif()
 set(JAM_SOURCES
     src/core/jam_core.cpp
     src/core/udp_transport.cpp
+    src/core/gpu_backend.cpp
     src/core/message_router.cpp
     src/gpu/gpu_manager.cpp
     src/gpu/compute_pipeline.cpp
