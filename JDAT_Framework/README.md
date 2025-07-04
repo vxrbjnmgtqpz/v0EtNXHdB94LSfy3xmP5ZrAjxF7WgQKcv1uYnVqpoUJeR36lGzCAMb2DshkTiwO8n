@@ -88,7 +88,7 @@ JDAT_Framework/
 │   ├── JELLIEEncoder.h        # Audio encoder
 │   ├── JELLIEDecoder.h        # Audio decoder
 │   ├── ADATSimulator.h        # 192k ADAT strategy
-│   ├── WaveformPredictor.h    # PNTBTR implementation
+│   ├── WaveformPredictor.h    # PNBTR implementation
 │   ├── AudioBufferManager.h   # Lock-free audio buffering
 │   └── LockFreeQueue.h        # High-performance queues
 ├── src/                       # Implementation files
@@ -175,12 +175,12 @@ auto decoder = create192kDecoder();
 // The decoder reconstructs the full 192k signal
 ```
 
-### PNTBTR Recovery
+### PNBTR Recovery
 
 ```cpp
-// Decoder with PNTBTR enabled
+// Decoder with PNBTR enabled
 JELLIEDecoder::Config decoder_config;
-decoder_config.enable_pntbtr = true;
+decoder_config.enable_pnbtr = true;
 decoder_config.max_recovery_gap_ms = 20;  // Recover up to 20ms gaps
 
 auto decoder = std::make_unique<JELLIEDecoder>(decoder_config);
@@ -272,7 +272,7 @@ make test
 
 ```bash
 ./benchmarks/audio_encoding_benchmark
-./benchmarks/pntbtr_recovery_benchmark
+./benchmarks/pnbtr_recovery_benchmark
 ./benchmarks/network_simulation_benchmark
 ```
 
@@ -291,13 +291,13 @@ make test
 - [x] Core JDAT message format
 - [x] Basic JELLIE encoder/decoder
 - [x] ADAT simulator framework
-- [x] PNTBTR predictor structure
+- [x] PNBTR predictor structure
 - [x] Lock-free audio buffering
 
 ### Phase 2
 
 - [ ] Complete encoder/decoder implementation
-- [ ] PNTBTR algorithm implementation
+- [ ] PNBTR algorithm implementation
 - [ ] Network integration with TOAST
 - [ ] Comprehensive testing suite
 
@@ -316,7 +316,7 @@ JDAT is a core component of the JAMNet multimedia streaming ecosystem:
 | --------------- | --------------- | ------------------ |
 | **Protocol**    | JMID        | JDAT           |
 | **Transport**   | TOAST/UDP       | TOAST/UDP          |
-| **Recovery**    | PNTBTR (events) | PNTBTR (waveforms) |
+| **Recovery**    | PNBTR (events) | PNBTR (waveforms) |
 | **Application** | TOASTer         | JELLIE             |
 
 Both systems run simultaneously in JAMNet for complete audio+MIDI streaming.

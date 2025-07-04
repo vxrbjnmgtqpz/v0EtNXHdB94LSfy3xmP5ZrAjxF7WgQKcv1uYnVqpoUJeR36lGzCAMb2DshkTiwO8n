@@ -832,8 +832,8 @@ Frames are multicast using TOAST at up to 60fps with <50μs end-to-end latency (
 
 
 
-5.7 Recovery System: PNTBTR
-PNTBTR (Predictive Network Temporal Buffered Transmission Recovery) is an adaptive fallback strategy when all redundancy and throttling is exhausted.
+5.7 Recovery System: PNBTR
+PNBTR (Predictive Neural Buffered Transient Recovery) is an adaptive fallback strategy when all redundancy and throttling is exhausted.
 It follows three tiers:
 	1	Redundancy-first recovery via JDAT's backup streams 
 	2	Dynamic throttling down to 44.1kHz for audio (or lower frame rate for video) 

@@ -36,9 +36,9 @@ _Building the complete JSON-based audio+MIDI streaming ecosystem with GPU-accele
 The system consists of two parallel streaming frameworks:
 
 - **MIDIp2p**: MIDI events and control data via **compact JMID format** with GPU parsing
-- **JELLIE**: Audio sample streaming via **enhanced JDAT format** with GPU-accelerated JSONL chunking
+- **JELLIE (JAM Embedded Low-Latency Instrument Encoding)**: Professional audio streaming via **enhanced JDAT format** with GPU-accelerated JSONL chunking. JELLIE divides mono audio into 4 simultaneous PCM JSONL streams (even/odd sample interleaving plus redundancy) modeled after ADAT protocol behavior, prioritizing redundancy over prediction for musical integrity in packet loss environments.
 
-Both systems use **GPU-accelerated compute shaders** for parsing, prediction, and processing, with **UDP-based multicast TOAST protocol** and **GPU-native PNTBTR** for musical continuity.
+Both systems use **GPU-accelerated compute shaders** for parsing, prediction, and processing, with **UDP-based multicast TOAST protocol** and **GPU-native PNBTR** for musical continuity.
 
 ### Current Scope: GPU+UDP Native Architecture
 
@@ -47,7 +47,7 @@ Both systems use **GPU-accelerated compute shaders** for parsing, prediction, an
 - ✅ **Memory mapping infrastructure** established for GPU data sharing
 - 🔄 **UDP-first transport architecture** (Enhanced TOAST)
 - 🔄 **GPU compute shader framework** for JSONL processing
-- 🔄 **GPU-native PNTBTR prediction system** with ML inference
+- 🔄 **GPU-native PNBTR prediction system** with ML inference
 - ⏳ **JAM Framework (UDP GPU JSONL native TOAST optimized fork of Bassoon.js)** with compute shader integration
 - ⏳ **Real-time GPU-accelerated streaming** over UDP multicast
 
@@ -757,7 +757,7 @@ The result is not just better performance, but a completely new category of coll
 ### Revolutionary Development Team
 
 - **GPU Architect**: Compute shader development and GPU optimization (1 FTE)
-- **Audio Systems Engineer**: JDAT + PNTBTR + ML prediction integration (1 FTE) 
+- **Audio Systems Engineer**: JDAT + PNBTR + ML prediction integration (1 FTE) 
 - **Network Engineer**: UDP multicast + session management (1 FTE)
 - **Performance Engineer**: JAM.js fork + memory mapping optimization (1 FTE)
 - **Integration Engineer**: JUCE + production deployment + cross-platform (0.5 FTE)

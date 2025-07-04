@@ -292,6 +292,43 @@ Each audio slice transmitted as JSONL with JELLIE encoding for efficient streami
 - Streams 2-3: redundancy/parity for instant recovery
 - Pure JSONL throughout - no binary data, multicast distribution
 
+### JELLIE: JAM Embedded Low-Latency Instrument Encoding
+
+**JELLIE** is the core audio encoder used within JDAT for high-fidelity PCM streaming across 4 parallel multicast lines. Modeled after ADAT protocol behavior, JELLIE prioritizes redundancy over prediction to ensure musical integrity even in moderate packet loss environments.
+
+**JELLIE Architecture:**
+
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Mono Audio    │───▶│ JELLIE Encoder  │───▶│ 4 JSONL Streams │
+│ (Guitar/Vocal)  │    │                 │    │   (Multicast)   │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+                              │
+                              ▼
+                       ┌─────────────┐
+                       │ Stream 0:   │ Even samples (0,2,4,6...)
+                       │ Stream 1:   │ Odd samples  (1,3,5,7...)
+                       │ Stream 2:   │ Redundancy stream
+                       │ Stream 3:   │ Parity stream
+                       └─────────────┘
+```
+
+**JELLIE Features:**
+
+- **Time-interleaved encoding**: Even/odd sample distribution across parallel streams
+- **Embedded timing & channel data**: Self-contained JSONL packets with timing metadata
+- **Immediate failover recovery**: Redundancy streams enable zero-latency packet recovery
+- **Studio-quality transmission**: Sustained high-fidelity mono transmission for instruments
+- **Zero packet recovery logic**: When packets are lost, receiver reconstructs from redundancy or calls PNBTR for neural prediction
+- **ADAT-inspired protocol**: Professional audio industry standard adapted for JSONL/multicast
+
+**JELLIE Use Cases:**
+
+- **Guitar amplifier streaming**: Direct instrument capture with studio latency
+- **Vocal recording**: High-fidelity microphone signals over network
+- **Mono instrument feeds**: Bass, keyboards, horn sections, percussion
+- **Professional audio production**: Network-distributed recording sessions
+
 ### JVID: Video Streaming Format with Direct JSONL
 
 Each video frame transmitted as compact JSONL with direct pixel data for maximum efficiency:

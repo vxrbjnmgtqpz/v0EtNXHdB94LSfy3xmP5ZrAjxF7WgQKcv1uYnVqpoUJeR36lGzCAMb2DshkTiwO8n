@@ -9,7 +9,7 @@
 namespace jdat {
 
 /**
- * @brief PNTBTR (Predictive Network Temporal Buffered Transmission Recovery) waveform predictor
+ * @brief PNBTR (Predictive Neural Buffered Transient Recovery) waveform predictor
  * 
  * This class implements intelligent audio waveform prediction for recovering missing audio segments
  * when packets are lost or delayed in network transmission.

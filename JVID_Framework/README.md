@@ -235,7 +235,7 @@ config.sync_tolerance_us = 1000;                  // Sync tolerance window
 4. **Packetize**: JSON message construction with timing metadata
 5. **Transmit**: TOAST transport protocol over UDP
 6. **Receive**: Message validation and parsing
-7. **Recover**: PNTBTR prediction for missing frames
+7. **Recover**: PNBTR prediction for missing frames
 8. **Decode**: Frame reconstruction and format conversion
 9. **Display**: Render to screen/canvas with A/V sync
 
