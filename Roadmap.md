@@ -5,7 +5,7 @@
 - ✅ **Memory mapping infrastructure** established for GPU data sharing
 - 🔄 **UDP-first transport architecture** (Enhanced TOAST)
 - 🔄 **GPU compute shader framework** for JSONL processing
-- 🔄 **GPU-native PNBTR prediction system** with ML inference ✅ **11 Metal shaders complete**
+- 🔄 **GPU-native PNBTR prediction system** with ML inference ✅ **11 Metal + 11 GLSL shaders complete**
 - ⏳ **JAM.js (GPU-enabled Bassoon.js fork)** for client-side processing### Revolutionary Development Team
 
 - **GPU Architect**: Compute shader development and GPU optimization (1 FTE)
@@ -383,6 +383,9 @@ public:
 
 **✅ COMPLETE: Full Metal Shading Language Implementation**
 
+**Cross-Platform GPU Shader Implementation:**
+
+**Metal Shaders (macOS):**
 - [x] **`pnbtr_predict.metal`**: Core neural prediction with contextual extrapolation up to 50ms
 - [x] **`envelope_track.metal`**: Amplitude curve tracking and ADSR modeling  
 - [x] **`pitch_cycle.metal`**: Autocorrelation pitch detection and phase tracking
@@ -395,7 +398,20 @@ public:
 - [x] **`pntbtr_confidence.metal`**: Prediction quality assessment and confidence scoring
 - [x] **`pnbtr_master.metal`**: Multi-model blending and final output generation
 
-**Status: 11 specialized Metal compute kernels implemented for Apple Silicon GPU acceleration**
+**GLSL Compute Shaders (Linux):**
+- [x] **`pnbtr_predict.glsl`**: Core neural prediction with contextual extrapolation up to 50ms
+- [x] **`envelope_track.glsl`**: Amplitude curve tracking and ADSR modeling  
+- [x] **`pitch_cycle.glsl`**: Autocorrelation pitch detection and phase tracking
+- [x] **`lpc_model.glsl`**: Linear predictive coding with Levinson-Durbin algorithm
+- [x] **`spectral_extrap.glsl`**: FFT-based harmonic continuation and spectral shaping
+- [x] **`formant_model.glsl`**: Vowel/instrument formant tracking and synthesis
+- [x] **`analog_model.glsl`**: Analog saturation and smoothing simulation
+- [x] **`microdynamic.glsl`**: Sub-sample modulation and texture reintroduction
+- [x] **`rnn_residual.glsl`**: Neural network residual correction application
+- [x] **`pntbtr_confidence.glsl`**: Prediction quality assessment and confidence scoring
+- [x] **`pnbtr_master.glsl`**: Multi-model blending and final output generation
+
+**Status: 22 specialized GPU compute kernels implemented for cross-platform acceleration**
 
 ### 4.2.1 PNBTR Waveform Modeling Methodologies
 

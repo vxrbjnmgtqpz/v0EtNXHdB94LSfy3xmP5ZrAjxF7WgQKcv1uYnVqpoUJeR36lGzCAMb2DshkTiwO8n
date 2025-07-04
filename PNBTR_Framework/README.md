@@ -93,26 +93,30 @@ PNBTR completely eliminates traditional noise-based dithering, replacing it with
 - Versioned model deployment
 
 ### 3. GPU Shaders (`shaders/`)
-**Complete Metal Shading Language Implementation - 11 Specialized Kernels:**
+**Cross-Platform GPU Implementation - 11 Specialized Kernels per Platform:**
+
+#### **Platform Support**
+- **Metal Shaders** (`shaders/metal/`) - macOS (Apple Silicon & Intel)
+- **GLSL Compute Shaders** (`shaders/glsl/`) - Linux & OpenGL platforms
 
 #### **Core Prediction Shaders**
-- `pnbtr_predict.metal` - Main prediction engine with 50ms extrapolation
-- `envelope_track.metal` - Amplitude curve tracking and ADSR modeling  
-- `pitch_cycle.metal` - Autocorrelation pitch detection and phase tracking
-- `lpc_model.metal` - Linear predictive coding with Levinson-Durbin algorithm
+- `pnbtr_predict` - Main prediction engine with 50ms extrapolation
+- `envelope_track` - Amplitude curve tracking and ADSR modeling  
+- `pitch_cycle` - Autocorrelation pitch detection and phase tracking
+- `lpc_model` - Linear predictive coding with Levinson-Durbin algorithm
 
 #### **Advanced Analysis Shaders**
-- `spectral_extrap.metal` - FFT-based harmonic continuation and spectral shaping
-- `formant_model.metal` - Vowel/instrument formant tracking and synthesis
-- `analog_model.metal` - Analog saturation and smoothing simulation
-- `microdynamic.metal` - Sub-sample modulation and texture reintroduction
+- `spectral_extrap` - FFT-based harmonic continuation and spectral shaping
+- `formant_model` - Vowel/instrument formant tracking and synthesis
+- `analog_model` - Analog saturation and smoothing simulation
+- `microdynamic` - Sub-sample modulation and texture reintroduction
 
 #### **Integration & Quality Shaders**
-- `rnn_residual.metal` - Neural network residual correction application
-- `pntbtr_confidence.metal` - Prediction quality assessment and confidence scoring
-- `pnbtr_master.metal` - Multi-model blending and final output generation
+- `rnn_residual` - Neural network residual correction application
+- `pntbtr_confidence` - Prediction quality assessment and confidence scoring
+- `pnbtr_master` - Multi-model blending and final output generation
 
-**All shaders optimized for Apple Silicon Metal 2.3+ with threadgroup synchronization**
+**Complete parallel hybrid architecture with threadgroup synchronization across platforms**
 
 ### 4. Integration Interface (`pnbtr_interface.cpp`)
 - JAM Framework integration
