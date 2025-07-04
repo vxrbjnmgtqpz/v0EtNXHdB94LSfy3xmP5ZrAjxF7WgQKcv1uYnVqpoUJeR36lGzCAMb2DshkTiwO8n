@@ -158,7 +158,7 @@ TransportController::TransportController()
     addAndMakeVisible(recordButton);
     
     // Set up labels
-    sessionTimeLabel.setText("SESSION TIME: 00:00:00", juce::dontSendNotification);
+    sessionTimeLabel.setText("SESSION TIME: 00:00:00.000.000", juce::dontSendNotification);
     sessionTimeLabel.setJustificationType(juce::Justification::centred);
     sessionTimeLabel.setFont(getEmojiCompatibleFont(14.0f, true));
     sessionTimeLabel.setColour(juce::Label::textColourId, juce::Colours::lightyellow);
@@ -198,7 +198,7 @@ void TransportController::resized()
     bounds.removeFromLeft(25); // larger spacing
     
     // Session time in the middle
-    auto labelWidth = 160;
+    auto labelWidth = 220; // Increased width for microsecond precision
     sessionTimeLabel.setBounds(bounds.removeFromLeft(labelWidth).removeFromTop(buttonHeight));
     
     bounds.removeFromLeft(25); // spacing
@@ -211,6 +211,13 @@ void TransportController::playButtonClicked()
 {
     isPlaying = !isPlaying;
     playButton.setToggleState(isPlaying, juce::dontSendNotification);
+    
+    if (isPlaying) {
+        startTransport();
+    } else {
+        stopTimer(); // Pause the transport
+    }
+    
     updateDisplay();
 }
 
@@ -220,6 +227,7 @@ void TransportController::stopButtonClicked()
     isRecording = false;
     playButton.setToggleState(false, juce::dontSendNotification);
     recordButton.setToggleState(false, juce::dontSendNotification);
+    stopTransport();
     updateDisplay();
 }
 
@@ -230,8 +238,50 @@ void TransportController::recordButtonClicked()
     updateDisplay();
 }
 
+void TransportController::startTransport()
+{
+    transportStartTime = std::chrono::high_resolution_clock::now();
+    startTimer(16); // Update display at ~60 FPS for smooth microsecond display
+}
+
+void TransportController::stopTransport()
+{
+    stopTimer();
+    currentPosition = std::chrono::microseconds{0}; // Reset to beginning
+}
+
+void TransportController::timerCallback()
+{
+    if (isPlaying) {
+        auto now = std::chrono::high_resolution_clock::now();
+        currentPosition = std::chrono::duration_cast<std::chrono::microseconds>(
+            now - transportStartTime);
+        updateDisplay();
+    }
+}
+
 void TransportController::updateDisplay()
 {
-    // This would update the time and bars/beats display
-    // For now just placeholder
+    // Update session time display with microsecond precision
+    auto totalMicroseconds = currentPosition.count();
+    auto hours = totalMicroseconds / 3600000000LL;
+    auto minutes = (totalMicroseconds % 3600000000LL) / 60000000LL;
+    auto seconds = (totalMicroseconds % 60000000LL) / 1000000LL;
+    auto milliseconds = (totalMicroseconds % 1000000LL) / 1000LL;
+    auto microseconds = totalMicroseconds % 1000LL;
+    
+    auto timeString = juce::String::formatted("SESSION TIME: %02d:%02d:%02d.%03d.%03d", 
+                                            (int)hours, (int)minutes, (int)seconds, 
+                                            (int)milliseconds, (int)microseconds);
+    sessionTimeLabel.setText(timeString, juce::dontSendNotification);
+    
+    // Update bars/beats display (4/4 time) - convert microseconds to seconds for calculation
+    double totalSeconds = totalMicroseconds / 1000000.0;
+    double totalBeats = totalSeconds * (bpm / 60.0);
+    int bars = (int)(totalBeats / beatsPerBar) + 1;  // 1-based
+    int beats = (int)(totalBeats) % beatsPerBar + 1; // 1-based
+    int ticks = (int)((totalBeats - (int)totalBeats) * 96); // 96 ticks per beat
+    
+    auto barsBeatsString = juce::String::formatted("BARS: %d.%d.%03d", bars, beats, ticks);
+    barsBeatsLabel.setText(barsBeatsString, juce::dontSendNotification);
 }

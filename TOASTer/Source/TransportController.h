@@ -1,6 +1,7 @@
 #pragma once
 
 #include <juce_gui_basics/juce_gui_basics.h>
+#include <chrono>
 
 //==============================================================================
 class TransportButton : public juce::Button
@@ -18,7 +19,7 @@ private:
 };
 
 //==============================================================================
-class TransportController : public juce::Component
+class TransportController : public juce::Component, public juce::Timer
 {
 public:
     TransportController();
@@ -26,6 +27,7 @@ public:
 
     void paint (juce::Graphics&) override;
     void resized() override;
+    void timerCallback() override;
 
 private:
     void playButtonClicked();
@@ -33,6 +35,8 @@ private:
     void recordButtonClicked();
     
     void updateDisplay();
+    void startTransport();
+    void stopTransport();
     
     TransportButton playButton;
     TransportButton stopButton;
@@ -42,6 +46,15 @@ private:
     
     bool isPlaying = false;
     bool isRecording = false;
+    
+    // Transport timing
+    std::chrono::high_resolution_clock::time_point transportStartTime;
+    std::chrono::microseconds currentPosition{0};
+    
+    // Musical timing (4/4 time, 120 BPM default)
+    double bpm = 120.0;
+    int beatsPerBar = 4;
+    int subdivisions = 4; // quarter notes
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (TransportController)
 };
