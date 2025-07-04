@@ -33,13 +33,19 @@ _Building the complete JSON-based audio+MIDI streaming ecosystem with GPU-accele
 
 **JAMNet** is a comprehensive real-time audio and MIDI streaming platform built on **GPU-accelerated JSON protocols** with **UDP-native multicast streaming**. The system leverages graphics processing units as structured data co-processors, recognizing that JSONL is fundamentally structured memory that GPUs excel at processing.
 
-The system consists of two parallel streaming frameworks:
+The system consists of multiple parallel streaming frameworks:
 
-- **MIDIp2p**: MIDI events and control data via **compact JMID format** with GPU parsing
+**Open Source Frameworks:**
+- **JMID Framework**: MIDI events and control data via **compact JMID format** with GPU parsing
 - **JDAT Framework**: Open source **JSON as ADAT** with GPU/memory mapped processing over **TOAST (Transport Oriented Audio Sync Tunnel)**
-- **JELLIE (JAM Embedded Low-Latency Instrument Encoding)**: Proprietary JAMNet Studio LLC application of JDAT for **single mono signal** transmission. JELLIE divides mono audio into 4 simultaneous PCM JSONL streams (even/odd sample interleaving plus redundancy) modeled after ADAT protocol behavior, prioritizing redundancy over prediction for musical integrity in packet loss environments.
+- **JVID Framework**: Open source video streaming with direct pixel JSONL transmission
+- **PNBTR Framework**: Open source predictive neural buffered transient recovery (dither replacement)
 
-Both systems use **GPU-accelerated compute shaders** for parsing, prediction, and processing, with **UDP-based multicast TOAST protocol** and **GPU-native PNBTR** for musical continuity.
+**Proprietary Applications:**
+- **JELLIE (JAM Embedded Low-Latency Instrument Encoding)**: Proprietary JAMNet Studio LLC application of JDAT for **single mono signal** transmission. JELLIE divides mono audio into 4 simultaneous PCM JSONL streams (even/odd sample interleaving plus redundancy) modeled after ADAT protocol behavior, prioritizing redundancy over prediction for musical integrity in packet loss environments.
+- **JAMCam**: Proprietary JAMNet Studio LLC application of JVID with face detection, auto-framing, and lighting processing
+
+All systems use **GPU-accelerated compute shaders** for parsing, prediction, and processing, with **UDP-based multicast TOAST protocol** and **GPU-native PNBTR** for musical continuity.
 
 ### Current Scope: GPU+UDP Native Architecture
 

@@ -21,10 +21,23 @@ JAMNet is a comprehensive framework for streaming multimedia data over the inter
 
 **What started as MIDIp2p has evolved into the complete JAMNet ecosystem:**
 
-- **JMID Framework**: Ultra-low latency MIDI streaming (~50μs) with multicast JSONL
+- **JMID Framework**: Open source ultra-low latency MIDI streaming (~50μs) with multicast JSONL
 - **JDAT Framework**: Open source JSON as ADAT with GPU/memory mapped processing over TOAST (~200μs)
 - **JELLIE**: Proprietary JAMNet Studio LLC application of JDAT for single mono signal encoding
-- **JVID Framework**: Real-time video with JAMCam processing (~300μs)
+- **JVID Framework**: Open source real-time video streaming framework (~300μs)
+- **JAMCam**: Proprietary JAMNet Studio LLC application of JVID with face detection, auto-framing, and lighting processing
+- **PNBTR**: Open source predictive neural buffered transient recovery (revolutionary dither replacement)
+
+### Open Source vs Proprietary Architecture
+
+**JAMNet follows a clear separation between open source frameworks and proprietary applications:**
+
+| **Open Source Frameworks** | **Proprietary Applications** | **Purpose** |
+|---|---|---|
+| JMID Framework | *(None - fully open)* | MIDI streaming protocol |
+| JDAT Framework | **JELLIE** | Audio streaming (single mono signal) |
+| JVID Framework | **JAMCam** | Video streaming (face detection, auto-framing) |
+| PNBTR Framework | *(None - fully open)* | Dither replacement technology |
 
 ## Why JSON? The Architecture Philosophy
 
@@ -334,9 +347,9 @@ Each audio slice transmitted as JSONL with JELLIE encoding for efficient streami
 - **Mono instrument feeds**: Bass, keyboards, horn sections, percussion
 - **Professional audio production**: Network-distributed recording sessions
 
-### JVID: Video Streaming Format with Direct JSONL
+### JVID Framework: Open Source Video Streaming (Direct JSONL)
 
-Each video frame transmitted as compact JSONL with direct pixel data for maximum efficiency:
+**JVID** is the open source framework for video streaming with direct pixel data transmission. Each video frame is transmitted as compact JSONL without base64 overhead for maximum efficiency.
 
 **Direct Video JSONL (no base64 overhead):**
 
@@ -345,7 +358,9 @@ Each video frame transmitted as compact JSONL with direct pixel data for maximum
 {"t":"vid","id":"jvid","seq":90,"res":"LOW_300x400","fps":60,"w":300,"h":400,"fmt":"rgb24","d":[254,129,63,254,131,64...]}
 ```
 
-**JAMCam Processing with Direct Pixel Data:**
+### JAMCam: Proprietary Video Processing Application
+
+**JAMCam** is JAMNet Studio LLC's proprietary application of the JVID framework, adding intelligent video processing features:
 
 - Face detection and auto-framing metadata in JSONL
 - Adaptive lighting normalization values  
