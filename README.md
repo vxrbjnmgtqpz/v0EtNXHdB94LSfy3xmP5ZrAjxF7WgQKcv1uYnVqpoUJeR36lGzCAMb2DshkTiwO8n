@@ -155,9 +155,9 @@ JAMNet provides a **triple-stream architecture** that handles MIDI, audio, and v
 | → Sent over TOAST/UDP      | → Sent over TOAST/UDP           | → Sent over TOAST/UDP      |
 | → **Multicast JSONL**      | → **Multicast JSONL**           | → **Multicast JSONL**      |
 
-### JMID: Enhanced with Compact JSONL Format
+### JMID: Fire-and-Forget Burst Logic with Redundant JSONL
 
-Each MIDI event transmitted as ultra-compact JSONL for maximum performance:
+Each MIDI event transmitted with intelligent burst redundancy for ultra-reliable fire-and-forget UDP streaming:
 
 **Standard JSON Format:**
 
@@ -171,13 +171,22 @@ Each MIDI event transmitted as ultra-compact JSONL for maximum performance:
 }
 ```
 
-**Compact JSONL Format (67% smaller):**
+**JMID Redundant Burst JSONL Format:**
 
 ```jsonl
-{"t":"n+","n":60,"v":100,"c":1,"ts":1234567890}
-{"t":"n-","n":60,"v":0,"c":1,"ts":1234568890}
-{"t":"cc","n":74,"v":45,"c":1,"ts":1234569890}
+{"t":"mid","id":"jmid","msg":{"type":"note_on","channel":1,"note":60,"velocity":120},"ts":1680549112.429381,"burst":0,"burst_id":"a4f3kX8Z","repeat":3,"origin":"JAMBox-01"}
+{"t":"mid","id":"jmid","msg":{"type":"note_on","channel":1,"note":60,"velocity":120},"ts":1680549112.429581,"burst":1,"burst_id":"a4f3kX8Z","repeat":3,"origin":"JAMBox-01"}
+{"t":"mid","id":"jmid","msg":{"type":"note_on","channel":1,"note":60,"velocity":120},"ts":1680549112.429781,"burst":2,"burst_id":"a4f3kX8Z","repeat":3,"origin":"JAMBox-01"}
 ```
+
+**Fire-and-Forget Burst Strategy:**
+
+- **Redundant Transmission**: 3-5 identical messages per MIDI event with unique `burst_id`
+- **Micro-Jittered Timing**: Bursts spread across 0.5ms window to avoid synchronized packet loss
+- **Zero Retransmission**: Never wait for ACKs or retry - maintain musical timing above all
+- **Deduplication**: Receiver collapses matching `burst_id` into single MIDI event
+- **66% Loss Tolerance**: Musical continuity maintained even with 2/3 packet loss
+- **Sub-millisecond Accuracy**: All burst packets transmitted within 1ms window
 
 **Multicast Distribution:**
 
@@ -289,16 +298,17 @@ Distribution  →    Session-based multicast routing and subscriber management
 
 #### Enhanced Latency Targets (End-to-End over LAN with Multicast)
 
-- **JMID**: <30μs (compact JSONL events, CC, program changes)
+- **JMID**: <30μs (fire-and-forget burst events with redundancy deduplication)
 - **JDAT**: <150μs (192kHz audio with redundancy and JSONL chunking)
-- **JVID**: <250μs (72p video with JAMCam processing and JSONL frames)
+- **JVID**: <250μs (direct pixel video with JAMCam processing and JSONL frames)
 - **Clock Synchronization**: <15μs deviation across all multicast streams
 - **Recovery Time**: <25μs for PNBTR neural reconstruction with JSONL efficiency
 - **Multicast Overhead**: <5μs additional latency per subscriber
+- **JMID Burst Processing**: <50μs deduplication across 3-5 redundant packets
 
 #### Enhanced Throughput Capabilities
 
-- **MIDI Events**: 100,000+ events/second via compact JSONL
+- **MIDI Events**: 100,000+ events/second via burst-redundant JSONL with 66% loss tolerance
 - **Audio Samples**: 192kHz × 8 channels × redundancy with JSONL compression
 - **Video Frames**: 60fps at multiple resolutions simultaneously via JSONL
 - **Concurrent Clients**: 64+ simultaneous multimedia connections via multicast

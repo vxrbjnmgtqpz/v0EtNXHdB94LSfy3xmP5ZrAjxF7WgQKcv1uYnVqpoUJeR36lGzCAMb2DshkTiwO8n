@@ -139,17 +139,63 @@ This approach eliminates Windows-specific driver compatibility issues while prov
 [4 bytes: CRC32 Checksum]
 ```
 
-### 1.3 Basic UDP Performance Validation
+### 1.3 JMID Burst Logic for Fire-and-Forget Reliability
+
+**Status: Revolutionary Redundant Transmission Without Retries**
+
+- [ ] Implement **redundant burst transmission** (3-5 packets per MIDI event)
+- [ ] Create **micro-jittered timing** (0.5ms burst window) to avoid synchronized loss
+- [ ] Build **burst deduplication** system using unique `burst_id` per logical event
+- [ ] Add **66% packet loss tolerance** while maintaining musical timing
+- [ ] Design **adaptive burst sizing** based on network conditions
+
+**JMID Burst Architecture:**
+
+```cpp
+class JMIDBurstTransmitter {
+public:
+    // Fire-and-forget burst transmission
+    void sendMIDIEvent(const MIDIEvent& event, int burstSize = 3);
+    void transmitBurst(const std::string& burstId, 
+                      const MIDIEvent& event, 
+                      float jitterWindowMs = 0.5f);
+    
+    // Adaptive burst management
+    void adjustBurstSize(float packetLossRate);
+    void optimizeBurstTiming(const NetworkConditions& conditions);
+};
+
+class JMIDBurstReceiver {
+public:
+    // Deduplication and event reconstruction
+    bool processBurstPacket(const JMIDPacket& packet);
+    MIDIEvent extractCanonicalEvent(const std::string& burstId);
+    
+    // Loss tolerance
+    void setAcceptanceThreshold(float minBurstRatio = 0.33f);
+    void cleanupExpiredBursts(uint32_t timeoutMs = 5);
+};
+```
+
+**Burst Performance Targets:**
+- **Transmission Window**: All burst packets sent within 1ms
+- **Deduplication Latency**: <50μs burst processing on GPU
+- **Loss Tolerance**: Musical continuity with 66% packet loss
+- **Timing Accuracy**: Sub-millisecond precision maintained across bursts
+
+### 1.4 Basic UDP Performance Validation
 
 **Goals:**
 - [ ] UDP replaces TCP in all current streaming paths
 - [ ] Session-aware multicast pub/sub operational
+- [ ] JMID burst logic operational with configurable redundancy
 - [ ] Packet loss handled gracefully (drops data, no recovery yet)
 - [ ] Performance baseline with UDP vs TCP measured
 
 **Deliverables:**
 - `toast::UDPTransmitter` and `toast::Receiver` classes
 - Session-based routing (`SessionRegistry`)
+- JMID burst transmission and deduplication systems
 - Packet loss simulation and measurement tools
 - UDP performance metrics vs TCP baseline
 
@@ -174,9 +220,10 @@ This approach eliminates Windows-specific driver compatibility issues while prov
 **Status: Foundation Shaders for JSONL Processing**
 
 - [ ] **`jsonl_parse.glsl`**: Parallel parsing of JSONL lines into structs
+- [ ] **`jmid_burst_dedupe.glsl`**: GPU-accelerated burst deduplication and event reconstruction
 - [ ] **`pcm_repair.glsl`**: Vector operations for audio sample processing
 - [ ] **`timewarp.glsl`**: Timestamp normalization and tempo alignment
-- [ ] **`midi_schedule.glsl`**: Parallel event scheduling and time-warping
+- [ ] **`midi_schedule.glsl`**: Parallel event scheduling and time-warping with burst awareness
 - [ ] **`session_filter.glsl`**: Multi-session routing and filtering
 
 ### 2.3 GPU-Accelerated JSONL Parser
@@ -448,17 +495,17 @@ public:
 
 ## Revolutionary Technical Milestones & Success Criteria
 
-### Milestone 1: UDP Foundation (Week 3)
+### Milestone 1: UDP Foundation with JMID Burst Logic (Week 3)
 - **Criteria**: TCP completely replaced with UDP multicast across all streams
-- **Test**: Multi-client session with 5% simulated packet loss
-- **Verification**: Musical continuity maintained, latency reduced 50% vs TCP
-- **Success**: Session-based routing operational, packet loss measured
+- **Test**: Multi-client session with 5% simulated packet loss using JMID burst redundancy
+- **Verification**: Musical continuity maintained with burst deduplication, latency reduced 50% vs TCP
+- **Success**: Session-based routing operational, JMID burst logic handles 66% packet loss gracefully
 
-### Milestone 2: GPU Processing Proof (Week 7)  
+### Milestone 2: GPU Processing with JMID Burst Deduplication (Week 7)  
 - **Criteria**: GPU parses 10,000+ JSONL lines simultaneously with <10μs per line
-- **Test**: Memory-mapped JSONL stream fed directly to GPU compute shaders
-- **Verification**: 10x performance improvement vs CPU baseline demonstrated
-- **Success**: Foundation ready for JAM.js fork with GPU-first design
+- **Test**: Memory-mapped JSONL stream with JMID burst packets fed directly to GPU compute shaders
+- **Verification**: 10x performance improvement vs CPU baseline, <50μs burst deduplication on GPU
+- **Success**: Foundation ready for JAM Framework with GPU-first design and burst processing
 
 ### Milestone 3: JAM Framework GPU-Native Parser (Week 10)
 - **Criteria**: GPU-native parser achieves 80-90% latency reduction vs CPU
