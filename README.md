@@ -22,7 +22,8 @@ JAMNet is a comprehensive framework for streaming multimedia data over the inter
 **What started as MIDIp2p has evolved into the complete JAMNet ecosystem:**
 
 - **JMID Framework**: Ultra-low latency MIDI streaming (~50μs) with multicast JSONL
-- **JDAT Framework**: Professional audio streaming with JELLIE encoding (~200μs)
+- **JDAT Framework**: Open source JSON as ADAT with GPU/memory mapped processing over TOAST (~200μs)
+- **JELLIE**: Proprietary JAMNet Studio LLC application of JDAT for single mono signal encoding
 - **JVID Framework**: Real-time video with JAMCam processing (~300μs)
 
 ## Why JSON? The Architecture Philosophy
@@ -292,16 +293,20 @@ Each audio slice transmitted as JSONL with JELLIE encoding for efficient streami
 - Streams 2-3: redundancy/parity for instant recovery
 - Pure JSONL throughout - no binary data, multicast distribution
 
-### JELLIE: JAM Embedded Low-Latency Instrument Encoding
+### JDAT Framework: JSON as ADAT (Open Source)
 
-**JELLIE** is the core audio encoder used within JDAT for high-fidelity PCM streaming across 4 parallel multicast lines. Modeled after ADAT protocol behavior, JELLIE prioritizes redundancy over prediction to ensure musical integrity even in moderate packet loss environments.
+**JDAT (JSON as ADAT)** is the open source framework providing GPU/memory mapped processing over **TOAST (Transport Oriented Audio Sync Tunnel)**. JDAT establishes the foundational protocol for high-performance audio streaming.
 
-**JELLIE Architecture:**
+### JELLIE: JAM Embedded Low-Latency Instrument Encoding (Proprietary)
+
+**JELLIE** is JAMNet Studio LLC's proprietary application of the JDAT framework, specifically optimized for **single mono signal** transmission with high fidelity, low latency, and network interruption resistance. JELLIE leverages JDAT's capabilities for 4 parallel multicast streams, modeled after ADAT protocol behavior.
+
+**JDAT → JELLIE Architecture:**
 
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
 │   Mono Audio    │───▶│ JELLIE Encoder  │───▶│ 4 JSONL Streams │
-│ (Guitar/Vocal)  │    │                 │    │   (Multicast)   │
+│ (Guitar/Vocal)  │    │  (uses JDAT)    │    │   (Multicast)   │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
                               │
                               ▼
