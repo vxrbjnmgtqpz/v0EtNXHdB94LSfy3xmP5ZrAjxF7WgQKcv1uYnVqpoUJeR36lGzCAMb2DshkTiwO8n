@@ -1,0 +1,257 @@
+#version 450
+
+/**
+ * JSONL Parser Compute Shader
+ * 
+ * Parses JSON Lines format on GPU in parallel
+ * Each thread processes one JSON line
+ * 
+ * INPUT: Raw UDP packet data with JSONL payload
+ * OUTPUT: Structured message data for further processing
+ */
+
+layout(local_size_x = 64, local_size_y = 1, local_size_z = 1) in;
+
+// Input buffer: Raw UDP packets
+layout(std430, binding = 0) readonly buffer InputBuffer {
+    uint8_t raw_packets[];
+};
+
+// Output buffer: Parsed messages
+layout(std430, binding = 1) writeonly buffer OutputBuffer {
+    ParsedMessage parsed_messages[];
+};
+
+// Shared buffer for packet metadata
+layout(std430, binding = 2) readonly buffer PacketInfo {
+    PacketMetadata packet_metadata[];
+};
+
+// Message structure after parsing
+struct ParsedMessage {
+    uint64_t timestamp_us;      // Original timestamp
+    uint32_t sequence_number;   // For deduplication
+    uint16_t burst_id;          // Burst group
+    uint8_t burst_index;        // Index in burst
+    uint8_t message_type;       // MIDI=0, Audio=1, Video=2
+    uint32_t payload_offset;    // Offset to JSON payload
+    uint32_t payload_size;      // Size of JSON payload
+    uint32_t checksum;          // Validation checksum
+    uint8_t valid;              // 1 if valid, 0 if invalid
+    uint8_t reserved[3];        // Padding
+};
+
+// Packet metadata from UDP layer
+struct PacketMetadata {
+    uint32_t packet_offset;     // Offset in raw_packets buffer
+    uint32_t packet_size;       // Total packet size
+    uint32_t payload_offset;    // Offset to JSONL payload
+    uint32_t payload_size;      // JSONL payload size
+};
+
+// JSON parsing state machine
+const uint32_t JSON_STATE_SEARCH_START = 0;
+const uint32_t JSON_STATE_IN_OBJECT = 1;
+const uint32_t JSON_STATE_IN_STRING = 2;
+const uint32_t JSON_STATE_ESCAPE = 3;
+const uint32_t JSON_STATE_COMPLETE = 4;
+const uint32_t JSON_STATE_ERROR = 5;
+
+// Message type detection
+const uint32_t MSG_TYPE_MIDI = 0;
+const uint32_t MSG_TYPE_AUDIO = 1;
+const uint32_t MSG_TYPE_VIDEO = 2;
+const uint32_t MSG_TYPE_CONTROL = 3;
+const uint32_t MSG_TYPE_UNKNOWN = 255;
+
+/**
+ * Fast string comparison for message type detection
+ */
+bool string_contains(uint32_t payload_offset, uint32_t payload_size, string needle) {
+    if (payload_size < needle.length()) return false;
+    
+    for (uint32_t i = 0; i <= payload_size - needle.length(); i++) {
+        bool match = true;
+        for (uint32_t j = 0; j < needle.length(); j++) {
+            if (raw_packets[payload_offset + i + j] != needle[j]) {
+                match = false;
+                break;
+            }
+        }
+        if (match) return true;
+    }
+    return false;
+}
+
+/**
+ * Detect message type from JSON content
+ */
+uint8_t detect_message_type(uint32_t payload_offset, uint32_t payload_size) {
+    // Look for key patterns in JSONL to determine type
+    if (string_contains(payload_offset, payload_size, "\"note_on\"") ||
+        string_contains(payload_offset, payload_size, "\"note_off\"") ||
+        string_contains(payload_offset, payload_size, "\"control_change\"")) {
+        return MSG_TYPE_MIDI;
+    }
+    
+    if (string_contains(payload_offset, payload_size, "\"samples\"") ||
+        string_contains(payload_offset, payload_size, "\"pcm_data\"") ||
+        string_contains(payload_offset, payload_size, "\"audio_frame\"")) {
+        return MSG_TYPE_AUDIO;
+    }
+    
+    if (string_contains(payload_offset, payload_size, "\"pixels\"") ||
+        string_contains(payload_offset, payload_size, "\"frame_data\"") ||
+        string_contains(payload_offset, payload_size, "\"video_frame\"")) {
+        return MSG_TYPE_VIDEO;
+    }
+    
+    if (string_contains(payload_offset, payload_size, "\"control\"") ||
+        string_contains(payload_offset, payload_size, "\"discovery\"") ||
+        string_contains(payload_offset, payload_size, "\"sync\"")) {
+        return MSG_TYPE_CONTROL;
+    }
+    
+    return MSG_TYPE_UNKNOWN;
+}
+
+/**
+ * Validate JSON syntax (simplified fast validation)
+ */
+bool validate_json_syntax(uint32_t payload_offset, uint32_t payload_size) {
+    uint32_t state = JSON_STATE_SEARCH_START;
+    uint32_t brace_count = 0;
+    bool found_start = false;
+    
+    for (uint32_t i = 0; i < payload_size; i++) {
+        uint8_t c = raw_packets[payload_offset + i];
+        
+        switch (state) {
+            case JSON_STATE_SEARCH_START:
+                if (c == '{') {
+                    state = JSON_STATE_IN_OBJECT;
+                    brace_count = 1;
+                    found_start = true;
+                } else if (c != ' ' && c != '\t' && c != '\n' && c != '\r') {
+                    return false; // Invalid character before JSON
+                }
+                break;
+                
+            case JSON_STATE_IN_OBJECT:
+                if (c == '"') {
+                    state = JSON_STATE_IN_STRING;
+                } else if (c == '{') {
+                    brace_count++;
+                } else if (c == '}') {
+                    brace_count--;
+                    if (brace_count == 0) {
+                        state = JSON_STATE_COMPLETE;
+                    }
+                }
+                break;
+                
+            case JSON_STATE_IN_STRING:
+                if (c == '"') {
+                    state = JSON_STATE_IN_OBJECT;
+                } else if (c == '\\') {
+                    state = JSON_STATE_ESCAPE;
+                }
+                break;
+                
+            case JSON_STATE_ESCAPE:
+                state = JSON_STATE_IN_STRING; // Any character after escape
+                break;
+                
+            case JSON_STATE_COMPLETE:
+                if (c != ' ' && c != '\t' && c != '\n' && c != '\r') {
+                    return false; // Invalid character after JSON
+                }
+                break;
+        }
+    }
+    
+    return found_start && state == JSON_STATE_COMPLETE && brace_count == 0;
+}
+
+/**
+ * Calculate simple checksum for validation
+ */
+uint32_t calculate_checksum(uint32_t payload_offset, uint32_t payload_size) {
+    uint32_t checksum = 0;
+    for (uint32_t i = 0; i < payload_size; i++) {
+        checksum = checksum * 31 + raw_packets[payload_offset + i];
+    }
+    return checksum;
+}
+
+/**
+ * Main compute shader entry point
+ */
+void main() {
+    uint32_t thread_id = gl_GlobalInvocationID.x;
+    
+    // Check if we have work to do
+    if (thread_id >= packet_metadata.length()) {
+        return;
+    }
+    
+    PacketMetadata meta = packet_metadata[thread_id];
+    
+    // Initialize output message
+    ParsedMessage msg;
+    msg.timestamp_us = 0;
+    msg.sequence_number = 0;
+    msg.burst_id = 0;
+    msg.burst_index = 0;
+    msg.message_type = MSG_TYPE_UNKNOWN;
+    msg.payload_offset = meta.payload_offset;
+    msg.payload_size = meta.payload_size;
+    msg.checksum = 0;
+    msg.valid = 0;
+    
+    // Validate JSON syntax first
+    if (!validate_json_syntax(meta.payload_offset, meta.payload_size)) {
+        parsed_messages[thread_id] = msg; // Invalid message
+        return;
+    }
+    
+    // Extract message type
+    msg.message_type = detect_message_type(meta.payload_offset, meta.payload_size);
+    
+    // Calculate checksum
+    msg.checksum = calculate_checksum(meta.payload_offset, meta.payload_size);
+    
+    // Extract packet header info (UDP header should be at packet start)
+    uint32_t header_offset = meta.packet_offset;
+    
+    // Read timestamp (offset 8 in UDP header)
+    msg.timestamp_us = 
+        (uint64_t(raw_packets[header_offset + 8]) << 0) |
+        (uint64_t(raw_packets[header_offset + 9]) << 8) |
+        (uint64_t(raw_packets[header_offset + 10]) << 16) |
+        (uint64_t(raw_packets[header_offset + 11]) << 24) |
+        (uint64_t(raw_packets[header_offset + 12]) << 32) |
+        (uint64_t(raw_packets[header_offset + 13]) << 40) |
+        (uint64_t(raw_packets[header_offset + 14]) << 48) |
+        (uint64_t(raw_packets[header_offset + 15]) << 56);
+    
+    // Read sequence number (offset 16 in UDP header)
+    msg.sequence_number = 
+        (uint32_t(raw_packets[header_offset + 16]) << 0) |
+        (uint32_t(raw_packets[header_offset + 17]) << 8) |
+        (uint32_t(raw_packets[header_offset + 18]) << 16) |
+        (uint32_t(raw_packets[header_offset + 19]) << 24);
+    
+    // Read burst info (offset 20-21 in UDP header)
+    msg.burst_id = 
+        (uint16_t(raw_packets[header_offset + 20]) << 0) |
+        (uint16_t(raw_packets[header_offset + 21]) << 8);
+    
+    msg.burst_index = raw_packets[header_offset + 22];
+    
+    // Mark as valid
+    msg.valid = 1;
+    
+    // Store result
+    parsed_messages[thread_id] = msg;
+}

@@ -1,0 +1,148 @@
+#version 450
+
+/**
+ * Burst Deduplication Compute Shader
+ * 
+ * Removes duplicate packets from burst transmission
+ * Each thread processes one parsed message and checks for duplicates
+ * 
+ * INPUT: Array of parsed messages (potentially with duplicates)
+ * OUTPUT: Deduplicated messages with earliest timestamp kept
+ */
+
+layout(local_size_x = 64, local_size_y = 1, local_size_z = 1) in;
+
+// Input buffer: Parsed messages (with duplicates)
+layout(std430, binding = 0) readonly buffer InputBuffer {
+    ParsedMessage input_messages[];
+};
+
+// Output buffer: Deduplicated messages  
+layout(std430, binding = 1) writeonly buffer OutputBuffer {
+    ParsedMessage output_messages[];
+};
+
+// Atomic counter for output index
+layout(std430, binding = 2) buffer CounterBuffer {
+    uint32_t output_count;
+};
+
+// Shared memory for duplicate detection within workgroup
+shared uint32_t group_sequences[64];  // Max 64 threads per workgroup
+shared uint32_t group_burst_ids[64];
+shared uint8_t group_valid[64];
+
+// Message structure (same as parser)
+struct ParsedMessage {
+    uint64_t timestamp_us;
+    uint32_t sequence_number;
+    uint16_t burst_id;
+    uint8_t burst_index;
+    uint8_t message_type;
+    uint32_t payload_offset;
+    uint32_t payload_size;
+    uint32_t checksum;
+    uint8_t valid;
+    uint8_t reserved[3];
+};
+
+/**
+ * Check if two messages are duplicates
+ * Messages are duplicates if they have the same sequence number and burst_id
+ */
+bool is_duplicate(ParsedMessage a, ParsedMessage b) {
+    return a.sequence_number == b.sequence_number && 
+           a.burst_id == b.burst_id &&
+           a.valid == 1 && b.valid == 1;
+}
+
+/**
+ * Choose which message to keep from duplicates
+ * Priority: earliest timestamp, then lowest burst_index
+ */
+bool should_keep_a_over_b(ParsedMessage a, ParsedMessage b) {
+    if (a.timestamp_us != b.timestamp_us) {
+        return a.timestamp_us < b.timestamp_us;
+    }
+    return a.burst_index < b.burst_index;
+}
+
+void main() {
+    uint32_t thread_id = gl_GlobalInvocationID.x;
+    uint32_t local_id = gl_LocalInvocationID.x;
+    uint32_t workgroup_size = gl_WorkGroupSize.x;
+    
+    // Check bounds
+    if (thread_id >= input_messages.length()) {
+        return;
+    }
+    
+    ParsedMessage current_msg = input_messages[thread_id];
+    
+    // Skip invalid messages
+    if (current_msg.valid == 0) {
+        return;
+    }
+    
+    // Load current message into shared memory for workgroup comparison
+    group_sequences[local_id] = current_msg.sequence_number;
+    group_burst_ids[local_id] = current_msg.burst_id;
+    group_valid[local_id] = current_msg.valid;
+    
+    // Synchronize workgroup
+    barrier();
+    
+    bool is_duplicate_in_group = false;
+    bool should_output = true;
+    
+    // Check for duplicates within this workgroup
+    for (uint32_t i = 0; i < workgroup_size; i++) {
+        if (i == local_id || group_valid[i] == 0) continue;
+        
+        if (group_sequences[i] == current_msg.sequence_number &&
+            group_burst_ids[i] == current_msg.burst_id) {
+            
+            // Found duplicate in workgroup
+            is_duplicate_in_group = true;
+            
+            // Only output if this thread has lower index (deterministic)
+            if (i < local_id) {
+                should_output = false;
+                break;
+            }
+        }
+    }
+    
+    // For more thorough deduplication, also check against other workgroups
+    // This is a simplified approach - full deduplication would require
+    // multiple passes or more complex synchronization
+    
+    if (!is_duplicate_in_group) {
+        // Check against a sample of other messages for cross-workgroup duplicates
+        // Sample every 64th message to reduce complexity
+        uint32_t sample_stride = 64;
+        for (uint32_t i = 0; i < input_messages.length(); i += sample_stride) {
+            if (i == thread_id) continue;
+            
+            ParsedMessage other = input_messages[i];
+            if (other.valid == 0) continue;
+            
+            if (is_duplicate(current_msg, other)) {
+                if (!should_keep_a_over_b(current_msg, other)) {
+                    should_output = false;
+                    break;
+                }
+            }
+        }
+    }
+    
+    // Output the message if it's not a duplicate
+    if (should_output) {
+        uint32_t output_index = atomicAdd(output_count, 1);
+        
+        // Bounds check on output
+        if (output_index < output_messages.length()) {
+            output_messages[output_index] = current_msg;
+        }
+    }
+}
