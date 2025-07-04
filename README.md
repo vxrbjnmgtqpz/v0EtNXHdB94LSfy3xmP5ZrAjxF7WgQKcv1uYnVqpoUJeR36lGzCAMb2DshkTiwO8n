@@ -160,8 +160,27 @@ The JAM Framework represents a fundamental paradigm shift: **treating JSON as st
 - **Mathematical Precision**: Reconstruction based on harmonic, pitch, and dynamic context
 - **Analog-Continuous Results**: Predicts what infinite-resolution analog would sound like
 - **24-bit Optimization**: Enables pristine quality without dithering artifacts
+- **Continuous Learning**: Self-improving through global JAMNet session training data
+- **Physics-Based Extrapolation**: Infers higher bit-depth content from 24-bit patterns
 
-**Revolutionary Claim**: PNBTR reconstructs the original analog characteristics that would have existed with infinite resolution, providing zero-noise, analog-continuous audio at 24-bit depth or lower through mathematically informed processing.
+### PNBTR Continuous Learning System
+
+**Revolutionary Self-Improvement Architecture:**
+
+1. **Reference Recording**: Original signals archived lossless at sender for training ground truth
+2. **Reconstruction Pairing**: Every PNBTR output paired with reference for training data
+3. **Global Dataset**: Worldwide JAMNet sessions contribute to distributed training
+4. **Automated Retraining**: Models improve continuously from real-world usage patterns
+5. **Versioned Deployment**: Seamless model updates without service interruption
+6. **Physics Integration**: Higher bit-depth inference learned from 24-bit stream analysis
+
+**Training Loop Benefits:**
+- Models become more accurate over time through continuous real-world exposure
+- User-specific optimization creates personalized audio reconstruction profiles
+- Physics-based modeling enables future higher bit-depth streaming while maintaining 24-bit compatibility
+- Global training diversity improves reconstruction across all musical styles and contexts
+
+**Revolutionary Claim**: PNBTR reconstructs the original analog characteristics that would have existed with infinite resolution, providing zero-noise, analog-continuous audio at 24-bit depth or lower through mathematically informed processing that continuously improves through global distributed learning.
 
 ## The Complete JAMNet Ecosystem
 
@@ -413,6 +432,9 @@ JAMNet/
 - **Compute shaders** for contextual waveform reconstruction and musical intelligence
 - **Neural models on GPU** for original analog signal characteristics prediction
 - **Revolutionary dither replacement**: PNBTR enables analog-continuous audio at 24-bit depth without noise-based dithering
+- **Continuous learning infrastructure**: Automated training loop collects reconstruction vs. reference pairs
+- **Global distributed training**: Every JAMNet session contributes to model improvement
+- **Physics-based bit-depth extrapolation**: Infers higher resolution from 24-bit stream patterns
 - **System reconstructs infinite resolution audio** seamlessly via GPU neural processing
 
 ### Phase 5: JVID GPU Visual Integration (Weeks 17-20)
