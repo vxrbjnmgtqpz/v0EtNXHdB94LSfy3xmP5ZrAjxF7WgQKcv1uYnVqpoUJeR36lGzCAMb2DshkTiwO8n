@@ -6,7 +6,14 @@
 
 **JAM** = **JSON Audio Multicast**
 
-A revolutionary framework that makes JSON fast enough to stream professional-grade multimedia content at microsecond latencies, replacing traditional binary protocols while maintaining human-readable, web-compatible benefits.
+A revolutionary framework that makes JSON fast enough to stream professional-grade multimedia content at microsecond latencies, replacing traditio### Phase 6: Production & Cross-Platform (Weeks 21-24)
+
+- **Cross-platform Linux builds** and Windows VM distribution
+- **Ready-made Linux VM** with JAMNet pre-installed for Windows users
+- **Enhanced Developer SDK** with GPU-accelerated APIs
+- **Performance profiling** and **SIMD optimization**
+- **WebSocket bridge** for browser-based clients
+- **Open source preparation** with comprehensive documentationary protocols while maintaining human-readable, web-compatible benefits.
 
 ## Overview
 
@@ -26,7 +33,7 @@ JAMNet is a comprehensive framework for streaming multimedia data over the inter
 
 ### The Solution
 
-**Multimedia streaming does not have to be wrapped in binary to achieve professional performance.** But it does need to be wrapped in something universal, so we use JSON. Here's exactly why JSON, paired with the JAMNet frameworks and streamed via our enhanced Bassoon.js multicast fork, IS the optimized cross-platform system for the next generation of distributed multimedia.
+**Multimedia streaming does not have to be wrapped in binary to achieve professional performance.** But it does need to be wrapped in something universal, so we use JSON. Here's exactly why JSON, paired with the JAMNet frameworks and streamed via our revolutionary **JAM framework** (our UDP GPU JSONL native TOAST optimized fork of Bassoon.js), IS the optimized cross-platform system for the next generation of distributed multimedia.
 
 **JavaScript's ubiquity + massive ecosystem + JSONL streaming = JSON's superpower for multimedia.**
 
@@ -64,7 +71,7 @@ The JAMNet framework now features **multicast JSONL streaming** — we are build
 
 - **Prototyping:** Native macOS, testing MacBook Pro to Mac Mini over USB4 TOAST link (most optimal conditions first)
 - **Enhanced Streaming:** Bootstrap multicast JSONL for 2x network efficiency and 32+ client scalability
-- **Expansion:** Bootstrap Windows and Linux builds, perhaps even mobile apps, from the JSONL layer first
+- **Expansion:** Bootstrap Linux builds and Windows support via pre-configured Linux VM, perhaps even mobile apps, from the JSONL layer first
 - **Native Everything:** Each version built from scratch from the framework and documentation. No conversions, no wrappers, no Electron — all native apps built from the ground up
 - **The Format is the Contract:** If all platforms speak the same JSONL multimedia protocols, they don't need to "see" each other — they just need to respect the schemas and streams
 
@@ -74,7 +81,8 @@ The JAMNet framework now features **multicast JSONL streaming** — we are build
 
 🎯 **1. True Cross-Platform Multimedia Sync Without Conversion Lag**
 
-- If every system (macOS, Windows, Linux, mobile) is reading the same JSON streams, and decoding multimedia in microseconds...
+- If every system (macOS, Linux, mobile) is reading the same JSON streams, and decoding multimedia in microseconds...
+- Windows users will have access via a ready-made Linux VM with JAMNet pre-installed and optimized...
 - You've completely removed the need for any binary protocol or per-platform interpreter.
 
 🔄 **2. Real-Time Collaborative Multimedia Creation**
@@ -107,6 +115,31 @@ We have formats that:
 - **Any stream can carry.**
 - **And now, they're fast enough for professional multimedia production.**
 
+## The JAM Framework: Revolutionary JSONL Parser
+
+**JAM** (JSON Audio Multicast) Framework is our revolutionary **UDP GPU JSONL native TOAST optimized fork of Bassoon.js**, designed from the ground up for ultra-low-latency multimedia streaming.
+
+### Key JAM Framework Innovations
+
+- **GPU-Native JSONL Processing**: Every JSON line processed in parallel on GPU compute shaders
+- **UDP-First Architecture**: Eliminates TCP handshake overhead for fire-and-forget streaming
+- **TOAST Protocol Integration**: Native support for multicast session management and routing
+- **Zero-Copy Video Processing**: Direct pixel arrays in JSONL eliminate base64 encoding overhead
+- **Memory-Mapped Performance**: Direct GPU memory access for maximum throughput
+- **Cross-Platform GPU Acceleration**: Metal (macOS), Vulkan (Linux), optimized VM (Windows)
+
+### JAM vs Traditional Approaches
+
+| **Traditional Parser**        | **JAM Framework**                    |
+|-------------------------------|--------------------------------------|
+| CPU-only JSON parsing         | GPU parallel JSONL processing       |
+| HTTP/EventStream overhead     | UDP multicast fire-and-forget       |
+| Base64 video encoding         | Direct pixel arrays in JSONL        |
+| Single-threaded processing    | Thousands of GPU threads per frame  |
+| Platform-specific optimization| Universal GPU acceleration          |
+
+The JAM Framework represents a fundamental paradigm shift: **treating JSON as structured data perfect for GPU parallel processing**, achieving performance that exceeds traditional binary protocols while maintaining universal compatibility.
+
 ## The Complete JAMNet Ecosystem
 
 ### Unified Streaming Architecture with Multicast JSONL
@@ -118,7 +151,7 @@ JAMNet provides a **triple-stream architecture** that handles MIDI, audio, and v
 | **JMID**                   | **JDAT**                    | **JVID**                |
 | → Events & control data    | → PCM sample chunks (JELLIE)    | → Frame data (JAMCam)      |
 | → <30μs latency (compact)  | → <150μs latency (chunked)      | → <250μs latency (frames)  |
-| → PNTBTR fills lost events | → PNTBTR predicts waveform gaps | → PNTBTR motion prediction |
+| → PNBTR fills lost events | → PNBTR predicts waveform gaps | → PNBTR motion prediction |
 | → Sent over TOAST/UDP      | → Sent over TOAST/UDP           | → Sent over TOAST/UDP      |
 | → **Multicast JSONL**      | → **Multicast JSONL**           | → **Multicast JSONL**      |
 
@@ -170,35 +203,27 @@ Each audio slice transmitted as JSONL with JELLIE encoding for efficient streami
 - Streams 2-3: redundancy/parity for instant recovery
 - Pure JSONL throughout - no binary data, multicast distribution
 
-### JVID: Video Streaming Format with JAMCam JSONL
+### JVID: Video Streaming Format with Direct JSONL
 
-Each video frame with JAMCam processing as compact JSONL:
+Each video frame transmitted as compact JSONL with direct pixel data for maximum efficiency:
+
+**Direct Video JSONL (no base64 overhead):**
 
 ```jsonl
-{
-  "t": "vid",
-  "id": "jvid",
-  "seq": 89,
-  "res": "ULTRA_LOW_72P",
-  "fps": 60,
-  "jc": {
-    "face": true,
-    "frame": true,
-    "light": 0.85
-  },
-  "d": "base64_frame"
-}
+{"t":"vid","id":"jvid","seq":89,"res":"LOW_300x400","fps":60,"w":300,"h":400,"fmt":"rgb24","d":[255,128,64,255,130,65...]}
+{"t":"vid","id":"jvid","seq":90,"res":"LOW_300x400","fps":60,"w":300,"h":400,"fmt":"rgb24","d":[254,129,63,254,131,64...]}
 ```
 
-**JAMCam Features with JSONL:**
+**JAMCam Processing with Direct Pixel Data:**
 
 - Face detection and auto-framing metadata in JSONL
-- Adaptive lighting normalization values
+- Adaptive lighting normalization values  
 - Motion-compensated encoding parameters
 - Ultra-low resolution options (128×72) for <200μs encoding
-- Multicast distribution to multiple video clients
+- **Direct RGB pixel arrays** eliminating base64 encoding overhead
+- GPU-optimized pixel format for zero-copy processing
 
-### UDP + PNTBTR: Rethinking Network Reliability with Multicast
+### UDP + PNBTR: Rethinking Network Reliability with Multicast
 
 **The Problem with TCP:**
 
@@ -211,14 +236,14 @@ Each video frame with JAMCam processing as compact JSONL:
 
 ```
 TCP Approach:     [ JSON ] → [ TCP ] → wait → retry → ACK → maybe late
-JAMNet Approach:  [ JSONL ] → [ UDP Multicast ] → [ PNTBTR prediction ] → continuous multimedia
+JAMNet Approach:  [ JSONL ] → [ UDP Multicast ] → [ PNBTR neural reconstruction ] → continuous multimedia
 ```
 
 **🔥 Fire and Forget with Multicast Philosophy:**
 
-**All transmission in JAMNet is fire-and-forget multicast. There is never any packet recovery or retransmission.** PNTBTR works exclusively with available data, ensuring transmission never misses a beat and provides the lowest latency physically possible. When packets are lost, PNTBTR immediately predicts what should have been there and maintains continuous flow - no waiting, no asking for retries, no breaking the groove.
+**All transmission in JAMNet is fire-and-forget multicast. There is never any packet recovery or retransmission.** PNBTR works exclusively with available data, ensuring transmission never misses a beat and provides the lowest latency physically possible. When packets are lost, PNBTR immediately reconstructs what should have been there using neural prediction and maintains continuous flow - no waiting, no asking for retries, no breaking the groove.
 
-**Enhanced PNTBTR (Predictive Network Temporal Buffered Transmission Recovery) with JSONL:**
+**Enhanced PNBTR (Predictive Neural Buffered Transient Recovery) with JSONL:**
 
 **Primary Strategy - Redundancy, Multicast & Dynamic Throttling:**
 
@@ -231,12 +256,12 @@ JAMNet Approach:  [ JSONL ] → [ UDP Multicast ] → [ PNTBTR prediction ] → 
 
 **Domain-Specific Applications with JSONL:**
 
-- **For MIDI**: Compact JSONL events, interpolates missing events, smooth CC curves (prediction backup only)
-- **For Audio**: JSONL chunked samples, maintains waveform through throttling first, predicts only below 44.1kHz
-- **For Video**: JSONL frame metadata, frame rate adaptation before motion prediction kicks in
-- **Core Principle**: Multicast + redundancy over prediction, throttling over interpolation, never stop the flow
-- **Philosophy**: High sample rate + backup streams + multicast efficiency beats prediction every time
-- **Result**: Professional quality maintained through intelligent bandwidth management and efficient distribution
+- **For MIDI**: Compact JSONL events, interpolates missing events, smooth CC curves with musical context awareness
+- **For Audio**: JSONL chunked samples, intelligent micro-amplitude generation replacing dither, neural analog extrapolation
+- **For Video**: JSONL frame metadata, contextual motion prediction and frame reconstruction
+- **Core Principle**: Neural reconstruction over traditional interpolation, context-aware over statistical methods, never stop the flow
+- **Philosophy**: Predict what would have happened with infinite resolution, not what might have happened
+- **Result**: Original analog characteristics maintained through intelligent neural reconstruction and musical awareness
 
 ## JAMNet Protocol Evolution with Multicast JSONL
 
@@ -246,7 +271,7 @@ JAMNet Approach:  [ JSONL ] → [ UDP Multicast ] → [ PNTBTR prediction ] → 
 Application    →    JAMNet multimedia apps with multicast pub/sub
 Encoding      →    Compact JSONL: JMID / JDAT / JVID
 Transport     →    TOAST (UDP Multicast, unified across domains)
-Recovery      →    PNTBTR (domain-specific prediction + redundancy)
+Recovery      →    PNBTR (neural reconstruction + musical intelligence)
 Clock Sync    →    Unified timestamp across all multicast streams
 Distribution  →    Session-based multicast routing and subscriber management
 ```
@@ -256,7 +281,7 @@ Distribution  →    Session-based multicast routing and subscriber management
 - 🔥 No handshakes - immediate transmission to all subscribers
 - ⚡ Sub-millisecond latency achievable with multicast efficiency
 - 🎯 Perfect for LAN and metro-area networks with pub/sub scaling
-- 🧱 PNTBTR handles gaps intelligently per domain
+- 🧱 PNBTR handles gaps intelligently per domain with neural reconstruction
 - 📡 Single stream → multiple clients with zero bandwidth multiplication
 - 🎼 Session-based routing enables complex collaboration topologies
 
@@ -268,7 +293,7 @@ Distribution  →    Session-based multicast routing and subscriber management
 - **JDAT**: <150μs (192kHz audio with redundancy and JSONL chunking)
 - **JVID**: <250μs (72p video with JAMCam processing and JSONL frames)
 - **Clock Synchronization**: <15μs deviation across all multicast streams
-- **Recovery Time**: <25μs for PNTBTR predictions with JSONL efficiency
+- **Recovery Time**: <25μs for PNBTR neural reconstruction with JSONL efficiency
 - **Multicast Overhead**: <5μs additional latency per subscriber
 
 #### Enhanced Throughput Capabilities
@@ -338,21 +363,22 @@ JAMNet/
 - **GPU-CPU bridge** with lock-free buffer synchronization
 - **Vulkan/Metal** implementation for cross-platform GPU acceleration
 
-### Phase 3: Fork Bassoon.js into JAM.js (Weeks 9-12)
+### Phase 3: Fork Bassoon.js into JAM Framework (Weeks 9-12)
 
-- **JAM.js**: GPU-native JSONL parser from day one
-- Remove legacy HTTP/eventstream layers
+- **JAM Framework**: UDP GPU JSONL native TOAST optimized fork of Bassoon.js
+- Remove legacy HTTP/eventstream layers completely
 - **UDP receiver + JSONL collector + GPU buffer writer**
-- **BassoonGPUParser** with compact JSONL support
+- **JAMGPUParser** with compact JSONL support and direct pixel processing
 - **MIDI latency drops 80-90%** through GPU acceleration
+- **Video processing without base64 overhead** for maximum performance
 
-### Phase 4: PNTBTR GPU Prediction Engine (Weeks 13-16)
+### Phase 4: PNBTR GPU Neural Reconstruction Engine (Weeks 13-16)
 
-- **GPU-based packet loss smoothing** and waveform prediction
-- **Compute shaders** for buffer interpolation and ML inference
-- **1D CNNs on GPU** for 50ms audio prediction windows
-- **MIDI CC smoothing** and **PCM continuation** shaders
-- **System handles >15% UDP loss** seamlessly
+- **GPU-based intelligent micro-amplitude generation** and neural analog extrapolation
+- **Compute shaders** for contextual waveform reconstruction and musical intelligence
+- **Neural models on GPU** for original analog signal characteristics prediction
+- **Musical context analysis** and **harmonic/pitch/dynamic awareness** shaders
+- **System reconstructs infinite resolution audio** seamlessly via GPU neural processing
 
 ### Phase 5: JVID GPU Visual Integration (Weeks 17-20)
 
@@ -363,7 +389,7 @@ JAMNet/
 
 ### Phase 6: Production & Cross-Platform (Weeks 21-24)
 
-- **Cross-platform GPU builds** (Windows, Linux)
+- **Cross-platform Linux builds** and Windows VM support
 - **Enhanced Developer SDK** with GPU-accelerated APIs
 - **Performance profiling** and **SIMD optimization**
 - **WebSocket bridge** for browser-based clients
@@ -397,10 +423,11 @@ Traditional DAWs underutilize GPU resources, focusing only on visual effects. JA
 - Compute shaders apply gain, filters, resampling in parallel
 - Redundancy recovery through vector math operations
 
-**🎯 PNTBTR Prediction Engine**
-- GPU-based predictive models (GRUs, 1D CNNs) per channel
-- Lightweight inference for 50ms audio prediction
-- Concurrent processing of thousands of streams
+**🎯 PNBTR Neural Reconstruction Engine**
+- GPU-based predictive models (neural networks, context analysis) per channel
+- Intelligent micro-amplitude generation replacing traditional dither completely
+- Contextual waveform extrapolation for up to 50ms ahead with musical awareness
+- Concurrent neural processing of thousands of audio streams with original analog characteristics
 
 **🎨 Real-Time Visual Integration**
 - GPU renders waveforms, MIDI events, and emotional metadata
@@ -410,16 +437,38 @@ Traditional DAWs underutilize GPU resources, focusing only on visual effects. JA
 ### Enhanced Technology Stack with GPU-Native Processing
 
 - **Core Frameworks**: C++ with modern standards (C++17/20)
-- **Enhanced Parser**: **Multicast Bassoon.js fork** with JSONL streaming support
+- **Enhanced Parser**: **JAM Framework** (UDP GPU JSONL native TOAST optimized fork of Bassoon.js)
 - **GPU Acceleration**: **Vulkan/Metal compute shaders** for JSONL parsing and prediction
 - **Networking**: **UDP Multicast** with TOAST protocol, Bonjour discovery
 - **Streaming Format**: **Compact JSONL** with 67% size reduction
-- **Platforms**: macOS (primary), Windows, Linux
+- **Platforms**: macOS (primary), Linux (native), Windows (via optimized Linux VM)
 - **Audio Integration**: VST3, Core Audio, ASIO with JSONL metadata
 - **Video Integration**: CoreVideo, V4L2, DirectShow with JSONL frames
 - **Protocol**: **Multicast JSONL over TOAST** tunnel with unified clock sync
 - **Distribution**: **Session-based multicast routing** and pub/sub management
 - **Optimization**: SIMD (AVX2/SSE4.2), **GPU compute shaders**, lock-free structures, JSONL compression
+
+## Platform Support Strategy
+
+### macOS (Primary Platform)
+- Native development and optimization
+- Metal GPU acceleration
+- Core Audio integration
+- Full feature set with TOASTer application
+
+### Linux (Native Support)
+- Full native builds with Vulkan GPU acceleration
+- ALSA/PipeWire audio integration
+- Complete JAMNet framework compatibility
+
+### Windows (VM-Based Support)
+- **Ready-made Linux VM** with JAMNet pre-installed and optimized
+- Eliminates Windows-specific driver and compatibility issues
+- Provides consistent, reliable performance across all Windows systems
+- VM includes all necessary audio drivers and GPU acceleration
+- One-click installation for Windows users wanting JAMNet functionality
+
+This approach ensures that Windows users get a stable, fully-functional JAMNet experience without the complexity and maintenance burden of native Windows development.
 
 ## Getting Started
 

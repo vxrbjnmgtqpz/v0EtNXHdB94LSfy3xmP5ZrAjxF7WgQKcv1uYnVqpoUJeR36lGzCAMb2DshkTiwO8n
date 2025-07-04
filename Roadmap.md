@@ -1,5 +1,28 @@
-# JAMNet Development Roadmap
+# JAMNet Developmen### Current Scope: GPU+UDP Native Architecture
 
+- ✅ JSON-based MIDI protocol specification (JMID) **ready for GPU processing**
+- ✅ JSON-based audio protocol specification (JDAT) **optimized for parallel processing**
+- ✅ **Memory mapping infrastructure** established for GPU data sharing
+- 🔄 **UDP-first transport architecture** (Enhanced TOAST)
+- 🔄 **GPU compute shader framework** for JSONL processing
+- 🔄 **GPU-native PNBTR prediction system** with ML inference
+- ⏳ **JAM.js (GPU-enabled Bas### Revolutionary Development Team
+
+- **GPU Architect**: Compute shader development and GPU optimization (1 FTE)
+- **Audio Systems Engineer**: JDAT + PNBTR + ML prediction integration (1 FTE) 
+- **Network Engineer**: UDP multicast + session management (1 FTE)
+- **Performance Engineer**: JAM.js fork + memory mapping optimization (1 FTE)
+- **Integration Engineer**: JUCE + production deployment + cross-platform + VM optimization (0.5 FTE)
+
+### Revolutionary Infrastructure
+
+- **Development Machines**: GPU-accelerated workstations with compute shader support
+- **Test Network**: Multicast simulation with controlled packet loss and latency
+- **GPU Test Farm**: Multiple GPU architectures (NVIDIA/AMD/Apple Silicon/Intel)
+- **Audio Hardware**: Professional interfaces with JDAT capability testing
+- **VM Development Environment**: Linux VM optimization for Windows deployment with audio/GPU passthrough testing* with compute shader integration
+- ⏳ **Real-time GPU-accelerated streaming** over UDP multicast
+- ⏳ **Windows support via optimized Linux VM** distribution
 ## GPU-Native JDAT + JMID Framework with UDP Multicast Architecture
 
 _Building the complete JSON-based audio+MIDI streaming ecosystem with GPU-accelerated JSONL processing and UDP-native transport_
@@ -25,7 +48,7 @@ Both systems use **GPU-accelerated compute shaders** for parsing, prediction, an
 - 🔄 **UDP-first transport architecture** (Enhanced TOAST)
 - 🔄 **GPU compute shader framework** for JSONL processing
 - 🔄 **GPU-native PNTBTR prediction system** with ML inference
-- ⏳ **JAM.js (GPU-enabled Bassoon.js fork)** with compute shader integration
+- ⏳ **JAM Framework (UDP GPU JSONL native TOAST optimized fork of Bassoon.js)** with compute shader integration
 - ⏳ **Real-time GPU-accelerated streaming** over UDP multicast
 
 ### Revolutionary Approach: GPU as Structured Data Co-Processor
@@ -37,6 +60,14 @@ Both systems use **GPU-accelerated compute shaders** for parsing, prediction, an
 - **Predictive ML on GPU**: Lightweight neural networks for waveform prediction
 - **Parallel Event Scheduling**: Time-warping and tempo sync via compute shaders
 - **Visual Rendering Integration**: JVID as natural extension of GPU processing
+
+### Platform Strategy: Native + VM Approach
+
+**macOS**: Primary development platform with Metal GPU acceleration and Core Audio integration
+**Linux**: Full native support with Vulkan GPU acceleration and ALSA/PipeWire integration  
+**Windows**: **Ready-made Linux VM distribution** with JAMNet pre-installed and optimized
+
+This approach eliminates Windows-specific driver compatibility issues while providing a consistent, reliable experience for all Windows users. The VM includes all necessary audio drivers, GPU acceleration, and JAMNet components pre-configured for optimal performance.
 
 ---
 
@@ -52,7 +83,7 @@ Both systems use **GPU-accelerated compute shaders** for parsing, prediction, an
 - [x] **JMID Framework** core functionality validated  
 - [x] **JDAT Framework** header structure established
 - [x] **TOASTer GUI** builds and runs successfully
-- [x] **Bassoon.js not yet forked** - clean starting point
+- [x] **JAM Framework not yet forked** - clean starting point for UDP GPU JSONL native TOAST optimized Bassoon.js fork
 - [x] **Currently running TCP** - ready for UDP transition
 - [x] **CPU-only JSONL processing** - ready for GPU acceleration
 
@@ -172,7 +203,7 @@ Both systems use **GPU-accelerated compute shaders** for parsing, prediction, an
 
 ---
 
-## Phase 3: JAM.js - GPU-Native Bassoon.js Fork
+## Phase 3: JAM Framework - Revolutionary UDP GPU JSONL Parser
 
 **Timeline: Weeks 8-10**
 
@@ -180,29 +211,31 @@ Both systems use **GPU-accelerated compute shaders** for parsing, prediction, an
 
 **Status: Clean Fork After GPU Infrastructure Established**
 
-- [ ] Fork Bassoon.js with **GPU JSONL support from Day 1**
+- [ ] Fork Bassoon.js into **JAM Framework** with **UDP GPU JSONL support from Day 1**
 - [ ] Remove legacy **HTTP/EventStream layers** completely
 - [ ] Replace with **UDP receiver + GPU-friendly buffer writer**
-- [ ] Implement **BassoonGPUParser** class with compute shader integration
+- [ ] Implement **JAMGPUParser** class with compute shader integration
 - [ ] Add **session-based routing** for multicast stream multiplexing
+- [ ] Implement **direct pixel processing** for JVID without base64 overhead
 
-### 3.2 GPU-Native Parser Implementation
+### 3.2 Revolutionary JAM Framework Architecture
 
-**Status: Revolutionary Parser Architecture**
+**Status: UDP GPU JSONL Native Parser**
 
 - [ ] **`CompactJSONL` decoder** leveraging GPU parallel processing
 - [ ] **`JELLIEChunkDecoder`** for GPU-accelerated audio PCM processing  
+- [ ] **`JVIDDirectPixel`** decoder for video without base64 overhead
 - [ ] **`SessionRouter`** for intelligent multicast stream distribution on GPU
 - [ ] **Lock-free GPU→CPU messaging** for real-time performance
 - [ ] **Automatic format detection** (standard JSON vs compact JSONL vs GPU binary)
 
-**JAM.js Architecture:**
+**JAM Framework Architecture:**
 
 ```cpp
 class JAMParser {
 public:
     enum class ProcessingMode {
-        CPU_LEGACY,     // Bassoon.js compatibility  
+        CPU_LEGACY,     // Legacy compatibility  
         GPU_JSONL,      // GPU-accelerated JSONL
         GPU_BINARY      // Ultra-optimized GPU binary
     };
@@ -215,68 +248,73 @@ public:
     void subscribeToGPUSession(const SessionUUID& sessionId);
     void publishToGPUSession(const SessionUUID& sessionId, 
                            const GPUProcessedData& data);
+                           
+    // Direct pixel processing for JVID
+    void processDirectPixels(const PixelArray& pixels);
 };
 ```
 
 ### 3.3 Performance Validation
 
 **Goals:**
-- [ ] JAM.js fully replaces CPU-only Bassoon.js parsing
+- [ ] JAM Framework fully replaces CPU-only parsing with GPU acceleration
 - [ ] First GPU-native JSONL parser benchmarked against CPU baseline
 - [ ] MIDI latency drops 80-90% vs CPU parsing
 - [ ] Audio processing load dramatically reduced via GPU acceleration
+- [ ] Video processing without base64 overhead achieves <200μs per frame
 
 **Success Criteria:**
 - <10μs MIDI event parsing (vs 100μs CPU baseline)
 - <50μs audio chunk processing (vs 200μs CPU baseline)  
+- <200μs video frame processing without base64 encoding overhead
 - Support for 1000+ simultaneous JSONL streams on GPU
 - Zero performance regression vs current functionality
 
 ---
 
-## Phase 4: GPU-Native PNTBTR Prediction System
+## Phase 4: GPU-Native PNBTR Neural Reconstruction System
 
 **Timeline: Weeks 11-13**
 
-### 4.1 GPU-Accelerated Packet Loss Recovery
+### 4.1 GPU-Accelerated Neural Transient Recovery
 
-**Status: Revolutionary ML-Based Musical Prediction on GPU**
+**Status: Revolutionary PNBTR - Predictive Neural Buffered Transient Recovery on GPU**
 
-- [ ] Move **packet loss smoothing + prediction** entirely to GPU
-- [ ] Implement **buffer interpolators** via compute shaders
-- [ ] Add **lightweight 1D CNNs** for waveform completion on GPU
-- [ ] Create **MIDI holdover logic** (predict missing notes via GPU)
-- [ ] Build **adaptive prediction windows** (configurable 20-100ms)
+- [ ] Move **intelligent micro-amplitude movement generation** entirely to GPU
+- [ ] Implement **predictive LSB modeling** replacing traditional dither via compute shaders
+- [ ] Add **neural analog extrapolation** for contextual waveform reconstruction on GPU
+- [ ] Create **musical context-aware prediction** (harmonic/pitch/dynamic analysis via GPU)
+- [ ] Build **adaptive reconstruction windows** with nonlinear, phase-aware processing
 
-### 4.2 GPU Prediction Shaders
+### 4.2 PNBTR Neural Prediction Shaders
 
-**Status: ML Inference at GPU Speed**
+**Status: Revolutionary Audio Completion via Predictive Neural Processing**
 
-- [ ] **`pntbtr_predict.glsl`**: Core prediction shader with ML inference
-- [ ] **`midi_smooth.glsl`**: CC transition smoothing and note prediction
-- [ ] **`pcm_continuation.glsl`**: Waveform prediction (linear/ML/noise-fade modes)
-- [ ] **`session_recovery.glsl`**: Multi-session loss pattern analysis
-- [ ] **`adaptive_buffer.glsl`**: Dynamic buffer management based on network conditions
+- [ ] **`pnbtr_predict.glsl`**: Core neural prediction with contextual extrapolation up to 50ms
+- [ ] **`lsb_modeling.glsl`**: Intelligent micro-amplitude generation replacing traditional dither
+- [ ] **`analog_extrapolation.glsl`**: Neural waveform reconstruction with harmonic/pitch awareness
+- [ ] **`transient_recovery.glsl`**: Nonlinear, phase-aware transient completion
+- [ ] **`context_analysis.glsl`**: Musical intelligence extraction for prediction guidance
 
-### 4.3 GPU-Based ML Inference Integration
+### 4.3 GPU-Based Neural Audio Intelligence
 
-**Status: Revolutionary Audio ML on Graphics Hardware**
+**Status: Revolutionary Audio Reconstruction via Contextual Prediction**
 
-- [ ] Integrate **TensorRT (NVIDIA) / Metal Performance Shaders (Apple)**
-- [ ] Deploy **lightweight GRU models** for 50ms audio prediction
-- [ ] Implement **per-stream ML inference** (thousands of concurrent models)
-- [ ] Add **real-time model switching** based on musical context
-- [ ] Create **GPU warp allocation** per prediction stream
+- [ ] Integrate **TensorRT (NVIDIA) / Metal Performance Shaders (Apple)** for neural inference
+- [ ] Deploy **contextual waveform prediction models** for intelligent audio reconstruction
+- [ ] Implement **per-stream neural processing** (thousands of concurrent prediction models)
+- [ ] Add **musical context switching** based on harmonic, pitch, and dynamic analysis
+- [ ] Create **intelligent resolution enhancement** that predicts original analog signal characteristics
 
-**PNTBTR GPU Architecture:**
+**PNBTR GPU Architecture:**
 
 ```cpp
-class GPUPNTBTRRecovery {
+class GPUPNBTRRecovery {
 public:
-    // GPU-native prediction
-    void predictOnGPU(const LostPacketContext& context);
-    void interpolateMIDIEventsGPU(const SessionGPUBuffer& session);
-    void predictWaveformGPU(const AudioGPUBuffer& lastKnown);
+    // Revolutionary predictive neural reconstruction
+    void predictOriginalAnalogSignal(const AudioContext& context);
+    void generateIntelligentMicroAmplitudes(const QuantizationContext& qc);
+    void extrapolateContextualWaveform(const HarmonicPitchDynamicProfile& hpd);
     
     // ML inference on GPU
     void loadMLModelToGPU(const std::string& modelPath);
@@ -288,19 +326,21 @@ public:
 };
 ```
 
-### 4.4 Musical Intelligence Integration
+### 4.4 Revolutionary Audio Intelligence Integration
 
 **Goals:**
-- [ ] System handles >15% UDP packet loss gracefully via GPU prediction
-- [ ] Drop-in ML waveform completion integrated into GPU pipeline
-- [ ] Seamless musical recovery with zero retries or user intervention
-- [ ] Musical context awareness (key, tempo, style) informs prediction
+- [ ] System reconstructs **original analog characteristics** that would have existed with infinite resolution
+- [ ] **Intelligent micro-amplitude generation** replaces all traditional dither completely
+- [ ] **Neural extrapolation** provides contextual waveform prediction up to 50ms ahead
+- [ ] **Musical context awareness** (key, tempo, harmonic content) guides reconstruction
+- [ ] **Seamless audio enhancement** with zero audible artifacts or added noise
 
 **Revolutionary Capabilities:**
-- GPU processes thousands of prediction streams simultaneously
-- ML models run inference <1ms per prediction on GPU
-- Musical continuity maintained even under severe network stress
-- Predictive quality adapts to musical content and network conditions
+- GPU processes thousands of neural reconstruction streams simultaneously
+- Predictive neural models run inference <1ms per audio segment on GPU  
+- Musical intelligence maintains **original analog warmth** and **microdynamics**
+- Contextual prediction adapts to **musical content** and **performance style**
+- **"Here's the sound that would have happened if your DAC had infinite resolution"**
 
 ---
 
@@ -324,9 +364,10 @@ public:
 
 - [ ] **Shared GPU memory** between audio processing and visual rendering
 - [ ] **Real-time shader parameter modulation** from MIDI CC data
+- [ ] **Direct pixel array processing** eliminating base64 encoding overhead
 - [ ] **Emotional visual mapping**: pitch→color, velocity→intensity, emotion→deformation
 - [ ] **Session-aware visual themes** per multicast group
-- [ ] **GPU-rendered video streaming** back to JAMCam clients
+- [ ] **GPU-rendered video streaming** back to JAMCam clients without base64 conversion
 
 **Visual GPU Integration:**
 
@@ -336,6 +377,10 @@ public:
     // Shared audio→visual pipeline
     void renderFromAudioGPUBuffer(const AudioGPUBuffer& samples);
     void visualizeMIDIFromGPUEvents(const MIDIGPUBuffer& events);
+    
+    // Direct pixel processing (no base64)
+    void processDirectPixelArray(const PixelArray& pixels);
+    void renderPixelsToGPUTexture(const DirectPixelData& data);
     
     // Emotional visualization
     void mapEmotionToVisual(const EmotionData& emotion);
@@ -387,7 +432,7 @@ public:
 - [ ] **End-to-end latency measurements**: Target <3ms total system latency
 - [ ] **Scalability testing**: Target 1000+ concurrent GPU streams
 
-### 6.3 Production Hardening
+### 6.3 Production Hardening & Cross-Platform Distribution
 
 **Status: Revolutionary Architecture Made Robust**
 
@@ -396,6 +441,8 @@ public:
 - [ ] **Memory management optimization** for extended GPU operation
 - [ ] **Cross-platform GPU abstraction** (Metal/Vulkan/CUDA/OpenCL)
 - [ ] **Production deployment tools** for GPU+UDP configuration
+- [ ] **Ready-made Linux VM** distribution for Windows users with JAMNet pre-installed
+- [ ] **VM optimization** for audio latency and GPU acceleration within virtualized environment
 
 ---
 
@@ -413,17 +460,17 @@ public:
 - **Verification**: 10x performance improvement vs CPU baseline demonstrated
 - **Success**: Foundation ready for JAM.js fork with GPU-first design
 
-### Milestone 3: JAM.js GPU-Native Parser (Week 10)
+### Milestone 3: JAM Framework GPU-Native Parser (Week 10)
 - **Criteria**: GPU-native parser achieves 80-90% latency reduction vs CPU
-- **Test**: Real-time MIDI streaming with GPU acceleration vs Bassoon.js baseline
-- **Verification**: Sub-10μs MIDI parsing, sub-50μs audio processing
-- **Success**: JAM.js replaces all CPU-only parsing with GPU acceleration
+- **Test**: Real-time MIDI streaming with GPU acceleration vs legacy baseline
+- **Verification**: Sub-10μs MIDI parsing, sub-50μs audio processing, sub-200μs video without base64
+- **Success**: JAM Framework replaces all CPU-only parsing with GPU acceleration
 
-### Milestone 4: GPU-Native PNTBTR (Week 13)
-- **Criteria**: System handles >15% packet loss via GPU ML prediction
-- **Test**: Severe network stress with musical continuity validation
-- **Verification**: Seamless musical recovery, ML inference <1ms on GPU
-- **Success**: Revolutionary packet loss tolerance via GPU intelligence
+### Milestone 4: GPU-Native PNBTR (Week 13)
+- **Criteria**: System reconstructs original analog characteristics via GPU neural processing
+- **Test**: Audio quality enhancement with intelligent micro-amplitude generation vs traditional dither
+- **Verification**: Musical warmth and microdynamics preserved, neural inference <1ms on GPU
+- **Success**: Revolutionary audio completion via contextual prediction and neural intelligence
 
 ### Milestone 5: Complete GPU+UDP Ecosystem (Week 16)
 - **Criteria**: Unified GPU pipeline processes audio, predicts, AND renders visuals
@@ -482,11 +529,11 @@ public:
 | Binary protocols for performance      | JSON protocols outperforming binary via GPU acceleration        |
 | Separate audio/video/prediction systems| Unified GPU pipeline for all multimedia processing              |
 | Post-hoc packet loss recovery         | Predictive ML anticipates and prevents loss impact              |
-| Platform-specific optimization        | Universal GPU acceleration across all modern platforms          |
+| Platform-specific optimization        | Universal GPU acceleration across macOS/Linux + Windows VM      |
 
 This roadmap represents a fundamental paradigm shift: **using GPUs as structured data co-processors to make JSON-based protocols faster than traditional binary approaches**, while providing unprecedented musical intelligence and visual integration in a unified architecture.
 
-The result is not just better performance, but a completely new category of collaborative multimedia platform that scales infinitely while maintaining musical quality and creative expression.
+The result is not just better performance, but a completely new category of collaborative multimedia platform that scales infinitely while maintaining musical quality and creative expression. **Windows support via optimized Linux VM ensures universal accessibility without platform-specific development complexity.**
 
 ---
 
@@ -509,4 +556,4 @@ The result is not just better performance, but a completely new category of coll
 
 ---
 
-_JAMNet represents the future of collaborative multimedia: where GPUs become musical co-processors, where JSON outperforms binary, and where prediction prevents problems before they occur. This is not just evolution – this is revolution._
+_JAMNet represents the future of collaborative multimedia: where GPUs become musical co-processors, where the **JAM Framework** (our revolutionary UDP GPU JSONL native TOAST optimized fork of Bassoon.js) makes JSON outperform binary protocols, and where prediction prevents problems before they occur. JVID achieves unprecedented performance through direct pixel arrays in JSONL, eliminating base64 overhead completely. This is not just evolution – this is revolution._
