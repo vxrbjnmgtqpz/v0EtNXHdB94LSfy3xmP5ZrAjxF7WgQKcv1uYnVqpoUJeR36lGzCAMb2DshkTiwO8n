@@ -165,24 +165,43 @@ void NetworkConnectionPanel::connectButtonClicked()
         int port = portEditor.getText().getIntValue();
         bool isUDP = (protocolSelector.getSelectedId() == 2); // 2 = UDP, 1 = TCP
         
+        // Validate input
+        if (ip.empty()) {
+            statusLabel.setText("❌ Please enter an IP address", juce::dontSendNotification);
+            statusLabel.setColour(juce::Label::textColourId, juce::Colours::orange);
+            return;
+        }
+        
+        if (port <= 0 || port > 65535) {
+            statusLabel.setText("❌ Please enter a valid port (1-65535)", juce::dontSendNotification);
+            statusLabel.setColour(juce::Label::textColourId, juce::Colours::orange);
+            return;
+        }
+        
         std::string protocol = isUDP ? "UDP" : "TCP";
-        statusLabel.setText("Connecting via " + protocol + "...", juce::dontSendNotification);
+        statusLabel.setText("🔄 Connecting via " + protocol + "...", juce::dontSendNotification);
         statusLabel.setColour(juce::Label::textColourId, juce::Colours::yellow);
         
         if (isUDP) {
             // For UDP, we'll use a simpler connection test for now
             // In a full implementation, this would use a UDP ConnectionManager
-            statusLabel.setText("UDP connection ready (connection-less protocol)", juce::dontSendNotification);
+            statusLabel.setText("✅ UDP connection ready (connection-less protocol)", juce::dontSendNotification);
             statusLabel.setColour(juce::Label::textColourId, juce::Colours::lightgreen);
             isConnected = true;
         } else {
-            // Use TCP ConnectionManager
-            if (connectionManager && connectionManager->connectToServer(ip, port)) {
+            // Use TCP ConnectionManager - add null check
+            if (!connectionManager) {
+                statusLabel.setText("❌ Connection manager not initialized", juce::dontSendNotification);
+                statusLabel.setColour(juce::Label::textColourId, juce::Colours::lightcoral);
+                return;
+            }
+            
+            if (connectionManager->connectToServer(ip, port)) {
                 isConnected = true;
-                statusLabel.setText("TCP Connected to " + ip + ":" + std::to_string(port), juce::dontSendNotification);
+                statusLabel.setText("✅ TCP Connected to " + ip + ":" + std::to_string(port), juce::dontSendNotification);
                 statusLabel.setColour(juce::Label::textColourId, juce::Colours::lightgreen);
             } else {
-                statusLabel.setText("TCP Connection failed", juce::dontSendNotification);
+                statusLabel.setText("❌ TCP Connection failed to " + ip + ":" + std::to_string(port), juce::dontSendNotification);
                 statusLabel.setColour(juce::Label::textColourId, juce::Colours::lightcoral);
                 return;
             }
@@ -200,8 +219,25 @@ void NetworkConnectionPanel::connectButtonClicked()
         }
         
     } catch (const std::exception& e) {
-        statusLabel.setText("Error: " + std::string(e.what()), juce::dontSendNotification);
+        statusLabel.setText("❌ Connection error: " + std::string(e.what()), juce::dontSendNotification);
         statusLabel.setColour(juce::Label::textColourId, juce::Colours::lightcoral);
+        isConnected = false;
+        
+        // Reset button states on error
+        connectButton.setEnabled(true);
+        disconnectButton.setEnabled(false);
+        createSessionButton.setEnabled(false);
+        joinSessionButton.setEnabled(false);
+    } catch (...) {
+        statusLabel.setText("❌ Unknown connection error occurred", juce::dontSendNotification);
+        statusLabel.setColour(juce::Label::textColourId, juce::Colours::lightcoral);
+        isConnected = false;
+        
+        // Reset button states on error
+        connectButton.setEnabled(true);
+        disconnectButton.setEnabled(false);
+        createSessionButton.setEnabled(false);
+        joinSessionButton.setEnabled(false);
     }
 }
 
