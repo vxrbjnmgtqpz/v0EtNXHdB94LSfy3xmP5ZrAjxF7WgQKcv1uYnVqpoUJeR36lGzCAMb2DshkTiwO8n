@@ -1,8 +1,8 @@
 #pragma once
 
 #include <juce_gui_basics/juce_gui_basics.h>
-#include "JSONMIDIMessage.h"
-#include "JSONMIDIParser.h"
+#include "JMIDMessage.h"
+#include "JMIDParser.h"
 
 // Forward declaration
 class MIDIManager;
@@ -35,7 +35,7 @@ private:
     void refreshDeviceLists();
     void inputDeviceChanged();
     void outputDeviceChanged();
-    void onMIDIMessageReceived(std::shared_ptr<JSONMIDI::MIDIMessage> message);
+    void onMIDIMessageReceived(std::shared_ptr<JMID::MIDIMessage> message);
     
     juce::Label titleLabel;
     
@@ -58,8 +58,8 @@ private:
     juce::Label noteLabel;
     juce::Label velocityLabel;
     
-    // JSONMIDI Framework integration
-    std::unique_ptr<JSONMIDI::BassoonParser> parser;
+    // JMID Framework integration
+    std::unique_ptr<JMID::BassoonParser> parser;
     
     // MIDI I/O reference
     MIDIManager* midiManager = nullptr;

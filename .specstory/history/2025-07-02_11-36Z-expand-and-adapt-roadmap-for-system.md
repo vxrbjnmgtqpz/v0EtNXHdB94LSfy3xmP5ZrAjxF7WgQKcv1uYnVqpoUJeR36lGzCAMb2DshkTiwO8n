@@ -14,7 +14,7 @@ _**Assistant**_
 
 To better understand their specific use case, I should look at their project structure and see what kind of MIDI/audio system they have. From the project layout, I can see they have:
 
-1. JSONMIDI_Framework - which suggests they're working with JSON-based MIDI messaging
+1. JMID_Framework - which suggests they're working with JSON-based MIDI messaging
 2. TOASTer - which appears to be some kind of MIDI application with GUI components
 3. VirtualAssistance - which seems to be related to chord progression and music theory
 4. Various frameworks for JSON-based audio/video/MIDI data
@@ -32,63 +32,63 @@ I'll help you expand this roadmap and adapt it to your specific system. Let me f
         
 | File | Lines |
 |------|-------|
-| `JSONMIDI_Framework/src/BassoonParser.cpp` | L27-77 |
-| `JSONMIDI_Framework/src/BassoonParser.cpp` | L77-143 |
-| `JSONMIDI_Framework/src/BassoonParser.cpp` | L143-185 |
-| `JSONMIDI_Framework/src/BassoonParser.cpp` | L185-210 |
-| `JSONMIDI_Framework/include/JSONMIDIParser.h` | L1-60 |
-| `JSONMIDI_Framework/src/BassoonParser.cpp` | L210-268 |
-| `JSONMIDI_Framework/memorymapandc++bridge.md` | L238-273 |
-| `JSONMIDI_Framework/src/JSONMIDIParser.cpp` | L1-68 |
-| `JSONMIDI_Framework/memorymapandc++bridge.md` | L273-322 |
+| `JMID_Framework/src/BassoonParser.cpp` | L27-77 |
+| `JMID_Framework/src/BassoonParser.cpp` | L77-143 |
+| `JMID_Framework/src/BassoonParser.cpp` | L143-185 |
+| `JMID_Framework/src/BassoonParser.cpp` | L185-210 |
+| `JMID_Framework/include/JMIDParser.h` | L1-60 |
+| `JMID_Framework/src/BassoonParser.cpp` | L210-268 |
+| `JMID_Framework/memorymapandc++bridge.md` | L238-273 |
+| `JMID_Framework/src/JMIDParser.cpp` | L1-68 |
+| `JMID_Framework/memorymapandc++bridge.md` | L273-322 |
 | `TOASTer/Source/MIDITestingPanel_new.cpp` | L1-52 |
-| `JSONMIDI_Framework/Initialization.md` | L314-321 |
-| `TOASTer/Source/JSONMIDIIntegrationPanel.cpp` | L28-79 |
-| `JSONMIDI_Framework/examples/simple_demo.cpp` | L51-90 |
+| `JMID_Framework/Initialization.md` | L314-321 |
+| `TOASTer/Source/JMIDIntegrationPanel.cpp` | L28-79 |
+| `JMID_Framework/examples/simple_demo.cpp` | L51-90 |
 | `TOASTer/Source/MIDITestingPanel_old.cpp` | L1-52 |
-| `JSONMIDI_Framework/tests/test_phase12_performance.cpp` | L49-85 |
+| `JMID_Framework/tests/test_phase12_performance.cpp` | L49-85 |
 | `copilotlog.md` | L67-105 |
 | `TOASTer/Source/MIDITestingPanel.cpp` | L1-51 |
-| `JSONMIDI_Framework/memorymapandc++bridge.md` | L1-54 |
-| `JSONMIDI_Framework/Initialization.md` | L150-176 |
+| `JMID_Framework/memorymapandc++bridge.md` | L1-54 |
+| `JMID_Framework/Initialization.md` | L150-176 |
 | `copilotlog2.md` | L67-105 |
-| `JSONMIDI_Framework/src/BassoonParser.cpp` | L1-27 |
-| `JSONMIDI_Framework/src/BassoonParser.cpp` | L268-303 |
-| `JSONMIDI_Framework/memorymapandc++bridge.md` | L503-525 |
-| `JSONMIDI_Framework/Initialization.md` | L101-138 |
-| `JSONMIDI_Framework/schemas/jsonmidi-message.schema.json` | L1-51 |
+| `JMID_Framework/src/BassoonParser.cpp` | L1-27 |
+| `JMID_Framework/src/BassoonParser.cpp` | L268-303 |
+| `JMID_Framework/memorymapandc++bridge.md` | L503-525 |
+| `JMID_Framework/Initialization.md` | L101-138 |
+| `JMID_Framework/schemas/jmid-message.schema.json` | L1-51 |
 
 </details>
 
 ---
 
 <details>
-            <summary>Searched codebase "JSONMIDI TOASTTransport message streaming" • **25** results</summary>
+            <summary>Searched codebase "JMID TOASTTransport message streaming" • **25** results</summary>
         
 | File | Lines |
 |------|-------|
-| `JSONMIDI_Framework/include/TOASTTransport.h` | L177-229 |
-| `JSONMIDI_Framework/toast_client.cpp` | L32-74 |
-| `JSONMIDI_Framework/toast_server.cpp` | L1-45 |
-| `JSONMIDI_Framework/include/TOASTTransport.h` | L1-87 |
-| `JSONMIDI_Framework/include/TOASTTransport.h` | L87-144 |
-| `JSONMIDI_Framework/src/TOASTTransport.cpp` | L280-319 |
-| `JSONMIDI_Framework/toast_client.cpp` | L1-32 |
-| `JSONMIDI_Framework/schemas/toast-transport.schema.json` | L47-92 |
-| `JSONMIDI_Framework/src/TOASTTransport.cpp` | L198-223 |
-| `JSONMIDI_Framework/src/TOASTTransport.cpp` | L223-280 |
+| `JMID_Framework/include/TOASTTransport.h` | L177-229 |
+| `JMID_Framework/toast_client.cpp` | L32-74 |
+| `JMID_Framework/toast_server.cpp` | L1-45 |
+| `JMID_Framework/include/TOASTTransport.h` | L1-87 |
+| `JMID_Framework/include/TOASTTransport.h` | L87-144 |
+| `JMID_Framework/src/TOASTTransport.cpp` | L280-319 |
+| `JMID_Framework/toast_client.cpp` | L1-32 |
+| `JMID_Framework/schemas/toast-transport.schema.json` | L47-92 |
+| `JMID_Framework/src/TOASTTransport.cpp` | L198-223 |
+| `JMID_Framework/src/TOASTTransport.cpp` | L223-280 |
 | `TOASTer/Source/MIDIManager.cpp` | L301-330 |
 | `TOASTer/Source/MIDIManager.cpp` | L223-246 |
 | `TOASTer/Source/MIDIManager.h` | L80-119 |
-| `JSONMIDI_Framework/src/TOASTTransport.cpp` | L1-45 |
-| `JSONMIDI_Framework/src/TOASTTransport.cpp` | L86-151 |
-| `JSONMIDI_Framework/src/TOASTTransport.cpp` | L45-86 |
-| `JSONMIDI_Framework/test_tcp_communication.cpp` | L1-30 |
+| `JMID_Framework/src/TOASTTransport.cpp` | L1-45 |
+| `JMID_Framework/src/TOASTTransport.cpp` | L86-151 |
+| `JMID_Framework/src/TOASTTransport.cpp` | L45-86 |
+| `JMID_Framework/test_tcp_communication.cpp` | L1-30 |
 | `TOASTer/Source/MIDIManager.cpp` | L246-301 |
 | `TOASTer/Source/MIDIManager.cpp` | L174-223 |
-| `JSONMIDI_Framework/src/TOASTTransport.cpp` | L151-198 |
-| `JSONMIDI_Framework/test_tcp_communication.cpp` | L60-103 |
-| `JSONMIDI_Framework/schemas/toast-transport.schema.json` | L1-47 |
+| `JMID_Framework/src/TOASTTransport.cpp` | L151-198 |
+| `JMID_Framework/test_tcp_communication.cpp` | L60-103 |
+| `JMID_Framework/schemas/toast-transport.schema.json` | L1-47 |
 | `TOASTer/Source/MIDIManager.h` | L31-80 |
 | `TOASTer/Source/MIDITestingPanel.cpp` | L287-325 |
 | `TOASTer/Source/MIDITestingPanel_new.cpp` | L263-301 |
@@ -102,30 +102,30 @@ I'll help you expand this roadmap and adapt it to your specific system. Let me f
         
 | File | Lines |
 |------|-------|
-| `JSONMIDI_Framework/include/TOASTTransport.h` | L144-177 |
+| `JMID_Framework/include/TOASTTransport.h` | L144-177 |
 | `TOASTer/Source/NetworkConnectionPanel.h` | L1-49 |
-| `JSONMIDI_Framework/src/TOASTTransport.cpp` | L151-198 |
+| `JMID_Framework/src/TOASTTransport.cpp` | L151-198 |
 | `TOASTer/Source/NetworkConnectionPanel.cpp` | L1-50 |
-| `JSONMIDI_Framework/src/TOASTTransport.cpp` | L384-447 |
-| `JSONMIDI_Framework/test_tcp_communication.cpp` | L30-60 |
-| `JSONMIDI_Framework/test_tcp_communication.cpp` | L60-103 |
-| `JSONMIDI_Framework/src/TOASTTransport.cpp` | L319-384 |
-| `JSONMIDI_Framework/include/TOASTTransport.h` | L1-87 |
-| `JSONMIDI_Framework/src/TOASTTransport.cpp` | L1-45 |
+| `JMID_Framework/src/TOASTTransport.cpp` | L384-447 |
+| `JMID_Framework/test_tcp_communication.cpp` | L30-60 |
+| `JMID_Framework/test_tcp_communication.cpp` | L60-103 |
+| `JMID_Framework/src/TOASTTransport.cpp` | L319-384 |
+| `JMID_Framework/include/TOASTTransport.h` | L1-87 |
+| `JMID_Framework/src/TOASTTransport.cpp` | L1-45 |
 | `TOASTer/Source/MainComponent.h` | L1-70 |
-| `JSONMIDI_Framework/src/TOASTTransport.cpp` | L280-319 |
+| `JMID_Framework/src/TOASTTransport.cpp` | L280-319 |
 | `protocolflow.md` | L1-40 |
-| `JSONMIDI_Framework/TCP_TOAST_SUCCESS.md` | L1-51 |
-| `JSONMIDI_Framework/test_tcp_communication.cpp` | L103-127 |
-| `JSONMIDI_Framework/test_tcp_communication.cpp` | L1-30 |
-| `JSONMIDI_Framework/src/ConnectionManager.cpp` | L1-8 |
-| `JSONMIDI_Framework/toast_client.cpp` | L1-32 |
-| `JSONMIDI_Framework/src/TOASTTransport.cpp` | L223-280 |
-| `JSONMIDI_Framework/test_tcp_instructions.sh` | L1-37 |
+| `JMID_Framework/TCP_TOAST_SUCCESS.md` | L1-51 |
+| `JMID_Framework/test_tcp_communication.cpp` | L103-127 |
+| `JMID_Framework/test_tcp_communication.cpp` | L1-30 |
+| `JMID_Framework/src/ConnectionManager.cpp` | L1-8 |
+| `JMID_Framework/toast_client.cpp` | L1-32 |
+| `JMID_Framework/src/TOASTTransport.cpp` | L223-280 |
+| `JMID_Framework/test_tcp_instructions.sh` | L1-37 |
 | `TOASTer/Source/NetworkConnectionPanel.cpp` | L132-156 |
-| `JSONMIDI_Framework/toast_server.cpp` | L1-45 |
-| `JSONMIDI_Framework/include/TOASTTransport.h` | L87-144 |
-| `.specstory/history/2025-07-01_18-45Z-set-up-jsonadat-framework-structure.md` | L482-552 |
+| `JMID_Framework/toast_server.cpp` | L1-45 |
+| `JMID_Framework/include/TOASTTransport.h` | L87-144 |
+| `.specstory/history/2025-07-01_18-45Z-set-up-jdat-framework-structure.md` | L482-552 |
 | `TOASTer/Source/MainComponent.cpp` | L51-97 |
 
 </details>
@@ -135,14 +135,14 @@ I'll help you expand this roadmap and adapt it to your specific system. Let me f
 <think><details><summary>Thought Process</summary>Now I have a much better understanding of their system! Let me analyze what I've found:
 
 1. **Current System Architecture:**
-   - They have a **JSONMIDI Framework** with a BassoonParser (C++ implementation) that's already partially implemented
+   - They have a **JMID Framework** with a BassoonParser (C++ implementation) that's already partially implemented
    - They have **TOAST (Transport Oriented Audio Synchronization Tunnel)** - their custom TCP/UDP transport layer
    - They have a **TOASTer** application (JUCE-based) that provides a GUI for MIDI testing and network connectivity
    - They have **ClockDriftArbiter** for timing synchronization
-   - They're working with both **JSONMIDI** (MIDI over JSON) and **JSONADAT** (Audio over JSON) frameworks
+   - They're working with both **JMID** (MIDI over JSON) and **JDAT** (Audio over JSON) frameworks
 
 2. **Current Integration Points:**
-   - The BassoonParser is already integrated into their JSONMIDI parsing system
+   - The BassoonParser is already integrated into their JMID parsing system
    - They have TCP communication working via TOAST transport
    - They have a full network architecture for real-time MIDI streaming
    - They have both C++ and JavaScript/web components
@@ -158,7 +158,7 @@ Now I can expand the roadmap to specifically address their real-time MIDI stream
 
 ---
 
-Based on your codebase, I can see you have a sophisticated real-time MIDI streaming system with the JSONMIDI Framework, TOAST transport layer, and TOASTer application. Let me expand and adapt the bassoon.js roadmap specifically for your MIDIp2p network streaming architecture.
+Based on your codebase, I can see you have a sophisticated real-time MIDI streaming system with the JMID Framework, TOAST transport layer, and TOASTer application. Let me expand and adapt the bassoon.js roadmap specifically for your MIDIp2p network streaming architecture.
 
 ---
 
@@ -218,7 +218,7 @@ Perfect! I've successfully expanded and adapted the bassoon.js roadmap specifica
    - WebSocket bridge for browser clients
 
 4. **Backward Compatibility**:
-   - Zero breaking changes to current JSONMIDI/TOAST APIs
+   - Zero breaking changes to current JMID/TOAST APIs
    - Gradual migration over 8 weeks
    - Existing functionality preserved
 

@@ -21,6 +21,7 @@ from dataclasses import dataclass
 from datetime import datetime
 import json
 import pickle
+import time
 
 # Import our existing models
 from individual_chord_model import IndividualChordModel, IndividualChord
@@ -37,6 +38,8 @@ class ContextualChordAnalysis:
     functional_role: str  # e.g., "tonic", "dominant", "subdominant", "transitional"
     harmonic_tension: float  # 0.0 to 1.0
     contextual_weight: float  # How much this chord contributes to overall progression emotion
+    consonant_dissonant_value: float  # 0.0 to 1.0 (0.0=consonant, 1.0=dissonant)
+    consonant_dissonant_context: str  # Description of CD role in progression
 
 @dataclass
 class ProgressionAnalysis:
@@ -46,8 +49,11 @@ class ProgressionAnalysis:
     overall_emotion_weights: Dict[str, float]
     contextual_chord_analyses: List[ContextualChordAnalysis]
     harmonic_flow: List[float]  # Tension curve throughout progression
+    consonant_dissonant_trajectory: List[float]  # CD values throughout progression
     novel_pattern_score: float  # How different this is from known patterns
     generation_confidence: float  # How confident the model is in this progression
+    average_consonant_dissonant: float  # Overall CD character of progression
+    cd_flow_description: str  # Description of how CD changes through progression
 
 class NeuralProgressionAnalyzer(nn.Module):
     """
@@ -124,11 +130,19 @@ class NeuralProgressionAnalyzer(nn.Module):
             nn.Sigmoid()
         )
         
-        # Update emotion labels for 22-emotion system
+        # Consonant/Dissonant prediction head
+        self.consonant_dissonant_estimator = nn.Sequential(
+            nn.Linear(hidden_dim * 2, 64),
+            nn.ReLU(),
+            nn.Linear(64, 1),
+            nn.Sigmoid()
+        )
+        
+        # Update emotion labels for 23-emotion system including Transcendence
         self.emotion_labels = ["Joy", "Sadness", "Fear", "Anger", "Disgust", "Surprise", 
                               "Trust", "Anticipation", "Shame", "Love", "Envy", "Aesthetic Awe", "Malice",
                               "Arousal", "Guilt", "Reverence", "Wonder", "Dissociation", 
-                              "Empowerment", "Belonging", "Ideology", "Gratitude"]
+                              "Empowerment", "Belonging", "Ideology", "Gratitude", "Transcendence"]
         
     def forward(self, chord_indices: torch.Tensor, positions: torch.Tensor) -> Dict[str, torch.Tensor]:
         """
@@ -180,12 +194,16 @@ class NeuralProgressionAnalyzer(nn.Module):
         # Harmonic tension throughout progression
         tension_scores = self.tension_estimator(attended_output)
         
+        # Consonant/Dissonant scores throughout progression
+        consonant_dissonant_scores = self.consonant_dissonant_estimator(attended_output)
+        
         return {
             'progression_emotions': progression_emotion,
             'contextual_chord_emotions': contextual_emotions,
             'attention_weights': attention_weights,
             'novelty_scores': novelty_score,
-            'tension_scores': tension_scores
+            'tension_scores': tension_scores,
+            'consonant_dissonant_scores': consonant_dissonant_scores
         }
 
 class ContextualProgressionIntegrator:
@@ -202,11 +220,11 @@ class ContextualProgressionIntegrator:
         # Initialize neural analyzer
         self.neural_analyzer = NeuralProgressionAnalyzer()
         
-        # Add emotion labels for compatibility
+        # Add emotion labels for compatibility with 23-emotion system
         self.emotion_labels = ["Joy", "Sadness", "Fear", "Anger", "Disgust", "Surprise", 
                               "Trust", "Anticipation", "Shame", "Love", "Envy", "Aesthetic Awe", "Malice",
                               "Arousal", "Guilt", "Reverence", "Wonder", "Dissociation", 
-                              "Empowerment", "Belonging", "Ideology", "Gratitude"]
+                              "Empowerment", "Belonging", "Ideology", "Gratitude", "Transcendence"]
         
         # Chord vocabulary for neural network
         self.chord_vocab = self._build_chord_vocabulary()
@@ -367,12 +385,7 @@ class ContextualProgressionIntegrator:
         attention_weights = predictions['attention_weights'][0].numpy()
         novelty_score = predictions['novelty_scores'][0].item()
         tension_scores = predictions['tension_scores'][0].numpy()
-        
-        # Build progression emotion dictionary
-        overall_emotions = {
-            emotion: float(progression_emotions[i]) 
-            for i, emotion in enumerate(self.emotion_labels)
-        }
+        consonant_dissonant_scores = predictions['consonant_dissonant_scores'][0].numpy()
         
         # Analyze each chord in context
         contextual_analyses = []
@@ -408,6 +421,9 @@ class ContextualProgressionIntegrator:
             # Harmonic tension
             harmonic_tension = float(tension_scores[i]) if i < len(tension_scores) else 0.5
             
+            # Consonant/Dissonant prediction
+            consonant_dissonant_value = float(consonant_dissonant_scores[i]) if i < len(consonant_dissonant_scores) else 0.5
+            
             analysis = ContextualChordAnalysis(
                 chord_symbol=self._roman_to_symbol(chord),
                 roman_numeral=chord,
@@ -416,21 +432,49 @@ class ContextualProgressionIntegrator:
                 contextual_emotions=context_emotions,
                 functional_role=functional_role,
                 harmonic_tension=harmonic_tension,
-                contextual_weight=contextual_weight
+                contextual_weight=contextual_weight,
+                consonant_dissonant_value=consonant_dissonant_value,
+                consonant_dissonant_context=""  # Placeholder, actual context would be determined
             )
             contextual_analyses.append(analysis)
         
-        # Build harmonic flow
-        harmonic_flow = [float(t) for t in tension_scores[:original_length]]
+        # Calculate average CD and flow description
+        cd_values = [analysis.consonant_dissonant_value for analysis in contextual_analyses]
+        average_cd = sum(cd_values) / len(cd_values) if cd_values else 0.5
+        
+        # Generate CD flow description
+        cd_flow_description = self._generate_cd_flow_description(cd_values)
+        
+        # Store CD trajectory
+        consonant_dissonant_trajectory = cd_values
+        
+        # Update CD context descriptions
+        for i, analysis in enumerate(contextual_analyses):
+            analysis.consonant_dissonant_context = self._generate_cd_context_description(
+                analysis.consonant_dissonant_value, i, cd_values
+            )
+        
+        # Build progression emotion dictionary
+        overall_emotions = {
+            emotion: float(progression_emotions[i]) 
+            for i, emotion in enumerate(self.emotion_labels)
+        }
+        
+        # Calculate harmonic flow
+        harmonic_flow = [float(tension_scores[i]) if i < len(tension_scores) else 0.5 
+                        for i in range(original_length)]
         
         return ProgressionAnalysis(
-            chords=chord_progression,
-            progression_id=f"analyzed_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+            chords=chord_progression[:original_length],
+            progression_id=f"progression_{int(time.time())}",
             overall_emotion_weights=overall_emotions,
             contextual_chord_analyses=contextual_analyses,
             harmonic_flow=harmonic_flow,
+            consonant_dissonant_trajectory=consonant_dissonant_trajectory,
             novel_pattern_score=novelty_score,
-            generation_confidence=1.0 - novelty_score  # More familiar = more confident
+            generation_confidence=1.0 - novelty_score,  # More familiar = more confident
+            average_consonant_dissonant=average_cd,
+            cd_flow_description=cd_flow_description
         )
     
     def _determine_functional_role(self, chord: str, position: int, progression: List[str]) -> str:
@@ -595,6 +639,75 @@ class ContextualProgressionIntegrator:
         self.chord_to_idx = checkpoint['chord_to_idx']
         self.emotion_labels = checkpoint['emotion_labels']
         print(f"Model loaded from {filepath}")
+
+    def _generate_cd_flow_description(self, cd_values: List[float]) -> str:
+        """Generate a description of how consonant/dissonant values change through the progression"""
+        if not cd_values:
+            return "No CD data available"
+        
+        if len(cd_values) == 1:
+            if cd_values[0] < 0.3:
+                return "Consonant throughout"
+            elif cd_values[0] > 0.7:
+                return "Dissonant throughout"
+            else:
+                return "Moderately consonant"
+        
+        # Analyze trend
+        start_cd = cd_values[0]
+        end_cd = cd_values[-1]
+        max_cd = max(cd_values)
+        min_cd = min(cd_values)
+        
+        # Calculate trend
+        if end_cd > start_cd + 0.2:
+            trend = "increasing tension"
+        elif end_cd < start_cd - 0.2:
+            trend = "releasing tension"
+        else:
+            trend = "stable tension"
+        
+        # Calculate overall character
+        avg_cd = sum(cd_values) / len(cd_values)
+        if avg_cd < 0.3:
+            character = "predominantly consonant"
+        elif avg_cd > 0.7:
+            character = "predominantly dissonant"
+        else:
+            character = "moderately dissonant"
+        
+        return f"{character} with {trend} (range: {min_cd:.2f}-{max_cd:.2f})"
+    
+    def _generate_cd_context_description(self, cd_value: float, position: int, cd_trajectory: List[float]) -> str:
+        """Generate a description of this chord's CD role in the progression context"""
+        if cd_value < 0.3:
+            base_desc = "consonant"
+        elif cd_value > 0.7:
+            base_desc = "dissonant"
+        else:
+            base_desc = "moderately dissonant"
+        
+        # Add positional context
+        if position == 0:
+            pos_desc = "opening"
+        elif position == len(cd_trajectory) - 1:
+            pos_desc = "closing"
+        else:
+            pos_desc = f"middle (position {position + 1})"
+        
+        # Add relative context
+        if len(cd_trajectory) > 1:
+            avg_cd = sum(cd_trajectory) / len(cd_trajectory)
+            if cd_value > avg_cd + 0.2:
+                relative_desc = "peak tension"
+            elif cd_value < avg_cd - 0.2:
+                relative_desc = "tension release"
+            else:
+                relative_desc = "typical tension"
+        else:
+            relative_desc = "standalone"
+        
+        return f"{base_desc} {pos_desc} chord providing {relative_desc}"
 
 def demo_contextual_analysis():
     """Demo the contextual progression analyzer"""

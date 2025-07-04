@@ -19,7 +19,7 @@
 #### **Primary Test: TCP TOAST Protocol**
 ```bash
 # Terminal 1 - Start server
-cd /Users/timothydowler/Projects/MIDIp2p/JSONMIDI_Framework
+cd /Users/timothydowler/Projects/MIDIp2p/JMID_Framework
 ./toast_server
 
 # Terminal 2 - Connect client
@@ -34,12 +34,12 @@ open TOASTer.app
 - [x] **Local TCP server/client communication**
 - [ ] **Multi-client session management** 
 - [ ] **TOASTer GUI integration with TCP protocol**
-- [ ] **JSONMIDI message routing and validation**
+- [ ] **JMID message routing and validation**
 - [ ] **Performance baseline measurements**
 
 #### **Success Criteria:**
 - Server accepts multiple client connections
-- JSONMIDI messages transmit successfully  
+- JMID messages transmit successfully  
 - Session join/leave functionality works
 - TOASTer GUI can connect to TCP sessions
 - Latency measurements under 5ms locally
@@ -50,11 +50,11 @@ open TOASTer.app
 - ✅ **TOASTer.app**: Native macOS GUI application
 - ✅ **toast_server**: Multi-client TCP server
 - ✅ **toast_client**: Interactive command-line client
-- ✅ **JSONMIDI Framework**: Core protocol implementation
+- ✅ **JMID Framework**: Core protocol implementation
 - ✅ **Testing Infrastructure**: Comprehensive test scenarios
 
 #### **Phase Status:**
-- **Phase 1**: ✅ JSONMIDI Foundation Complete
+- **Phase 1**: ✅ JMID Foundation Complete
 - **Phase 2.1**: ✅ TCP TOAST Implementation Complete  
 - **Phase 2.2**: 🟡 **Ready for Testing Tomorrow**
 - **Phase 2.3**: 🔴 UDP + PNTBTR (Pending)
@@ -63,9 +63,9 @@ open TOASTer.app
 ```
 JAMNet/
 ├── TOASTer/                     # ✅ Native macOS app (ready)
-├── JSONMIDI_Framework/          # ✅ Core protocol + TCP TOAST
-├── JSONADAT_Framework/          # ✅ Audio streaming framework
-├── JSONVID_Framework/           # ✅ Video streaming framework
+├── JMID_Framework/          # ✅ Core protocol + TCP TOAST
+├── JDAT_Framework/          # ✅ Audio streaming framework
+├── JVID_Framework/           # ✅ Video streaming framework
 ├── TOASTer_TESTING_GUIDE.md     # ✅ Complete testing procedures
 └── README.md                    # ✅ Full JAMNet ecosystem docs
 ```
@@ -73,7 +73,7 @@ JAMNet/
 ### 🚀 **Next Phase After Testing:**
 Once TCP TOAST validation is complete:
 1. **UDP + PNTBTR Implementation**: Fire-and-forget networking
-2. **JSONADAT Integration**: Audio streaming with TOASTer
+2. **JDAT Integration**: Audio streaming with TOASTer
 3. **Cross-Machine LAN Testing**: MacBook Pro ↔ Mac Mini
 4. **Performance Optimization**: Approach <100μs latencies
 

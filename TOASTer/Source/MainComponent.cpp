@@ -4,7 +4,7 @@
 #include "MIDITestingPanel.h"
 #include "PerformanceMonitorPanel.h"
 #include "ClockSyncPanel.h"
-#include "JSONMIDIIntegrationPanel.h"
+#include "JMIDIntegrationPanel.h"
 #include "MIDIManager.h"
 
 //==============================================================================
@@ -30,8 +30,8 @@ MainComponent::MainComponent()
     clockSyncPanel = std::make_unique<ClockSyncPanel>();
     addAndMakeVisible(*clockSyncPanel);
     
-    jsonmidiPanel = std::make_unique<JSONMIDIIntegrationPanel>();
-    addAndMakeVisible(*jsonmidiPanel);
+    jmidPanel = std::make_unique<JMIDIntegrationPanel>();
+    addAndMakeVisible(*jmidPanel);
     
     // Start timer to coordinate state updates between panels
     startTimer(250); // Update 4 times per second
@@ -66,7 +66,7 @@ void MainComponent::resized()
     auto topRow = remainingBounds.removeFromTop(panelHeight);
     networkPanel->setBounds(topRow.removeFromLeft(panelWidth).reduced(5));
     midiPanel->setBounds(topRow.removeFromLeft(panelWidth).reduced(5));
-    jsonmidiPanel->setBounds(topRow.reduced(5)); // JSONMIDI panel gets remaining space
+    jmidPanel->setBounds(topRow.reduced(5)); // JMID panel gets remaining space
     
     // Bottom row - two panels  
     auto bottomRow = remainingBounds;

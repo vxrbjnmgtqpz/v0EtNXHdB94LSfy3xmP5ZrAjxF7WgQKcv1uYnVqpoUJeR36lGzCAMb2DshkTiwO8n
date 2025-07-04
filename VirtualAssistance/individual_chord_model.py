@@ -18,7 +18,7 @@ Architecture:
 import json
 import random
 from datetime import datetime
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Any
 from dataclasses import dataclass
 
 @dataclass
@@ -30,6 +30,7 @@ class IndividualChord:
     style_context: str  # e.g., "Jazz", "Blues", "Classical" - genre/stylistic contexts
     emotion_weights: Dict[str, float]
     chord_id: str
+    consonant_dissonant_profile: Optional[Dict[str, Any]] = None  # New CD profile field
 
 class EmotionChordDatabase:
     """Database of chord-to-emotion mappings across different musical contexts"""
@@ -40,27 +41,44 @@ class EmotionChordDatabase:
     def _load_chord_database(self) -> List[IndividualChord]:
         """Load comprehensive chord-to-emotion mapping database"""
         try:
-            with open('individual_chord_database.json', 'r') as f:
-                data = json.load(f)
+            # Try to load updated database first
+            database_files = ['individual_chord_database_updated.json', 'individual_chord_database.json']
+            
+            for db_file in database_files:
+                try:
+                    with open(db_file, 'r') as f:
+                        data = json.load(f)
+                    print(f"✅ Loaded database: {db_file}")
+                    break
+                except FileNotFoundError:
+                    continue
+            else:
+                print("Warning: No database file found. Creating sample data.")
+                return self._create_sample_chord_database()
             
             chords = []
             for chord_data in data['chord_to_emotion_map']:
                 # Default style_context if missing from database
                 style_context = chord_data.get('style_context', 'Classical')
+                
+                # Load consonant/dissonant profile if available
+                cd_profile = chord_data.get('consonant_dissonant_profile', None)
+                
                 chord = IndividualChord(
                     symbol=chord_data.get('symbol', chord_data['chord']),
                     roman_numeral=chord_data['chord'],
                     mode_context=chord_data['mode_context'],
                     style_context=style_context,
                     emotion_weights=chord_data['emotion_weights'],
-                    chord_id=chord_data.get('chord_id', f"{style_context}_{chord_data['mode_context']}_{chord_data['chord']}")
+                    chord_id=chord_data.get('chord_id', f"{style_context}_{chord_data['mode_context']}_{chord_data['chord']}"),
+                    consonant_dissonant_profile=cd_profile
                 )
                 chords.append(chord)
             
             return chords
             
-        except FileNotFoundError:
-            print("Warning: individual_chord_database.json not found. Creating sample data.")
+        except Exception as e:
+            print(f"Warning: Error loading database: {e}. Creating sample data.")
             return self._create_sample_chord_database()
     
     def _create_sample_chord_database(self) -> List[IndividualChord]:
@@ -211,11 +229,11 @@ class IndividualChordEmotionParser:
     """Parse emotional content from text for individual chord generation"""
     
     def __init__(self):
-        # Complete 22-emotion system emotion labels
+        # Complete 23-emotion system emotion labels including Transcendence
         self.emotion_labels = ["Joy", "Sadness", "Fear", "Anger", "Disgust", "Surprise", 
                               "Trust", "Anticipation", "Shame", "Love", "Envy", "Aesthetic Awe", "Malice",
                               "Arousal", "Guilt", "Reverence", "Wonder", "Dissociation", 
-                              "Empowerment", "Belonging", "Ideology", "Gratitude"]
+                              "Empowerment", "Belonging", "Ideology", "Gratitude", "Transcendence"]
     
     def parse_emotion_weights(self, text: str) -> Dict[str, float]:
         """Parse text and return emotion weights using keyword matching"""
@@ -224,7 +242,7 @@ class IndividualChordEmotionParser:
         # Initialize weights
         emotion_weights = {emotion: 0.0 for emotion in self.emotion_labels}
         
-        # Load keyword mapping from database or use fallback
+        # Load keyword mapping from database or use fallback  
         emotion_keywords = {
             "Joy": ["happy", "joy", "joyful", "excited", "cheerful", "uplifted", "bright", "celebratory", "elated", "playful"],
             "Sadness": ["sad", "depressed", "grieving", "blue", "mournful", "melancholy", "sorrowful", "down", "bluesy"],
@@ -237,8 +255,23 @@ class IndividualChordEmotionParser:
             "Shame": ["guilt", "shame", "regret", "embarrassed", "remorseful", "ashamed", "humiliated"],
             "Love": ["love", "romantic", "affection", "caring", "warm", "tender", "devoted", "passionate"],
             "Envy": ["jealous", "envious", "spiteful", "competitive", "bitter", "possessive", "resentful"],
-            "Aesthetic Awe": ["awe", "wonder", "sublime", "inspired", "majestic", "transcendent", "beautiful"],
-            "Malice": ["malicious", "evil", "wicked", "cruel", "vicious", "sinister", "vindictive", "sadistic", "callous", "manipulative"]
+            "Aesthetic Awe": ["awe", "wonder", "sublime", "inspired", "majestic", "beautiful"],
+            "Malice": ["malicious", "evil", "wicked", "cruel", "vicious", "sinister", "vindictive", "sadistic", "callous", "manipulative"],
+            "Arousal": ["aroused", "drive", "driven", "lust", "lustful", "restless", "manic", "addicted", "compulsive"],
+            "Guilt": ["guilty", "guilt", "remorseful", "regretful", "ashamed", "sorry", "repentant"],
+            "Reverence": ["reverent", "sacred", "holy", "divine", "spiritual", "worship", "humble"],
+            "Wonder": ["wonder", "curious", "fascinated", "intrigued", "amazed", "marveling", "exploring"],
+            "Dissociation": ["dissociated", "numb", "detached", "disconnected", "empty", "alienated", "apathetic"],
+            "Empowerment": ["empowered", "confident", "strong", "inspired", "resilient", "liberated", "free"],
+            "Belonging": ["belonging", "connected", "community", "unity", "acceptance", "companionship", "loyal"],
+            "Ideology": ["ideological", "righteous", "convicted", "zealous", "principled", "devoted", "cause"],
+            "Gratitude": ["grateful", "thankful", "appreciative", "blessed", "gracious", "content", "peaceful"],
+            "Transcendence": ["transcendent", "mystical", "ethereal", "otherworldly", "cosmic", "divine", "spiritual", 
+                             "enlightened", "transcendental", "sublime", "celestial", "dreamlike", "lucid", "visionary",
+                             "ego death", "dissolution", "floating", "weightless", "sacred dissonance", "mirror self",
+                             "cosmic unity", "celestial ascension", "serene void", "ethereal calm", "kaleidoscopic",
+                             "divine ecstasy", "epiphany", "inner rebirth", "hypnotic trance", "mystic insight",
+                             "arcane mystery", "psychedelic", "overlapping realities", "sublime vastness", "harmonic nirvana"]
         }
         
         # Count keyword matches
@@ -286,7 +319,8 @@ class IndividualChordModel:
                                   mode_preference: str = "Any",
                                   style_preference: str = "Any",
                                   key: str = "C",
-                                  num_options: int = 1) -> List[Dict]:
+                                  num_options: int = 1,
+                                  consonant_dissonant_preference: Optional[float] = None) -> List[Dict]:
         """
         Main interface: Generate individual chords from natural language
         
@@ -296,6 +330,7 @@ class IndividualChordModel:
             style_preference: Style context ("Jazz", "Blues", "Classical", "Any")
             key: Root key for chord symbols (default: C)
             num_options: Number of chord options to return
+            consonant_dissonant_preference: CD preference (0.0=consonant, 1.0=dissonant, None=auto)
             
         Returns:
             List of chord dictionaries with metadata
@@ -304,7 +339,7 @@ class IndividualChordModel:
         emotion_weights = self.emotion_parser.parse_emotion_weights(text_prompt)
         
         # 2. Find matching chords
-        candidate_chords = self._find_matching_chords(emotion_weights, mode_preference, style_preference)
+        candidate_chords = self._find_matching_chords(emotion_weights, mode_preference, style_preference, consonant_dissonant_preference)
         
         # 3. Select best options
         selected_chords = self._select_chords(candidate_chords, num_options)
@@ -314,6 +349,19 @@ class IndividualChordModel:
         for chord, score in selected_chords:
             # Transpose to requested key if needed
             chord_symbol = self._transpose_chord(chord.symbol, "C", key)
+            
+            # Calculate consonant/dissonant value for this context
+            cd_value = None
+            cd_description = None
+            if chord.consonant_dissonant_profile:
+                cd_profile = chord.consonant_dissonant_profile
+                base_cd_value = cd_profile.get("base_value", 0.4)
+                context_modifiers = cd_profile.get("context_modifiers", {})
+                context_modifier = context_modifiers.get(style_preference, 1.0)
+                if style_preference == "Any":
+                    context_modifier = 1.0
+                cd_value = base_cd_value * context_modifier
+                cd_description = cd_profile.get("description", "Unknown consonance")
             
             result = {
                 "chord_id": chord.chord_id,
@@ -325,11 +373,14 @@ class IndividualChordModel:
                 "style_context": chord.style_context,
                 "emotional_score": score,
                 "key": key,
+                "consonant_dissonant_value": cd_value,
+                "consonant_dissonant_description": cd_description,
                 "metadata": {
                     "generation_method": "emotion_weighted_selection",
                     "timestamp": datetime.now().isoformat(),
                     "mode_filter": mode_preference,
-                    "style_filter": style_preference
+                    "style_filter": style_preference,
+                    "consonant_dissonant_preference": consonant_dissonant_preference
                 }
             }
             results.append(result)
@@ -337,7 +388,8 @@ class IndividualChordModel:
         return results
     
     def _find_matching_chords(self, emotion_weights: Dict[str, float], 
-                             mode_preference: str, style_preference: str) -> List[Tuple[IndividualChord, float]]:
+                             mode_preference: str, style_preference: str,
+                             consonant_dissonant_preference: Optional[float] = None) -> List[Tuple[IndividualChord, float]]:
         """Find chords that match the emotional profile within mode and style constraints"""
         candidate_chords = []
         
@@ -350,16 +402,62 @@ class IndividualChordModel:
             if style_preference != "Any" and chord.style_context != style_preference:
                 continue
             
-            # Calculate emotional compatibility score
-            score = 0.0
-            for emotion, user_weight in emotion_weights.items():
-                chord_weight = chord.emotion_weights.get(emotion, 0.0)
-                score += user_weight * chord_weight
+            # Calculate comprehensive fitness score
+            fitness_score = self._calculate_chord_fitness(chord, emotion_weights, consonant_dissonant_preference, style_preference)
             
-            if score > 0.01:  # Only include chords with some emotional relevance
-                candidate_chords.append((chord, score))
+            if fitness_score > 0.01:  # Only include chords with some relevance
+                candidate_chords.append((chord, fitness_score))
         
         return candidate_chords
+    
+    def _calculate_chord_fitness(self, chord: IndividualChord, emotion_weights: Dict[str, float], 
+                               consonant_dissonant_preference: Optional[float], 
+                               style_preference: str) -> float:
+        """Calculate comprehensive fitness score combining emotional and consonant/dissonant criteria"""
+        
+        # 1. Calculate emotional fitness (base score)
+        emotional_score = 0.0
+        for emotion, user_weight in emotion_weights.items():
+            chord_weight = chord.emotion_weights.get(emotion, 0.0)
+            emotional_score += user_weight * chord_weight
+        
+        # If no consonant/dissonant preference specified, return emotional score only
+        if consonant_dissonant_preference is None:
+            return emotional_score
+        
+        # 2. Calculate consonant/dissonant fitness
+        cd_score = 0.0
+        if chord.consonant_dissonant_profile:
+            cd_profile = chord.consonant_dissonant_profile
+            
+            # Get base consonant/dissonant value
+            base_cd_value = cd_profile.get("base_value", 0.4)
+            
+            # Apply context modifier based on style
+            context_modifiers = cd_profile.get("context_modifiers", {})
+            context_modifier = context_modifiers.get(style_preference, 1.0)
+            if style_preference == "Any":
+                context_modifier = 1.0
+            
+            # Calculate actual consonant/dissonant value for this context
+            actual_cd_value = base_cd_value * context_modifier
+            
+            # Calculate consonant/dissonant fitness (how close to user preference)
+            cd_score = 1.0 - abs(consonant_dissonant_preference - actual_cd_value)
+            
+            # 3. Calculate emotional resonance with consonant/dissonant quality
+            emotional_resonance = cd_profile.get("emotional_resonance", {})
+            resonance_score = 0.0
+            for emotion, user_weight in emotion_weights.items():
+                emotion_resonance = emotional_resonance.get(emotion, 0.5)
+                resonance_score += user_weight * emotion_resonance
+            
+            # Combine scores with weights
+            # 40% emotional fit, 40% consonant/dissonant fit, 20% emotional resonance
+            return emotional_score * 0.4 + cd_score * 0.4 + resonance_score * 0.2
+        else:
+            # If no consonant/dissonant profile, just return emotional score
+            return emotional_score
     
     def _select_chords(self, candidates: List[Tuple[IndividualChord, float]], 
                       num_options: int) -> List[Tuple[IndividualChord, float]]:

@@ -19,7 +19,7 @@
 **Quick Test Commands:**
 ```bash
 # Terminal 1 - Start TCP server
-cd /Users/timothydowler/Projects/MIDIp2p/JSONMIDI_Framework
+cd /Users/timothydowler/Projects/MIDIp2p/JMID_Framework
 ./toast_server
 
 # Terminal 2 - Connect client
@@ -33,7 +33,7 @@ open TOASTer.app
 ### 📊 **Current Project State:**
 - **TOASTer App**: ✅ Built, correctly named, ready
 - **TCP TOAST Protocol**: ✅ Server/client binaries ready  
-- **JSONMIDI Framework**: ✅ Complete implementation
+- **JMID Framework**: ✅ Complete implementation
 - **Testing Guide**: ✅ Comprehensive procedures ready
 - **Repository**: ✅ Clean, backed up, organized
 

@@ -516,19 +516,19 @@ class HybridTabGenerator:
 
 ### 5.1 JAMNet Protocol Integration
 
-**Status: Integration with Existing JSONMIDI Framework**
+**Status: Integration with Existing JMID Framework**
 
 ```python
 class JAMNetTabIntegration:
     def __init__(self, tabs_engine):
         self.tabs_engine = tabs_engine
-        self.jsonmidi_parser = JSONMIDIParser()
+        self.jmid_parser = JMIDParser()
         self.multicast_handler = MulticastHandler()
 
-    def process_jsonmidi_stream(self, jsonmidi_events):
-        """Convert JSONMIDI events to real-time tablature"""
-        # Parse JSONMIDI compact format
-        midi_events = self.jsonmidi_parser.parse_compact_jsonl(jsonmidi_events)
+    def process_jmid_stream(self, jmid_events):
+        """Convert JMID events to real-time tablature"""
+        # Parse JMID compact format
+        midi_events = self.jmid_parser.parse_compact_jsonl(jmid_events)
 
         # Generate tabs in real-time
         tab_output = self.tabs_engine.process_real_time(midi_events)
@@ -538,8 +538,8 @@ class JAMNetTabIntegration:
 
     def subscribe_to_session(self, session_id):
         """Subscribe to JAMNet session for tab generation"""
-        def handle_midi_event(jsonmidi_event):
-            tab_line = self.process_single_event(jsonmidi_event)
+        def handle_midi_event(jmid_event):
+            tab_line = self.process_single_event(jmid_event)
             self.output_tab_line(tab_line)
 
         self.multicast_handler.subscribe(session_id, handle_midi_event)
@@ -766,7 +766,7 @@ class TabQualityAssurance:
 
 ### Milestone 5: JAMNet Integration (Week 15)
 
-- **Criteria**: Seamless integration with JAMNet multicast JSONMIDI streams
+- **Criteria**: Seamless integration with JAMNet multicast JMID streams
 - **Test**: Multi-instrument collaborative session with real-time tab generation
 - **Verification**: Synchronized tabs for multiple instruments across network
 
@@ -801,7 +801,7 @@ class TabQualityAssurance:
 ### JAMNet Ecosystem Integration
 
 - Real-time tab sharing across collaborative sessions
-- Integration with enhanced JSONMIDI multicast streams
+- Integration with enhanced JMID multicast streams
 - Synchronized playback with audio and video streams
 - Cross-platform tab viewing and editing
 

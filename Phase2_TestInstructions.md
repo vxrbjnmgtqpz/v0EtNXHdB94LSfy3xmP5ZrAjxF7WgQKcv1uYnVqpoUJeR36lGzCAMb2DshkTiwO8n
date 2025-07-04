@@ -1,6 +1,6 @@
 # Phase 2 Testing Instructions
 
-## Two-Computer Network Testing for JSONMIDI Framework
+## Two-Computer Network Testing for JMID Framework
 
 ### Prerequisites
 

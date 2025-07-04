@@ -1,6 +1,6 @@
 # JAMNet Development Roadmap
 
-## GPU-Native JDAT + JSONMIDI Framework with UDP Multicast Architecture
+## GPU-Native JDAT + JMID Framework with UDP Multicast Architecture
 
 _Building the complete JSON-based audio+MIDI streaming ecosystem with GPU-accelerated JSONL processing and UDP-native transport_
 
@@ -12,14 +12,14 @@ _Building the complete JSON-based audio+MIDI streaming ecosystem with GPU-accele
 
 The system consists of two parallel streaming frameworks:
 
-- **MIDIp2p**: MIDI events and control data via **compact JSONMIDI format** with GPU parsing
+- **MIDIp2p**: MIDI events and control data via **compact JMID format** with GPU parsing
 - **JELLIE**: Audio sample streaming via **enhanced JDAT format** with GPU-accelerated JSONL chunking
 
 Both systems use **GPU-accelerated compute shaders** for parsing, prediction, and processing, with **UDP-based multicast TOAST protocol** and **GPU-native PNTBTR** for musical continuity.
 
 ### Current Scope: GPU+UDP Native Architecture
 
-- ✅ JSON-based MIDI protocol specification (JSONMIDI) **ready for GPU processing**
+- ✅ JSON-based MIDI protocol specification (JMID) **ready for GPU processing**
 - ✅ JSON-based audio protocol specification (JDAT) **optimized for parallel processing**
 - ✅ **Memory mapping infrastructure** established for GPU data sharing
 - 🔄 **UDP-first transport architecture** (Enhanced TOAST)
@@ -49,7 +49,7 @@ Both systems use **GPU-accelerated compute shaders** for parsing, prediction, an
 **Status: Foundation Established, Ready for GPU+UDP Pivot**
 
 - [x] **Memory mapping infrastructure** working and optimized
-- [x] **JSONMIDI Framework** core functionality validated  
+- [x] **JMID Framework** core functionality validated  
 - [x] **JDAT Framework** header structure established
 - [x] **TOASTer GUI** builds and runs successfully
 - [x] **Bassoon.js not yet forked** - clean starting point
@@ -60,7 +60,7 @@ Both systems use **GPU-accelerated compute shaders** for parsing, prediction, an
 
 **Control Group Metrics** (Pre-GPU, Pre-UDP):
 
-- MIDI processing: ~100μs (CPU-based JSONMIDI parsing)
+- MIDI processing: ~100μs (CPU-based JMID parsing)
 - Audio processing: ~200μs (CPU-based JDAT theoretical)
 - Network transport: TCP with acknowledgment overhead
 - Memory usage: CPU-bound with standard JSON formatting

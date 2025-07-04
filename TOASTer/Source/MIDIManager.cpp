@@ -1,5 +1,5 @@
 #include "MIDIManager.h"
-#include "JSONMIDIParser.h"
+#include "JMIDParser.h"
 #include <chrono>
 
 //==============================================================================
@@ -192,11 +192,11 @@ void MIDIManager::sendMIDIMessage(const juce::MidiMessage& message)
     }
 }
 
-void MIDIManager::sendJSONMIDIMessage(std::shared_ptr<JSONMIDI::MIDIMessage> jsonMidiMessage)
+void MIDIManager::sendJMIDMessage(std::shared_ptr<JMID::MIDIMessage> jsonMidiMessage)
 {
     if (jsonMidiMessage != nullptr)
     {
-        auto juceMidiMessage = convertJSONMIDIToJuce(jsonMidiMessage);
+        auto juceMidiMessage = convertJMIDToJuce(jsonMidiMessage);
         sendMIDIMessage(juceMidiMessage);
     }
 }
@@ -223,8 +223,8 @@ void MIDIManager::resetStatistics()
 //==============================================================================
 void MIDIManager::handleIncomingMidiMessage(juce::MidiInput* /*source*/, const juce::MidiMessage& message)
 {
-    // Convert JUCE MIDI message to JSONMIDI message
-    auto jsonMidiMessage = convertJuceMidiToJSONMIDI(message);
+    // Convert JUCE MIDI message to JMID message
+    auto jsonMidiMessage = convertJuceMidiToJMID(message);
     
     if (jsonMidiMessage != nullptr)
     {
@@ -244,14 +244,14 @@ void MIDIManager::handleIncomingMidiMessage(juce::MidiInput* /*source*/, const j
 }
 
 //==============================================================================
-std::shared_ptr<JSONMIDI::MIDIMessage> MIDIManager::convertJuceMidiToJSONMIDI(const juce::MidiMessage& juceMidi)
+std::shared_ptr<JMID::MIDIMessage> MIDIManager::convertJuceMidiToJMID(const juce::MidiMessage& juceMidi)
 {
     auto timestamp = std::chrono::high_resolution_clock::now();
     
     try {
         if (juceMidi.isNoteOn())
         {
-            return std::make_shared<JSONMIDI::NoteOnMessage>(
+            return std::make_shared<JMID::NoteOnMessage>(
                 juceMidi.getChannel(),
                 juceMidi.getNoteNumber(),
                 juceMidi.getVelocity(),
@@ -260,7 +260,7 @@ std::shared_ptr<JSONMIDI::MIDIMessage> MIDIManager::convertJuceMidiToJSONMIDI(co
         }
         else if (juceMidi.isNoteOff())
         {
-            return std::make_shared<JSONMIDI::NoteOffMessage>(
+            return std::make_shared<JMID::NoteOffMessage>(
                 juceMidi.getChannel(),
                 juceMidi.getNoteNumber(),
                 juceMidi.getVelocity(),
@@ -269,7 +269,7 @@ std::shared_ptr<JSONMIDI::MIDIMessage> MIDIManager::convertJuceMidiToJSONMIDI(co
         }
         else if (juceMidi.isController())
         {
-            return std::make_shared<JSONMIDI::ControlChangeMessage>(
+            return std::make_shared<JMID::ControlChangeMessage>(
                 juceMidi.getChannel(),
                 juceMidi.getControllerNumber(),
                 juceMidi.getControllerValue(),
@@ -286,7 +286,7 @@ std::shared_ptr<JSONMIDI::MIDIMessage> MIDIManager::convertJuceMidiToJSONMIDI(co
     return nullptr;
 }
 
-juce::MidiMessage MIDIManager::convertJSONMIDIToJuce(std::shared_ptr<JSONMIDI::MIDIMessage> jsonMidi)
+juce::MidiMessage MIDIManager::convertJMIDToJuce(std::shared_ptr<JMID::MIDIMessage> jsonMidi)
 {
     if (jsonMidi == nullptr)
         return juce::MidiMessage();
@@ -302,7 +302,7 @@ juce::MidiMessage MIDIManager::convertJSONMIDIToJuce(std::shared_ptr<JSONMIDI::M
 void MIDIManager::processMessages()
 {
     // Process incoming messages
-    std::shared_ptr<JSONMIDI::MIDIMessage> incomingMessage;
+    std::shared_ptr<JMID::MIDIMessage> incomingMessage;
     while (incomingMessageQueue.tryPop(incomingMessage))
     {
         if (messageCallback && incomingMessage)

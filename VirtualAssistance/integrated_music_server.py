@@ -55,18 +55,9 @@ class IntegratedMusicServer:
         print("   Loading neural progression analyzer...")
         self.neural_integrator = ContextualProgressionIntegrator()
         
-        # Load trained neural model if available
-        if load_trained_neural_model:
-            try:
-                self.neural_integrator.load_model('trained_neural_analyzer.pth')
-                print("   ✅ Loaded trained neural analyzer")
-                self.neural_trained = True
-            except Exception as e:
-                print(f"   ⚠️  Could not load trained neural model: {e}")
-                print("   Using untrained neural analyzer (will show random patterns)")
-                self.neural_trained = False
-        else:
-            self.neural_trained = False
+        # Disable neural model loading until retrained for 23 emotions
+        self.neural_trained = False
+        print("   ⚠️  Neural integration disabled (needs retraining for 23-emotion system)")
         
         print("🎵 Server initialization complete!")
         print()
@@ -76,6 +67,7 @@ class IntegratedMusicServer:
                             num_options: int = 3,
                             mode_preference: Optional[str] = None,
                             style_preference: Optional[str] = None,
+                            consonant_dissonant_preference: Optional[float] = None,
                             key: str = "C") -> List[Dict]:
         """
         Get individual chord suggestions for an emotion
@@ -85,6 +77,7 @@ class IntegratedMusicServer:
             num_options: Number of chord options to return
             mode_preference: Preferred musical mode (e.g., "Ionian", "Aeolian")
             style_preference: Preferred style (e.g., "Jazz", "Classical")
+            consonant_dissonant_preference: CD preference (0.0=consonant, 1.0=dissonant)
             key: Key signature (default "C")
             
         Returns:
@@ -94,8 +87,9 @@ class IntegratedMusicServer:
             results = self.individual_model.generate_chord_from_prompt(
                 emotion_prompt,
                 num_options=num_options,
-                mode_preference=mode_preference,
-                style_preference=style_preference,
+                mode_preference=mode_preference or "Any",
+                style_preference=style_preference or "Any",
+                consonant_dissonant_preference=consonant_dissonant_preference,
                 key=key
             )
             
@@ -104,6 +98,7 @@ class IntegratedMusicServer:
                 result['source'] = 'individual_model'
                 result['timestamp'] = datetime.now().isoformat()
                 result['query'] = emotion_prompt
+                result['consonant_dissonant_preference'] = consonant_dissonant_preference
                 
             return results
             
@@ -196,18 +191,22 @@ class IntegratedMusicServer:
         except Exception as e:
             return {'error': f"Novel progression generation failed: {e}"}
     
-    def get_contextual_comparison(self, emotion_prompt: str) -> Dict:
+    def get_contextual_comparison(self, 
+                                emotion_prompt: str,
+                                consonant_dissonant_preference: Optional[float] = None) -> Dict:
         """
         Compare how the same emotion is interpreted across all models
         
         Args:
             emotion_prompt: Natural language emotion description
+            consonant_dissonant_preference: CD preference (0.0=consonant, 1.0=dissonant)
             
         Returns:
             Dictionary comparing outputs from all models
         """
         result = {
             'query': emotion_prompt,
+            'consonant_dissonant_preference': consonant_dissonant_preference,
             'timestamp': datetime.now().isoformat(),
             'individual_chords': [],
             'progressions': [],
@@ -217,7 +216,11 @@ class IntegratedMusicServer:
         
         # Get individual chords
         try:
-            result['individual_chords'] = self.get_individual_chords(emotion_prompt, num_options=3)
+            result['individual_chords'] = self.get_individual_chords(
+                emotion_prompt, 
+                num_options=3,
+                consonant_dissonant_preference=consonant_dissonant_preference
+            )
         except Exception as e:
             result['individual_chords'] = [{'error': str(e)}]
         
@@ -252,6 +255,9 @@ class IntegratedMusicServer:
             'novel_pattern_score': analysis.novel_pattern_score,
             'generation_confidence': analysis.generation_confidence,
             'harmonic_flow': analysis.harmonic_flow,
+            'consonant_dissonant_trajectory': analysis.consonant_dissonant_trajectory,
+            'average_consonant_dissonant': analysis.average_consonant_dissonant,
+            'cd_flow_description': analysis.cd_flow_description,
             'contextual_chord_analyses': [
                 {
                     'chord_symbol': chord.chord_symbol,
@@ -261,7 +267,9 @@ class IntegratedMusicServer:
                     'contextual_emotions': chord.contextual_emotions,
                     'functional_role': chord.functional_role,
                     'harmonic_tension': chord.harmonic_tension,
-                    'contextual_weight': chord.contextual_weight
+                    'contextual_weight': chord.contextual_weight,
+                    'consonant_dissonant_value': chord.consonant_dissonant_value,
+                    'consonant_dissonant_context': chord.consonant_dissonant_context
                 }
                 for chord in analysis.contextual_chord_analyses
             ]

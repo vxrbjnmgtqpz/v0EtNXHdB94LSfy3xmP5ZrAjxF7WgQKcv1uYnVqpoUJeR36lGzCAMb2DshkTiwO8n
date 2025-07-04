@@ -1,5 +1,5 @@
 # JDAT Terminology Update Plan
-## Safe Migration from JSONADAT/JSONMIDI/JSONVID → JDAT/JMID/JVID
+## Safe Migration from JDAT/JMID/JVID → JDAT/JMID/JVID
 
 **Objective**: Update project terminology to match patent documentation while avoiding Alesis ADAT copyright and ensuring zero build breakage.
 
@@ -10,8 +10,8 @@
 # Test current build state before any changes
 cd /Users/timothydowler/Projects/MIDIp2p
 
-# Test JSONMIDI Framework build ✅
-cd JSONMIDI_Framework
+# Test JMID Framework build ✅
+cd JMID_Framework
 mkdir -p build_test
 cd build_test
 cmake ..
@@ -26,8 +26,8 @@ cmake -B build_test -S .
 cmake --build build_test # ✅ PASSED - TOASTer.app created
 cd ..
 
-# Test JSONADAT Framework build ⚠️
-cd JSONADAT_Framework
+# Test JDAT Framework build ⚠️
+cd JDAT_Framework
 # Note: Framework appears to be header-only (no source files)
 # Will need special handling during migration
 ```
@@ -43,82 +43,88 @@ git tag v0.8.0-pre-jdat-rename
 
 ### 1.3 Dependency Analysis ✅
 **Core Framework Status:**
-- [x] JSONMIDI Framework: ✅ FULLY FUNCTIONAL - Core library builds and tests pass
+- [x] JMID Framework: ✅ FULLY FUNCTIONAL - Core library builds and tests pass
 - [x] TOASTer: ✅ FULLY FUNCTIONAL - macOS app builds successfully
-- [x] JSONADAT Framework: ⚠️ HEADER-ONLY - No source files, only headers exist
+- [x] JDAT Framework: ⚠️ HEADER-ONLY - No source files, only headers exist
 
 **Critical Dependencies:**
-- [x] TOASTer depends on JSONMIDI Framework via add_subdirectory
+- [x] TOASTer depends on JMID Framework via add_subdirectory
 - [x] nlohmann/json, simdjson, and json-schema-validator are fetched via CMake
 - [x] JUCE framework integrated successfully in TOASTer
 
-## Phase 2: Documentation-Only Updates (Safe) 📝
+## Phase 2: Documentation-Only Updates (Safe) ✅
 
-### 2.1 Markdown Documentation Updates
-**Files to update** (zero build impact):
-- [ ] `README.md` - Update all JSONADAT → JDAT references
-- [ ] `JSONADAT.md` → rename to `JDAT.md`
-- [ ] `JSONVID+JAMCAM.md` → update JSONVID → JVID
-- [ ] All `*_STATUS_REPORT.md` files
+### 2.1 Markdown Documentation Updates ✅
+**Files updated** (zero build impact):
+- [x] `README.md` - Updated all JDAT → JDAT references
+- [x] `JDAT.md` → renamed to `JDAT.md`
+- [x] `JVID+JAMCAM.md` → updated JVID → JVID
+- [x] `JMID_Framework/Roadmap.md` - Updated JDAT → JDAT
+- [ ] All `*_STATUS_REPORT.md` files (remaining)
 - [ ] `networkdiagram.md` - Update patent doc terminology
 - [ ] `250703PatentJAMNet.md` - Verify consistency
 
-### 2.2 Code Comment Updates  
+### 2.2 Code Comment Updates (In Progress)
 **Safe string literal updates**:
 - [ ] Update `std::cout` messages in examples
 - [ ] Update header file comments
 - [ ] Update JSON schema descriptions
 - [ ] Update error messages and logs
 
-### 2.3 Validation After Phase 2
+### 2.3 Validation After Phase 2 ✅
 ```bash
-# Ensure builds still work after doc changes
-cd JSONMIDI_Framework && make -C build_test clean && make -C build_test
-cd ../TOASTer && cmake --build build_test --clean-first  
-cd ../JSONADAT_Framework && cmake --build build_test --clean-first
+# Builds still work after doc changes ✅
+cd JMID_Framework && make -C build_test clean && make -C build_test
+./tests/test_basic_messages # ✅ ALL TESTS PASS
+```
+
+### 2.4 Backup After Phase 2 ✅
+```bash
+git add -A
+git commit -m "PHASE 2 PARTIAL: Documentation updates - JDAT→JDAT, JVID→JVID, ADAT→4-channel strategy"
 ```
 
 ## Phase 3: Schema & Configuration Updates 🔧
 
 ### 3.1 JSON Schema Files
-- [ ] `JSONMIDI_Framework/schemas/jsonmidi-message.schema.json` → `jmid-message.schema.json`
-- [ ] `JSONADAT_Framework/schemas/jsonadat-message.schema.json` → `jdat-message.schema.json`  
-- [ ] Update schema `"id"` fields from `"jsonadat"` → `"jdat"`
+- [ ] `JMID_Framework/schemas/jmid-message.schema.json` → `jmid-message.schema.json`
+- [ ] `JDAT_Framework/schemas/jdat-message.schema.json` → `jdat-message.schema.json`  
+- [ ] Update schema `"id"` fields from `"jdat"` → `"jdat"`
 - [ ] Update schema `"title"` fields appropriately
 
 ### 3.2 Example File Updates
-- [ ] `JSONADAT_Framework/examples/basic_jellie_demo.cpp` - Update all references
-- [ ] `JSONADAT_Framework/examples/adat_192k_demo.cpp` - Update to `jdat_192k_demo.cpp`
+- [ ] `JDAT_Framework/examples/basic_jellie_demo.cpp` - Update all references
+- [ ] `JDAT_Framework/examples/adat_192k_demo.cpp` - Update to `jdat_192k_demo.cpp`
 - [ ] Update all example CMakeLists.txt target names
 
 ### 3.3 Test After Schema Changes
 ```bash
 # Validate JSON parsing still works
-cd JSONMIDI_Framework && ./build_test/examples/basic_example
-cd ../JSONADAT_Framework && ./build_test/examples/basic_jellie_demo
+cd JMID_Framework && ./build_test/examples/basic_example
+cd ../JDAT_Framework && ./build_test/examples/basic_jellie_demo
 ```
 
 ## Phase 4: Source Code Symbol Updates 🔄
 
 ### 4.1 Namespace Renames (Careful)
 **Current → Target**:
-- `namespace JSONMIDI` → `namespace JMID`
-- `namespace jsonadat` → `namespace jdat`  
-- `namespace jsonvid` → `namespace jvid`
+- `namespace JMID` → `namespace JMID`
+- `namespace jdat` → `namespace jdat`  
+- `namespace jvid` → `namespace jvid`
 
 ### 4.2 Class Name Updates
-**JSONMIDI Framework**:
-- `JSONMIDIMessage` → `JMIDMessage`
-- `JSONMIDIParser` → `JMIDParser`
+**JMID Framework**:
+- `JMIDMessage` → `JMIDMessage`
+- `JMIDParser` → `JMIDParser`
 
-**JSONADAT Framework**:
-- `JSONADATMessage` → `JDATMessage`
+**JDAT Framework**:
+- `JDATMessage` → `JDATMessage`
 - `ADATSimulator` → `JDATChannelMapper` (avoid ADAT copyright)
 
 ### 4.3 Header File Renames
-- `JSONMIDIMessage.h` → `JMIDMessage.h`
-- `JSONMIDIParser.h` → `JMIDParser.h`
-- `JSONADATMessage.h` → `JDATMessage.h`
+- `JMIDMessage.h` → `JMIDMessage.h`
+- `JMIDParser.h` → `JMIDParser.h`
+- `JDATMessage.h` → `JDATMessage.h`
 - `ADATSimulator.h` → `JDATChannelMapper.h`
 
 ### 4.4 Incremental Testing Strategy
@@ -137,13 +143,13 @@ done
 
 ### 5.1 CMakeLists.txt Updates
 **Library Target Names**:
-- `jsonmidi_framework` → `jmid_framework`
-- `jsonadat_framework` → `jdat_framework`
-- `jsonvid_framework` → `jvid_framework`
+- `jmid_framework` → `jmid_framework`
+- `jdat_framework` → `jdat_framework`
+- `jvid_framework` → `jvid_framework`
 
 **Install Paths**:
-- `${CMAKE_INSTALL_INCLUDEDIR}/jsonmidi` → `${CMAKE_INSTALL_INCLUDEDIR}/jmid`
-- `${CMAKE_INSTALL_DATADIR}/jsonadat` → `${CMAKE_INSTALL_DATADIR}/jdat`
+- `${CMAKE_INSTALL_INCLUDEDIR}/jmid` → `${CMAKE_INSTALL_INCLUDEDIR}/jmid`
+- `${CMAKE_INSTALL_DATADIR}/jdat` → `${CMAKE_INSTALL_DATADIR}/jdat`
 
 ### 5.2 TOASTer Integration Updates
 - [ ] Update `TOASTer/CMakeLists.txt` target_link_libraries
@@ -160,14 +166,14 @@ done
 ### 6.1 Directory Renames (Final Step)
 ```bash
 # Only after all builds are working
-git mv JSONMIDI_Framework JMID_Framework
-git mv JSONADAT_Framework JDAT_Framework  
-git mv JSONVID_Framework JVID_Framework
+git mv JMID_Framework JMID_Framework
+git mv JDAT_Framework JDAT_Framework  
+git mv JVID_Framework JVID_Framework
 
 # Update any hardcoded paths
-grep -r "JSONMIDI_Framework" . --exclude-dir=.git
-grep -r "JSONADAT_Framework" . --exclude-dir=.git
-grep -r "JSONVID_Framework" . --exclude-dir=.git
+grep -r "JMID_Framework" . --exclude-dir=.git
+grep -r "JDAT_Framework" . --exclude-dir=.git
+grep -r "JVID_Framework" . --exclude-dir=.git
 ```
 
 ### 6.2 .gitignore Updates
@@ -219,7 +225,7 @@ git push origin v0.8.1-jdat-complete
 // OLD: "Uses ADAT's 4-channel capability"
 // NEW: "Uses 4-channel interleaving for high sample rates"
 
-// OLD: "ADAT protocol behavior"  
+// OLD: "4-channel interleaving protocol behavior"  
 // NEW: "Multi-channel distribution protocol"
 ```
 

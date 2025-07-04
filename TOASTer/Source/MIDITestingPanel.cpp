@@ -1,6 +1,6 @@
 #include "MIDITestingPanel.h"
 #include "MIDIManager.h"
-#include "JSONMIDIParser.h"
+#include "JMIDParser.h"
 #include <nlohmann/json.hpp>
 
 //==============================================================================
@@ -21,7 +21,7 @@ MIDITestingPanel::MIDITestingPanel()
 {
     // Initialize BassoonParser (stubbed for now)
     try {
-        parser = std::make_unique<JSONMIDI::BassoonParser>();
+        parser = std::make_unique<JMID::BassoonParser>();
     } catch (...) {
         // BassoonParser might not be fully implemented yet
         parser = nullptr;
@@ -124,7 +124,7 @@ void MIDITestingPanel::setMIDIManager(MIDIManager* manager)
         
         // Set up message callback to receive incoming MIDI
         midiManager->setMessageCallback(
-            [this](std::shared_ptr<JSONMIDI::MIDIMessage> message) {
+            [this](std::shared_ptr<JMID::MIDIMessage> message) {
                 onMIDIMessageReceived(message);
             });
         
@@ -287,9 +287,9 @@ void MIDITestingPanel::sendTestNoteClicked()
     auto channel = midiChannelSelector.getSelectedId();
     
     try {
-        // Create JSONMIDI NoteOn message
+        // Create JMID NoteOn message
         auto timestamp = std::chrono::high_resolution_clock::now();
-        auto noteOnMessage = std::make_shared<JSONMIDI::NoteOnMessage>(
+        auto noteOnMessage = std::make_shared<JMID::NoteOnMessage>(
             static_cast<uint8_t>(channel),
             static_cast<uint8_t>(note),
             static_cast<uint32_t>(velocity),
@@ -297,7 +297,7 @@ void MIDITestingPanel::sendTestNoteClicked()
         );
         
         // Send via MIDI manager
-        midiManager->sendJSONMIDIMessage(noteOnMessage);
+        midiManager->sendJMIDMessage(noteOnMessage);
         
         // Log the message
         std::string json = noteOnMessage->toJSON();
@@ -308,14 +308,14 @@ void MIDITestingPanel::sendTestNoteClicked()
         
         // Schedule note off after 500ms
         juce::Timer::callAfterDelay(500, [this, channel, note, timestamp]() {
-            auto noteOffMessage = std::make_shared<JSONMIDI::NoteOffMessage>(
+            auto noteOffMessage = std::make_shared<JMID::NoteOffMessage>(
                 static_cast<uint8_t>(channel),
                 static_cast<uint8_t>(note),
                 0, // Release velocity
                 timestamp + std::chrono::milliseconds(500)
             );
             
-            midiManager->sendJSONMIDIMessage(noteOffMessage);
+            midiManager->sendJMIDMessage(noteOffMessage);
             logMessage("🎵 Sent Note Off: Ch=" + juce::String(channel) + ", Note=" + juce::String(note));
         });
         
@@ -324,7 +324,7 @@ void MIDITestingPanel::sendTestNoteClicked()
     }
 }
 
-void MIDITestingPanel::onMIDIMessageReceived(std::shared_ptr<JSONMIDI::MIDIMessage> message)
+void MIDITestingPanel::onMIDIMessageReceived(std::shared_ptr<JMID::MIDIMessage> message)
 {
     if (message == nullptr)
         return;
@@ -334,9 +334,9 @@ void MIDITestingPanel::onMIDIMessageReceived(std::shared_ptr<JSONMIDI::MIDIMessa
         std::string json = message->toJSON();
         
         switch (message->getType()) {
-            case JSONMIDI::MessageType::NOTE_ON:
+            case JMID::MessageType::NOTE_ON:
             {
-                auto noteOn = std::dynamic_pointer_cast<JSONMIDI::NoteOnMessage>(message);
+                auto noteOn = std::dynamic_pointer_cast<JMID::NoteOnMessage>(message);
                 if (noteOn) {
                     logMessage("🎵 Received Note On: Ch=" + juce::String(noteOn->getChannel()) + 
                               ", Note=" + juce::String(noteOn->getNote()) + 
@@ -344,18 +344,18 @@ void MIDITestingPanel::onMIDIMessageReceived(std::shared_ptr<JSONMIDI::MIDIMessa
                 }
                 break;
             }
-            case JSONMIDI::MessageType::NOTE_OFF:
+            case JMID::MessageType::NOTE_OFF:
             {
-                auto noteOff = std::dynamic_pointer_cast<JSONMIDI::NoteOffMessage>(message);
+                auto noteOff = std::dynamic_pointer_cast<JMID::NoteOffMessage>(message);
                 if (noteOff) {
                     logMessage("🎵 Received Note Off: Ch=" + juce::String(noteOff->getChannel()) + 
                               ", Note=" + juce::String(noteOff->getNote()));
                 }
                 break;
             }
-            case JSONMIDI::MessageType::CONTROL_CHANGE:
+            case JMID::MessageType::CONTROL_CHANGE:
             {
-                auto cc = std::dynamic_pointer_cast<JSONMIDI::ControlChangeMessage>(message);
+                auto cc = std::dynamic_pointer_cast<JMID::ControlChangeMessage>(message);
                 if (cc) {
                     logMessage("🎛️ Received CC: Ch=" + juce::String(cc->getChannel()) + 
                               ", CC=" + juce::String(cc->getController()) + 

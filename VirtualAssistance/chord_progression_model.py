@@ -108,9 +108,9 @@ class EmotionMusicDatabase:
                             emotion=emotion_name,
                             mode=emotion_data['mode'],
                             genres=prog_data.get('genres', default_genres),
-                            progression_id=prog_data['progression_id']
-                        )
-                        emotion_progressions.append(progression)
+                        progression_id=prog_data['progression_id']
+                    )
+                    emotion_progressions.append(progression)
                 
                 progressions[emotion_name] = emotion_progressions
             
@@ -208,14 +208,14 @@ class EmotionParser(nn.Module):
         super().__init__()
         self.tokenizer = BertTokenizer.from_pretrained(model_name)
         self.bert = BertModel.from_pretrained(model_name)
-        self.emotion_classifier = nn.Linear(768, 22)  # 22 core emotions (expanded system)
+        self.emotion_classifier = nn.Linear(768, 23)  # 23 core emotions (expanded system including Transcendence)
         self.dropout = nn.Dropout(0.1)
         
-        # Emotion index mapping - Complete 22-emotion system
+        # Emotion index mapping - Complete 23-emotion system
         self.emotion_labels = ["Joy", "Sadness", "Fear", "Anger", "Disgust", "Surprise", 
                               "Trust", "Anticipation", "Shame", "Love", "Envy", "Aesthetic Awe", "Malice",
                               "Arousal", "Guilt", "Reverence", "Wonder", "Dissociation", 
-                              "Empowerment", "Belonging", "Ideology", "Gratitude"]
+                              "Empowerment", "Belonging", "Ideology", "Gratitude", "Transcendence"]
     
     def forward(self, text_input: str) -> torch.Tensor:
         """Convert text to emotion weight vector"""
@@ -342,7 +342,7 @@ class ModeBlender(nn.Module):
     
     def __init__(self):
         super().__init__()
-        self.emotion_to_mode = nn.Linear(22, 12)  # 22 emotions → 12 modes
+        self.emotion_to_mode = nn.Linear(23, 12)  # 23 emotions → 12 modes
         self.mode_labels = ["Ionian", "Aeolian", "Phrygian", "Phrygian Dominant", "Locrian", 
                            "Lydian", "Dorian", "Melodic Minor", "Harmonic Minor", "Mixolydian", 
                            "Hungarian Minor", "Lydian Augmented"]
@@ -378,7 +378,8 @@ class ModeBlender(nn.Module):
             "Empowerment": "Ionian",  # Positive/major
             "Belonging": "Dorian",  # Folk modal
             "Ideology": "Dorian",  # Complex minor
-            "Gratitude": "Ionian"  # Warm major
+            "Gratitude": "Ionian",  # Warm major
+            "Transcendence": "Lydian"  # Multi-modal with exotic scales, using Lydian as base
         }
         
         # Get primary emotion 
@@ -521,8 +522,8 @@ class ChordProgressionModel(nn.Module):
         self.progression_generator = ChordProgressionGenerator()
         
         # Neural generation control
-        self.use_neural_generation = True  # ENABLED: Enable neural generation by default
-        self.is_trained = self._check_if_trained()  # Check if model has been trained
+        self.use_neural_generation = False  # DISABLED: Disable neural generation until retrained for 23 emotions
+        self.is_trained = False  # Disable until retrained
         
         # Build genre and mode mappings
         self._build_mappings()
@@ -631,7 +632,7 @@ class ChordProgressionModel(nn.Module):
                 # Option A: Neural generation with substitution tracking
                 neural_chords = self._neural_generate(primary_mode, genre_preference)
                 database_chords = self._database_select(emotion_weights, mode_blend, genre_preference)
-                
+            
                 # Track which chords are substitutions
                 chord_metadata = self._analyze_substitutions(neural_chords, database_chords)
                 

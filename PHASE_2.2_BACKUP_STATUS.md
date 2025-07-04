@@ -16,7 +16,7 @@
 
 ### Documentation Added
 - **Phase2_TestInstructions.md** - Comprehensive two-computer testing procedures
-- **JSONADAT.md** - JELLIE audio streaming protocol specification  
+- **JDAT.md** - JELLIE audio streaming protocol specification  
 - **TCP-UDP-PNTBTR.MD** - Transport protocol transition documentation
 - **ChatGPTCheckinPhase2.md** - Project status assessment from external perspective
 - **copilotlog.md** - Development work log from Cursor agent
@@ -30,21 +30,21 @@
 
 ### Build Artifact Management
 - **Excluded from Git:**
-  - `JSONMIDI_Framework/.cache/` (clangd cache)
-  - `JSONMIDI_Framework/build_standalone/` (CMake build outputs)
+  - `JMID_Framework/.cache/` (clangd cache)
+  - `JMID_Framework/build_standalone/` (CMake build outputs)
   - Various temporary and generated files
 
 ## 📋 Current Project State
 
 ### Core Integration (Previous)
-- ✅ TOASTer app successfully integrated with JSONMIDI_Framework
-- ✅ TOASTTransport, ClockDriftArbiter, JSONMIDIParser integration complete
+- ✅ TOASTer app successfully integrated with JMID_Framework
+- ✅ TOASTTransport, ClockDriftArbiter, JMIDParser integration complete
 - ✅ UI panels displaying framework metrics and features
 - ✅ CMake builds working for both framework and app
 
 ### Documentation & Testing (This Milestone)
 - ✅ Complete testing procedures for network deployment
-- ✅ Architectural documentation for audio streaming (JELLIE/JSONADAT)
+- ✅ Architectural documentation for audio streaming (JELLIE/JDAT)
 - ✅ Transport protocol evolution documentation (TCP→UDP+PNTBTR)
 - ✅ Project status assessments and development logs
 - ✅ Enhanced build artifact management
@@ -56,12 +56,12 @@ The project is now fully documented and backed up, ready for Phase 2.3 developme
 ### Next Steps
 1. **Distributed Synchronization Engine** development
 2. **Network testing** using the documented procedures  
-3. **JELLIE/JSONADAT** implementation planning
+3. **JELLIE/JDAT** implementation planning
 4. **PNTBTR** reliability mechanism implementation
 
 ### Architecture Foundation
-- **MIDIp2p:** JSONMIDI over TOAST/UDP with PNTBTR reliability
-- **JELLIE:** JSONADAT audio streaming (planned)
+- **MIDIp2p:** JMID over TOAST/UDP with PNTBTR reliability
+- **JELLIE:** JDAT audio streaming (planned)
 - **TOAST:** UDP-based transport with custom reliability
 - **PNTBTR:** Predictive smoothing for dropped packets
 

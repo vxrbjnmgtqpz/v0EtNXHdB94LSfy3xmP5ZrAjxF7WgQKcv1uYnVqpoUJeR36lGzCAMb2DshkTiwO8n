@@ -5,13 +5,13 @@
 #include <memory>
 #include <vector>
 #include <functional>
-#include "JSONMIDIMessage.h"
+#include "JMIDMessage.h"
 #include "LockFreeQueue.h"
 
 //==============================================================================
 /**
  * MIDI I/O Manager for TOASTer application
- * Handles real-time MIDI input/output and integrates with JSONMIDI framework
+ * Handles real-time MIDI input/output and integrates with JMID framework
  */
 class MIDIManager : public juce::MidiInputCallback,
                     public juce::ChangeBroadcaster
@@ -37,10 +37,10 @@ public:
 
     // MIDI I/O
     void sendMIDIMessage(const juce::MidiMessage& message);
-    void sendJSONMIDIMessage(std::shared_ptr<JSONMIDI::MIDIMessage> jsonMidiMessage);
+    void sendJMIDMessage(std::shared_ptr<JMID::MIDIMessage> jsonMidiMessage);
     
     // Real-time message queue access
-    using MessageCallback = std::function<void(std::shared_ptr<JSONMIDI::MIDIMessage>)>;
+    using MessageCallback = std::function<void(std::shared_ptr<JMID::MIDIMessage>)>;
     void setMessageCallback(MessageCallback callback);
     
     // Statistics
@@ -75,7 +75,7 @@ private:
     MessageCallback messageCallback;
     
     // Lock-free queues for real-time safety
-    JSONMIDI::LockFreeQueue<std::shared_ptr<JSONMIDI::MIDIMessage>, 1024> incomingMessageQueue;
+    JMID::LockFreeQueue<std::shared_ptr<JMID::MIDIMessage>, 1024> incomingMessageQueue;
     
     // For outgoing MIDI, use a simple struct to hold the raw data
     struct MIDIData {
@@ -92,15 +92,15 @@ private:
         }
     };
     
-    JSONMIDI::LockFreeQueue<MIDIData, 1024> outgoingMessageQueue;
+    JMID::LockFreeQueue<MIDIData, 1024> outgoingMessageQueue;
     
     // Statistics tracking
     mutable std::mutex statisticsMutex;
     Statistics statistics;
     
     // Helper methods
-    std::shared_ptr<JSONMIDI::MIDIMessage> convertJuceMidiToJSONMIDI(const juce::MidiMessage& juceMidi);
-    juce::MidiMessage convertJSONMIDIToJuce(std::shared_ptr<JSONMIDI::MIDIMessage> jsonMidi);
+    std::shared_ptr<JMID::MIDIMessage> convertJuceMidiToJMID(const juce::MidiMessage& juceMidi);
+    juce::MidiMessage convertJMIDToJuce(std::shared_ptr<JMID::MIDIMessage> jsonMidi);
     
     // Message processing timer
     class MessageProcessor : public juce::Timer

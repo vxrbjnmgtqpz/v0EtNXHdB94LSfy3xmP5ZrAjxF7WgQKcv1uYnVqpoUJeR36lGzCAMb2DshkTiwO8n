@@ -28,6 +28,17 @@ class InterpolationMethod(Enum):
     EXPONENTIAL = "exponential"
     LOGARITHMIC = "logarithmic"
 
+class TensionCurveType(Enum):
+    """Available tension curve types for consonant/dissonant trajectories"""
+    LINEAR = "linear"                    # Direct interpolation
+    BUILD = "build"                      # Gradual increase in tension
+    RELEASE = "release"                  # Gradual decrease in tension
+    PEAK = "peak"                        # Build to maximum then release
+    VALLEY = "valley"                    # Release to minimum then build
+    WAVE = "wave"                        # Sine wave pattern
+    ARCH = "arch"                        # Build-peak-release arc
+    INVERTED_ARCH = "inverted_arch"      # Release-valley-build arc
+
 @dataclass
 class EmotionState:
     """Represents a complete emotional state with weights and metadata"""
@@ -37,6 +48,9 @@ class EmotionState:
     intensity: float = 1.0
     mode: Optional[str] = None
     timestamp: float = 0.0
+    consonant_dissonant_value: Optional[float] = None  # CD value (0.0-1.0)
+    consonant_dissonant_trajectory: Optional[str] = None  # "towards_consonance", "towards_dissonance", "stable"
+    style_context: Optional[str] = None  # Musical style context
 
 @dataclass
 class InterpolationPath:
@@ -46,6 +60,8 @@ class InterpolationPath:
     method: InterpolationMethod
     duration: float
     curve_parameters: Dict = None
+    tension_curve_type: Optional[TensionCurveType] = None  # CD trajectory type
+    tension_curve_intensity: float = 1.0  # Intensity of tension changes
 
 @dataclass
 class InterpolatedProgression:
@@ -53,6 +69,8 @@ class InterpolatedProgression:
     chords: List[str]
     emotion_trajectory: List[EmotionState]
     transition_points: List[float]
+    consonant_dissonant_trajectory: List[float]  # CD values over time
+    tension_curve_analysis: Dict  # Analysis of tension patterns
     metadata: Dict
 
 class EmotionInterpolationEngine:
@@ -72,12 +90,12 @@ class EmotionInterpolationEngine:
         self.database_path = database_path
         self.emotion_database = self._load_emotion_database()
         
-        # Complete 22-emotion system
+        # Complete 23-emotion system including Transcendence
         self.emotion_labels = [
             "Joy", "Sadness", "Fear", "Anger", "Disgust", "Surprise", 
             "Trust", "Anticipation", "Shame", "Love", "Envy", "Aesthetic Awe", "Malice",
             "Arousal", "Guilt", "Reverence", "Wonder", "Dissociation", 
-            "Empowerment", "Belonging", "Ideology", "Gratitude"
+            "Empowerment", "Belonging", "Ideology", "Gratitude", "Transcendence"
         ]
         
         # Emotion-to-mode mapping for interpolation
@@ -88,11 +106,15 @@ class EmotionInterpolationEngine:
             "Love": "Mixolydian", "Envy": "Hungarian Minor", "Aesthetic Awe": "Lydian Augmented",
             "Malice": "Locrian", "Arousal": "Dorian", "Guilt": "Harmonic Minor",
             "Reverence": "Lydian", "Wonder": "Lydian Augmented", "Dissociation": "Locrian",
-            "Empowerment": "Ionian", "Belonging": "Dorian", "Ideology": "Dorian", "Gratitude": "Ionian"
+            "Empowerment": "Ionian", "Belonging": "Dorian", "Ideology": "Dorian", "Gratitude": "Ionian",
+            "Transcendence": "Multi-modal"
         }
         
         # Emotional compatibility matrix for smooth transitions
         self.compatibility_matrix = self._build_compatibility_matrix()
+        
+        # Emotion-to-consonance mapping for CD trajectory generation
+        self.emotion_consonance_map = self._build_emotion_consonance_map()
         
     def _load_emotion_database(self) -> Dict:
         """Load the emotion progression database"""
@@ -113,10 +135,11 @@ class EmotionInterpolationEngine:
             "Fear": {"Anxiety": 0.8, "Shame": 0.6, "Dissociation": 0.7, "Sadness": 0.5},
             "Love": {"Joy": 0.9, "Gratitude": 0.8, "Trust": 0.8, "Empowerment": 0.6, "Reverence": 0.6},
             "Malice": {"Anger": 0.9, "Disgust": 0.7, "Envy": 0.8, "Contempt": 0.9},
-            "Wonder": {"Joy": 0.7, "Surprise": 0.8, "Aesthetic Awe": 0.9, "Reverence": 0.6},
+            "Wonder": {"Joy": 0.7, "Surprise": 0.8, "Aesthetic Awe": 0.9, "Reverence": 0.6, "Transcendence": 0.8},
             "Empowerment": {"Joy": 0.8, "Confidence": 0.9, "Trust": 0.7, "Inspiration": 0.8},
-            "Dissociation": {"Numbness": 0.9, "Fear": 0.6, "Sadness": 0.5, "Emptiness": 0.8},
-            "Reverence": {"Wonder": 0.6, "Gratitude": 0.7, "Humility": 0.8, "Sacred Peace": 0.9}
+            "Dissociation": {"Numbness": 0.9, "Fear": 0.6, "Sadness": 0.5, "Emptiness": 0.8, "Transcendence": 0.7},
+            "Reverence": {"Wonder": 0.6, "Gratitude": 0.7, "Humility": 0.8, "Sacred Peace": 0.9, "Transcendence": 0.9},
+            "Transcendence": {"Reverence": 0.9, "Wonder": 0.8, "Aesthetic Awe": 0.8, "Dissociation": 0.7, "Gratitude": 0.6}
         }
         
         # Create symmetric matrix with default compatibility of 0.3
@@ -136,8 +159,30 @@ class EmotionInterpolationEngine:
         
         return matrix
     
+    def _build_emotion_consonance_map(self) -> Dict[str, float]:
+        """Build emotion-to-consonance mapping for CD trajectory generation"""
+        return {
+            # Consonant emotions (0.0-0.4)
+            "Joy": 0.2, "Trust": 0.25, "Love": 0.3, "Gratitude": 0.2,
+            "Empowerment": 0.3, "Belonging": 0.3, "Reverence": 0.25,
+            "Transcendence": 0.15,  # Very consonant/ethereal
+            
+            # Moderately dissonant emotions (0.4-0.6)
+            "Anticipation": 0.5, "Surprise": 0.45, "Wonder": 0.4,
+            "Aesthetic Awe": 0.4, "Arousal": 0.5, "Ideology": 0.45,
+            
+            # Highly dissonant emotions (0.6-0.8)
+            "Sadness": 0.6, "Shame": 0.6, "Envy": 0.7, "Guilt": 0.65,
+            "Anger": 0.75, "Fear": 0.7,
+            
+            # Extremely dissonant emotions (0.8-1.0)
+            "Malice": 0.9, "Disgust": 0.85, "Dissociation": 0.9
+        }
+    
     def create_emotion_state(self, emotion_weights: Dict[str, float], 
-                           timestamp: float = 0.0) -> EmotionState:
+                           timestamp: float = 0.0, 
+                           consonant_dissonant_value: Optional[float] = None,
+                           style_context: Optional[str] = None) -> EmotionState:
         """Create an EmotionState object from emotion weights"""
         # Handle empty emotion weights gracefully
         if not emotion_weights:
@@ -148,12 +193,22 @@ class EmotionInterpolationEngine:
         intensity = emotion_weights[primary_emotion]
         mode = self.emotion_modes.get(primary_emotion, "Ionian")
         
+        # Calculate consonant/dissonant value if not provided
+        if consonant_dissonant_value is None:
+            consonant_dissonant_value = self._calculate_cd_value_from_emotions(emotion_weights)
+        
+        # Determine CD trajectory based on primary emotion
+        cd_trajectory = self._determine_cd_trajectory(primary_emotion, emotion_weights)
+        
         return EmotionState(
             emotion_weights=emotion_weights,
             primary_emotion=primary_emotion,
             intensity=intensity,
             mode=mode,
-            timestamp=timestamp
+            timestamp=timestamp,
+            consonant_dissonant_value=consonant_dissonant_value,
+            consonant_dissonant_trajectory=cd_trajectory,
+            style_context=style_context
         )
     
     def interpolate_emotions(self, start_state: EmotionState, end_state: EmotionState,
@@ -201,6 +256,46 @@ class EmotionInterpolationEngine:
         
         return self.create_emotion_state(interpolated_weights, interpolated_timestamp)
     
+    def _calculate_cd_value_from_emotions(self, emotion_weights: Dict[str, float]) -> float:
+        """Calculate consonant/dissonant value from weighted emotion mix"""
+        total_cd_value = 0.0
+        total_weight = 0.0
+        
+        for emotion, weight in emotion_weights.items():
+            if emotion in self.emotion_consonance_map and weight > 0:
+                cd_value = self.emotion_consonance_map[emotion]
+                total_cd_value += cd_value * weight
+                total_weight += weight
+        
+        return total_cd_value / total_weight if total_weight > 0 else 0.4  # Default moderate consonance
+    
+    def _determine_cd_trajectory(self, primary_emotion: str, emotion_weights: Dict[str, float]) -> str:
+        """Determine consonant/dissonant trajectory direction based on emotional content"""
+        primary_cd = self.emotion_consonance_map.get(primary_emotion, 0.4)
+        
+        # Calculate secondary emotions influence
+        sorted_emotions = sorted(emotion_weights.items(), key=lambda x: x[1], reverse=True)
+        
+        if len(sorted_emotions) > 1:
+            secondary_emotion = sorted_emotions[1][0]
+            secondary_cd = self.emotion_consonance_map.get(secondary_emotion, 0.4)
+            
+            # Determine trajectory based on primary vs secondary consonance
+            if abs(primary_cd - secondary_cd) < 0.1:
+                return "stable"
+            elif secondary_cd > primary_cd:
+                return "towards_dissonance"
+            else:
+                return "towards_consonance"
+        
+        # Single emotion - determine trajectory based on consonance level
+        if primary_cd < 0.3:
+            return "stable"  # Already consonant
+        elif primary_cd > 0.7:
+            return "towards_consonance"  # High dissonance seeks resolution
+        else:
+            return "stable"  # Moderate tension is stable
+    
     def _apply_interpolation_curve(self, t: float, method: InterpolationMethod) -> float:
         """Apply different interpolation curves to the parameter t"""
         t = max(0.0, min(1.0, t))  # Clamp to [0, 1]
@@ -224,9 +319,156 @@ class EmotionInterpolationEngine:
         else:
             return t  # Default to linear
     
+    def create_tension_curve(self, start_cd: float, end_cd: float, steps: int,
+                           curve_type: TensionCurveType = TensionCurveType.LINEAR,
+                           intensity: float = 1.0) -> List[float]:
+        """
+        Create consonant/dissonant tension curves
+        
+        Args:
+            start_cd: Starting consonant/dissonant value (0.0-1.0)
+            end_cd: Ending consonant/dissonant value (0.0-1.0)
+            steps: Number of steps in the curve
+            curve_type: Type of tension curve to generate
+            intensity: Intensity of tension changes (0.0-2.0)
+            
+        Returns:
+            List of CD values representing the tension curve
+        """
+        if steps < 2:
+            return [start_cd, end_cd]
+        
+        curve = []
+        
+        for i in range(steps):
+            t = i / (steps - 1)  # Normalize to 0-1
+            
+            if curve_type == TensionCurveType.LINEAR:
+                cd_value = start_cd + (end_cd - start_cd) * t
+                
+            elif curve_type == TensionCurveType.BUILD:
+                # Exponential build-up to maximum tension
+                max_tension = max(start_cd, end_cd, 0.8)
+                cd_value = start_cd + (max_tension - start_cd) * (t ** (2 / intensity))
+                if i == steps - 1:  # End at target
+                    cd_value = end_cd
+                    
+            elif curve_type == TensionCurveType.RELEASE:
+                # Exponential release from tension
+                cd_value = start_cd + (end_cd - start_cd) * (1 - (1 - t) ** (2 / intensity))
+                
+            elif curve_type == TensionCurveType.PEAK:
+                # Build to peak then release
+                if t < 0.5:
+                    # Build phase
+                    peak_value = min(1.0, max(start_cd, end_cd) + 0.3 * intensity)
+                    cd_value = start_cd + (peak_value - start_cd) * (2 * t) ** 2
+                else:
+                    # Release phase
+                    peak_value = min(1.0, max(start_cd, end_cd) + 0.3 * intensity)
+                    release_t = (t - 0.5) * 2
+                    cd_value = peak_value + (end_cd - peak_value) * release_t ** 0.5
+                    
+            elif curve_type == TensionCurveType.VALLEY:
+                # Release to valley then build
+                if t < 0.5:
+                    # Release phase
+                    valley_value = max(0.0, min(start_cd, end_cd) - 0.3 * intensity)
+                    cd_value = start_cd + (valley_value - start_cd) * (2 * t) ** 0.5
+                else:
+                    # Build phase
+                    valley_value = max(0.0, min(start_cd, end_cd) - 0.3 * intensity)
+                    build_t = (t - 0.5) * 2
+                    cd_value = valley_value + (end_cd - valley_value) * build_t ** 2
+                    
+            elif curve_type == TensionCurveType.WAVE:
+                # Sine wave pattern
+                base_value = (start_cd + end_cd) / 2
+                amplitude = abs(end_cd - start_cd) / 2 * intensity
+                cd_value = base_value + amplitude * math.sin(t * math.pi * 2)
+                
+            elif curve_type == TensionCurveType.ARCH:
+                # Smooth arc: build-peak-release
+                peak_value = max(start_cd, end_cd) + 0.2 * intensity
+                cd_value = start_cd + (peak_value - start_cd) * math.sin(t * math.pi)
+                if i == steps - 1:  # End at target
+                    cd_value = end_cd
+                    
+            elif curve_type == TensionCurveType.INVERTED_ARCH:
+                # Inverted arc: release-valley-build
+                valley_value = min(start_cd, end_cd) - 0.2 * intensity
+                valley_value = max(0.0, valley_value)  # Clamp to valid range
+                cd_value = start_cd - (start_cd - valley_value) * math.sin(t * math.pi)
+                if i == steps - 1:  # End at target
+                    cd_value = end_cd
+                    
+            else:
+                # Default to linear
+                cd_value = start_cd + (end_cd - start_cd) * t
+            
+            # Clamp to valid range
+            cd_value = max(0.0, min(1.0, cd_value))
+            curve.append(cd_value)
+        
+        return curve
+    
+    def interpolate_emotions_with_cd(self, start_state: EmotionState, end_state: EmotionState,
+                                   t: float, method: InterpolationMethod = InterpolationMethod.COSINE,
+                                   tension_curve_type: Optional[TensionCurveType] = None) -> EmotionState:
+        """
+        Enhanced emotion interpolation with consonant/dissonant trajectory support
+        
+        Args:
+            start_state: Starting emotional state
+            end_state: Ending emotional state
+            t: Interpolation parameter (0 = start, 1 = end)
+            method: Interpolation method for emotions
+            tension_curve_type: Optional tension curve type for CD trajectory
+            
+        Returns:
+            Interpolated emotional state with CD trajectory
+        """
+        # Standard emotion interpolation
+        interpolated_state = self.interpolate_emotions(start_state, end_state, t, method)
+        
+        # Handle consonant/dissonant interpolation
+        if start_state.consonant_dissonant_value is not None and end_state.consonant_dissonant_value is not None:
+            if tension_curve_type is not None:
+                # Use tension curve for CD interpolation
+                cd_curve = self.create_tension_curve(
+                    start_state.consonant_dissonant_value,
+                    end_state.consonant_dissonant_value,
+                    steps=100,  # High resolution for smooth interpolation
+                    curve_type=tension_curve_type
+                )
+                # Sample from curve at parameter t
+                curve_index = int(t * (len(cd_curve) - 1))
+                interpolated_state.consonant_dissonant_value = cd_curve[curve_index]
+            else:
+                # Linear CD interpolation
+                interpolated_state.consonant_dissonant_value = (
+                    start_state.consonant_dissonant_value + 
+                    (end_state.consonant_dissonant_value - start_state.consonant_dissonant_value) * t
+                )
+        
+        # Interpolate CD trajectory
+        if t < 0.5:
+            interpolated_state.consonant_dissonant_trajectory = start_state.consonant_dissonant_trajectory
+        else:
+            interpolated_state.consonant_dissonant_trajectory = end_state.consonant_dissonant_trajectory
+        
+        # Interpolate style context
+        if t < 0.5:
+            interpolated_state.style_context = start_state.style_context
+        else:
+            interpolated_state.style_context = end_state.style_context
+        
+        return interpolated_state
+    
     def create_emotion_trajectory(self, emotion_states: List[EmotionState],
                                 duration: float, num_steps: int = 16,
-                                method: InterpolationMethod = InterpolationMethod.COSINE) -> List[EmotionState]:
+                                method: InterpolationMethod = InterpolationMethod.COSINE,
+                                tension_curve_type: Optional[TensionCurveType] = None) -> List[EmotionState]:
         """
         Create a smooth trajectory through multiple emotional states
         
@@ -254,7 +496,14 @@ class EmotionInterpolationEngine:
                 t = step / steps_per_segment
                 timestamp = (i * segment_duration) + (t * segment_duration)
                 
-                interpolated_state = self.interpolate_emotions(start_state, end_state, t, method)
+                # Use enhanced interpolation with CD support if available
+                if tension_curve_type is not None:
+                    interpolated_state = self.interpolate_emotions_with_cd(
+                        start_state, end_state, t, method, tension_curve_type
+                    )
+                else:
+                    interpolated_state = self.interpolate_emotions(start_state, end_state, t, method)
+                
                 interpolated_state.timestamp = timestamp
                 trajectory.append(interpolated_state)
         
@@ -268,7 +517,9 @@ class EmotionInterpolationEngine:
     def generate_interpolated_progression(self, start_emotion: Dict[str, float], 
                                         end_emotion: Dict[str, float],
                                         progression_length: int = 8,
-                                        method: InterpolationMethod = InterpolationMethod.COSINE) -> InterpolatedProgression:
+                                        method: InterpolationMethod = InterpolationMethod.COSINE,
+                                        tension_curve_type: Optional[TensionCurveType] = None,
+                                        style_context: Optional[str] = None) -> InterpolatedProgression:
         """
         Generate a chord progression that smoothly transitions between emotions
         
@@ -281,36 +532,56 @@ class EmotionInterpolationEngine:
         Returns:
             InterpolatedProgression object with chords and emotional trajectory
         """
-        # Create emotion states
-        start_state = self.create_emotion_state(start_emotion)
-        end_state = self.create_emotion_state(end_emotion)
+        # Create emotion states with CD support
+        start_state = self.create_emotion_state(start_emotion, style_context=style_context)
+        end_state = self.create_emotion_state(end_emotion, style_context=style_context)
         
         # Create emotional trajectory
         trajectory = []
         chords = []
         transition_points = []
+        cd_trajectory = []
         
         for i in range(progression_length):
             t = i / (progression_length - 1) if progression_length > 1 else 0
             
-            # Interpolate emotion state
-            current_state = self.interpolate_emotions(start_state, end_state, t, method)
+            # Enhanced interpolation with CD support
+            if tension_curve_type is not None:
+                current_state = self.interpolate_emotions_with_cd(
+                    start_state, end_state, t, method, tension_curve_type
+                )
+            else:
+                current_state = self.interpolate_emotions(start_state, end_state, t, method)
+            
             trajectory.append(current_state)
             transition_points.append(t)
+            
+            # Track CD trajectory
+            if current_state.consonant_dissonant_value is not None:
+                cd_trajectory.append(current_state.consonant_dissonant_value)
+            else:
+                cd_trajectory.append(0.4)  # Default moderate consonance
             
             # Generate chord for current emotional state
             chord = self._select_chord_for_emotion_state(current_state, i)
             chords.append(chord)
         
+        # Analyze tension curve
+        tension_curve_analysis = self._analyze_tension_curve(cd_trajectory, tension_curve_type)
+        
         return InterpolatedProgression(
             chords=chords,
             emotion_trajectory=trajectory,
             transition_points=transition_points,
+            consonant_dissonant_trajectory=cd_trajectory,
+            tension_curve_analysis=tension_curve_analysis,
             metadata={
                 "start_emotion": start_emotion,
                 "end_emotion": end_emotion,
                 "method": method.value,
-                "progression_length": progression_length
+                "progression_length": progression_length,
+                "tension_curve_type": tension_curve_type.value if tension_curve_type else None,
+                "style_context": style_context
             }
         )
     
@@ -357,6 +628,72 @@ class EmotionInterpolationEngine:
         
         default_progression = emotion_chord_map.get(primary_emotion, ["I", "vi", "IV", "V"])
         return default_progression[position % len(default_progression)]
+    
+    def _analyze_tension_curve(self, cd_trajectory: List[float], 
+                             tension_curve_type: Optional[TensionCurveType] = None) -> Dict:
+        """Analyze the tension curve patterns in a CD trajectory"""
+        if not cd_trajectory:
+            return {"error": "Empty CD trajectory"}
+        
+        analysis = {
+            "curve_type": tension_curve_type.value if tension_curve_type else "linear",
+            "start_tension": cd_trajectory[0],
+            "end_tension": cd_trajectory[-1],
+            "max_tension": max(cd_trajectory),
+            "min_tension": min(cd_trajectory),
+            "average_tension": sum(cd_trajectory) / len(cd_trajectory),
+            "tension_range": max(cd_trajectory) - min(cd_trajectory),
+            "tension_direction": "increasing" if cd_trajectory[-1] > cd_trajectory[0] else "decreasing" if cd_trajectory[-1] < cd_trajectory[0] else "stable"
+        }
+        
+        # Calculate tension peaks and valleys
+        peaks = []
+        valleys = []
+        
+        for i in range(1, len(cd_trajectory) - 1):
+            current = cd_trajectory[i]
+            prev = cd_trajectory[i-1]
+            next_val = cd_trajectory[i+1]
+            
+            # Peak detection
+            if current > prev and current > next_val:
+                peaks.append({"position": i, "value": current})
+            
+            # Valley detection
+            if current < prev and current < next_val:
+                valleys.append({"position": i, "value": current})
+        
+        analysis["peaks"] = peaks
+        analysis["valleys"] = valleys
+        analysis["peak_count"] = len(peaks)
+        analysis["valley_count"] = len(valleys)
+        
+        # Calculate tension stability
+        if len(cd_trajectory) > 1:
+            # Calculate variance to measure stability
+            mean_tension = analysis["average_tension"]
+            variance = sum((x - mean_tension) ** 2 for x in cd_trajectory) / len(cd_trajectory)
+            analysis["tension_stability"] = 1.0 - min(1.0, variance)  # Higher value = more stable
+        else:
+            analysis["tension_stability"] = 1.0
+        
+        # Musical interpretation
+        if analysis["average_tension"] < 0.3:
+            analysis["musical_character"] = "consonant"
+        elif analysis["average_tension"] < 0.6:
+            analysis["musical_character"] = "moderate"
+        else:
+            analysis["musical_character"] = "dissonant"
+        
+        # Suggested resolution
+        if analysis["end_tension"] > 0.6:
+            analysis["resolution_needed"] = True
+            analysis["suggested_resolution"] = "consonant_resolution"
+        else:
+            analysis["resolution_needed"] = False
+            analysis["suggested_resolution"] = "stable"
+        
+        return analysis
     
     def blend_progressions(self, progressions: List[List[str]], 
                          weights: List[float]) -> List[str]:

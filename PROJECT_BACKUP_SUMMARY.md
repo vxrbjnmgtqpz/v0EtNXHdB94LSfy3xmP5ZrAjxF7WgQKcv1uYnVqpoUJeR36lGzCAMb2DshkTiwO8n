@@ -1,4 +1,4 @@
-# MIDIp2p JSONMIDI Framework - Project Status Summary
+# MIDIp2p JMID Framework - Project Status Summary
 **Comprehensive Backup & Progress Report**
 *Backup Date: June 30, 2025*
 
@@ -6,7 +6,7 @@
 
 ## 🎯 **PROJECT OVERVIEW**
 
-The **MIDIp2p JSONMIDI Framework** is a high-performance, cross-platform framework for real-time MIDI communication over networks using JSON serialization and the TOAST transport protocol.
+The **MIDIp2p JMID Framework** is a high-performance, cross-platform framework for real-time MIDI communication over networks using JSON serialization and the TOAST transport protocol.
 
 ### **Current Status: Phase 1.2 Complete ✅**
 - **Total Development Time**: 2 phases completed
@@ -18,7 +18,7 @@ The **MIDIp2p JSONMIDI Framework** is a high-performance, cross-platform framewo
 
 ## 📊 **MILESTONE PROGRESS**
 
-### **✅ Phase 1.1 Complete - Core JSONMIDI Protocol**
+### **✅ Phase 1.1 Complete - Core JMID Protocol**
 **Tag: `v0.1.0-phase1.1`**
 - ✅ JSON schemas for MIDI messages and TOAST transport
 - ✅ Core C++ message classes (NoteOn, NoteOff, ControlChange, SysEx)
@@ -50,8 +50,8 @@ The **MIDIp2p JSONMIDI Framework** is a high-performance, cross-platform framewo
 
 ### **Core Components:**
 ```
-MIDIp2p JSONMIDI Framework
-├── JSONMIDI Core (Phase 1.1) ✅
+MIDIp2p JMID Framework
+├── JMID Core (Phase 1.1) ✅
 │   ├── Message Classes (NoteOn, NoteOff, CC, SysEx)
 │   ├── JSON Serialization/Deserialization
 │   ├── MIDI Byte Conversion
@@ -81,20 +81,20 @@ MIDIp2p JSONMIDI Framework
 
 ### **Core Framework Files:**
 ```
-JSONMIDI_Framework/
+JMID_Framework/
 ├── include/
-│   ├── JSONMIDIMessage.h      (Core message classes)
-│   ├── JSONMIDIParser.h       (Parser interfaces)
+│   ├── JMIDMessage.h      (Core message classes)
+│   ├── JMIDParser.h       (Parser interfaces)
 │   ├── LockFreeQueue.h        (Lock-free queues)
 │   └── TOASTTransport.h       (Transport protocol)
 ├── src/
-│   ├── JSONMIDIMessage.cpp    (Message implementations)
+│   ├── JMIDMessage.cpp    (Message implementations)
 │   ├── BassoonParser.cpp      (SIMD-optimized parser)
 │   ├── SchemaValidator.cpp    (Advanced validation)
 │   ├── MessageFactory.cpp     (Factory implementations)
 │   └── TOASTTransport.cpp     (Transport stubs)
 ├── schemas/
-│   ├── jsonmidi-message.schema.json
+│   ├── jmid-message.schema.json
 │   └── toast-transport.schema.json
 ├── tests/
 │   ├── test_basic_messages.cpp
@@ -174,7 +174,7 @@ ctest --verbose
 
 ### **Tags & Milestones:**
 - `v1.0-transport-ui` - Initial transport UI implementation
-- `v0.1.0-phase1.1` - Core JSONMIDI protocol complete
+- `v0.1.0-phase1.1` - Core JMID protocol complete
 - `v0.2.0-phase1.2` - SIMD parser & lock-free queues complete
 
 ### **Backup Verification:**
@@ -225,7 +225,7 @@ ctest --verbose
 
 ## 🎉 **CONCLUSION**
 
-**The MIDIp2p JSONMIDI Framework has achieved major milestones:**
+**The MIDIp2p JMID Framework has achieved major milestones:**
 
 ✅ **Phase 1.1 & 1.2 Complete** - Solid foundation with exceptional performance  
 ✅ **All Backups Current** - Complete git repository with milestone tags  

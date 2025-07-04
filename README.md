@@ -14,9 +14,9 @@ JAMNet is a comprehensive framework for streaming multimedia data over the inter
 
 **What started as MIDIp2p has evolved into the complete JAMNet ecosystem:**
 
-- **JSONMIDI Framework**: Ultra-low latency MIDI streaming (~50μs) with multicast JSONL
+- **JMID Framework**: Ultra-low latency MIDI streaming (~50μs) with multicast JSONL
 - **JDAT Framework**: Professional audio streaming with JELLIE encoding (~200μs)
-- **JSONVID Framework**: Real-time video with JAMCam processing (~300μs)
+- **JVID Framework**: Real-time video with JAMCam processing (~300μs)
 
 ## Why JSON? The Architecture Philosophy
 
@@ -115,14 +115,14 @@ JAMNet provides a **triple-stream architecture** that handles MIDI, audio, and v
 
 | **MIDI Stack**             | **Audio Stack**                 | **Video Stack**            |
 | -------------------------- | ------------------------------- | -------------------------- |
-| **JSONMIDI**               | **JDAT**                    | **JVID**                |
+| **JMID**                   | **JDAT**                    | **JVID**                |
 | → Events & control data    | → PCM sample chunks (JELLIE)    | → Frame data (JAMCam)      |
 | → <30μs latency (compact)  | → <150μs latency (chunked)      | → <250μs latency (frames)  |
 | → PNTBTR fills lost events | → PNTBTR predicts waveform gaps | → PNTBTR motion prediction |
 | → Sent over TOAST/UDP      | → Sent over TOAST/UDP           | → Sent over TOAST/UDP      |
 | → **Multicast JSONL**      | → **Multicast JSONL**           | → **Multicast JSONL**      |
 
-### JSONMIDI: Enhanced with Compact JSONL Format
+### JMID: Enhanced with Compact JSONL Format
 
 Each MIDI event transmitted as ultra-compact JSONL for maximum performance:
 
@@ -170,14 +170,14 @@ Each audio slice transmitted as JSONL with JELLIE encoding for efficient streami
 - Streams 2-3: redundancy/parity for instant recovery
 - Pure JSONL throughout - no binary data, multicast distribution
 
-### JSONVID: Video Streaming Format with JAMCam JSONL
+### JVID: Video Streaming Format with JAMCam JSONL
 
 Each video frame with JAMCam processing as compact JSONL:
 
 ```jsonl
 {
   "t": "vid",
-  "id": "jsonvid",
+  "id": "jvid",
   "seq": 89,
   "res": "ULTRA_LOW_72P",
   "fps": 60,
@@ -244,7 +244,7 @@ JAMNet Approach:  [ JSONL ] → [ UDP Multicast ] → [ PNTBTR prediction ] → 
 
 ```
 Application    →    JAMNet multimedia apps with multicast pub/sub
-Encoding      →    Compact JSONL: JSONMIDI / JDAT / JVID
+Encoding      →    Compact JSONL: JMID / JDAT / JVID
 Transport     →    TOAST (UDP Multicast, unified across domains)
 Recovery      →    PNTBTR (domain-specific prediction + redundancy)
 Clock Sync    →    Unified timestamp across all multicast streams
@@ -264,9 +264,9 @@ Distribution  →    Session-based multicast routing and subscriber management
 
 #### Enhanced Latency Targets (End-to-End over LAN with Multicast)
 
-- **JSONMIDI**: <30μs (compact JSONL events, CC, program changes)
+- **JMID**: <30μs (compact JSONL events, CC, program changes)
 - **JDAT**: <150μs (192kHz audio with redundancy and JSONL chunking)
-- **JSONVID**: <250μs (72p video with JAMCam processing and JSONL frames)
+- **JVID**: <250μs (72p video with JAMCam processing and JSONL frames)
 - **Clock Synchronization**: <15μs deviation across all multicast streams
 - **Recovery Time**: <25μs for PNTBTR predictions with JSONL efficiency
 - **Multicast Overhead**: <5μs additional latency per subscriber
@@ -293,17 +293,17 @@ Distribution  →    Session-based multicast routing and subscriber management
 
 ```
 JAMNet/
-├── JSONMIDI_Framework/           # MIDI protocol & MIDIp2p legacy
+├── JMID_Framework/               # MIDI protocol & MIDIp2p legacy
 │   ├── include/                  # Message formats, parsers, transport
 │   ├── src/                      # Core implementation
 │   ├── examples/                 # MIDI streaming demos
 │   └── Initialization.md         # Complete JSON-MIDI mapping spec
-├── JDAT_Framework/           # Audio streaming with JELLIE
+├── JDAT_Framework/               # Audio streaming with JELLIE
 │   ├── include/                  # Audio encoders, ADAT simulation
 │   ├── src/                      # JELLIE implementation
 │   ├── examples/                 # Audio streaming demos
 │   └── README.md                 # Audio streaming documentation
-├── JSONVID_Framework/            # Video streaming with JAMCam
+├── JVID_Framework/               # Video streaming with JAMCam
 │   ├── include/                  # Video encoders, JAMCam processing
 │   ├── src/                      # Video implementation
 │   ├── examples/                 # Video streaming demos
@@ -314,44 +314,104 @@ JAMNet/
 └── README.md                     # This file
 ```
 
-## Development Phases: The Complete JAMNet with Multicast JSONL
+## Development Phases: GPU-Native JAMNet with Multicast JSONL
 
-### Phase 1: Enhanced JSONMIDI Foundation with Bassoon Fork ✅ (Weeks 1-4)
+### Phase 0: Baseline Validation ✅ (Current State)
 
-- JSON schema validation and refinement
-- **Multicast Bassoon.js fork implementation** with JSONL streaming
-- JUCE integration foundation with compact JSONL support
-- **Enhanced BassoonParser** with streaming modes (SINGLE_JSON, JSONL_STREAM, COMPACT_JSONL)
-- MIDIp2p as proof of concept with <30μs compact parsing
+- JAMNet foundation with memory mapping established
+- TCP-based streaming working as control group
+- All frameworks building and testing successfully
+- Performance baseline established for GPU comparison
 
-### Phase 2: UDP + Multicast JDAT Audio Streaming ✅ (Weeks 5-8)
+### Phase 1: UDP-First Transition (Weeks 1-4)
 
-- **Enhanced JELLIE encoder/decoder** with JSONL chunking
-- 192kHz ADAT strategy implementation via multicast JSONL
-- **PNTBTR audio prediction algorithms** with JSONL efficiency
-- Integration with **UDP multicast TOAST transport**
-- Session-based routing and subscriber management
+- Replace all TCP streams with **UDP multicast** handling
+- Implement **stateless transmission** model with sequence numbers
+- Add **multicast session manager** for stream routing
+- **Fire-and-forget UDP** baseline with packet loss simulation
 
-### Phase 3: JSONVID Video Streaming with Multicast ✅ (Weeks 9-12)
+### Phase 2: GPU Framework Integration (Weeks 5-8)
 
-- **JAMCam video processing pipeline** with JSONL frame metadata
-- Ultra-low latency video encoding with compact format
-- Motion-compensated frame prediction via JSONL
-- **Complete multicast multimedia ecosystem** integration
-- Cross-stream synchronization across MIDI, audio, and video
+- Build **GPU compute shader infrastructure** for JSONL processing
+- **Memory-mapped JSONL → GPU** direct pipeline
+- **Compute shaders** for JSON parsing, PCM interpolation, timestamp normalization
+- **GPU-CPU bridge** with lock-free buffer synchronization
+- **Vulkan/Metal** implementation for cross-platform GPU acceleration
 
-### Phase 4: Production & Enhanced Ecosystem (Weeks 13-16)
+### Phase 3: Fork Bassoon.js into JAM.js (Weeks 9-12)
 
-- **Cross-platform multicast builds** (Windows, Linux)
-- **Enhanced Developer SDK** with JSONL streaming APIs
-- **Bassoon fork optimization** and SIMD performance profiling
-- **WebSocket bridge** for browser-based JSONL clients
-- Open source preparation with multicast documentation
+- **JAM.js**: GPU-native JSONL parser from day one
+- Remove legacy HTTP/eventstream layers
+- **UDP receiver + JSONL collector + GPU buffer writer**
+- **BassoonGPUParser** with compact JSONL support
+- **MIDI latency drops 80-90%** through GPU acceleration
 
-## Enhanced Technology Stack with Multicast JSONL
+### Phase 4: PNTBTR GPU Prediction Engine (Weeks 13-16)
+
+- **GPU-based packet loss smoothing** and waveform prediction
+- **Compute shaders** for buffer interpolation and ML inference
+- **1D CNNs on GPU** for 50ms audio prediction windows
+- **MIDI CC smoothing** and **PCM continuation** shaders
+- **System handles >15% UDP loss** seamlessly
+
+### Phase 5: JVID GPU Visual Integration (Weeks 17-20)
+
+- **GPU-rendered visualization** layer integrated with audio processing
+- **Waveform rendering + predictive annotation** in real-time
+- **MIDI note trails** and **emotional metadata** visualization
+- **Unified GPU memory map** across parsing, prediction, and rendering
+
+### Phase 6: Production & Cross-Platform (Weeks 21-24)
+
+- **Cross-platform GPU builds** (Windows, Linux)
+- **Enhanced Developer SDK** with GPU-accelerated APIs
+- **Performance profiling** and **SIMD optimization**
+- **WebSocket bridge** for browser-based clients
+- **Open source preparation** with comprehensive documentation
+
+## GPU-Native Architecture: The Next Evolution
+
+JAMNet is pioneering a revolutionary **GPU-native multimedia streaming architecture** that treats graphics processing units as specialized co-processors for structured data parsing and prediction. This approach draws inspiration from distributed computing architectures like Ethereum's parallel transaction processing model, where massive structured data sets benefit from GPU-accelerated operations.
+
+### Why GPU for Audio/Video Streaming?
+
+**JSONL is structured memory, and GPUs excel at structured memory processing.**
+
+Traditional DAWs underutilize GPU resources, focusing only on visual effects. JAMNet recognizes that:
+
+- **JSON's object notation** mirrors graphics data structures (scene graphs, vertex descriptors)
+- **Parallel parsing** of thousands of JSONL lines per millisecond
+- **Batch vector operations** for PCM sample processing and waveform prediction
+- **Predictive modeling** using lightweight ML inference per stream
+- **Massive parallel context awareness** across multiple multimedia streams
+
+### GPU-Accelerated JAMNet Components
+
+**🧠 Parallel JSONL Processing**
+- Each GPU thread parses one JSONL line or field
+- Memory-mapped buffers stream directly to GPU-shared memory
+- SIMD JSON parsers handle tens of thousands of packets per millisecond
+
+**⚡ JELLIE PCM on GPU**
+- Store PCM chunks as float buffers in VRAM
+- Compute shaders apply gain, filters, resampling in parallel
+- Redundancy recovery through vector math operations
+
+**🎯 PNTBTR Prediction Engine**
+- GPU-based predictive models (GRUs, 1D CNNs) per channel
+- Lightweight inference for 50ms audio prediction
+- Concurrent processing of thousands of streams
+
+**🎨 Real-Time Visual Integration**
+- GPU renders waveforms, MIDI events, and emotional metadata
+- Shader-based visualizers react to JSONL stream data
+- Unified GPU memory map shared between parsers, predictors, and renderers
+
+### Enhanced Technology Stack with GPU-Native Processing
 
 - **Core Frameworks**: C++ with modern standards (C++17/20)
 - **Enhanced Parser**: **Multicast Bassoon.js fork** with JSONL streaming support
+- **GPU Acceleration**: **Vulkan/Metal compute shaders** for JSONL parsing and prediction
 - **Networking**: **UDP Multicast** with TOAST protocol, Bonjour discovery
 - **Streaming Format**: **Compact JSONL** with 67% size reduction
 - **Platforms**: macOS (primary), Windows, Linux
@@ -359,7 +419,7 @@ JAMNet/
 - **Video Integration**: CoreVideo, V4L2, DirectShow with JSONL frames
 - **Protocol**: **Multicast JSONL over TOAST** tunnel with unified clock sync
 - **Distribution**: **Session-based multicast routing** and pub/sub management
-- **Optimization**: SIMD (AVX2/SSE4.2), GPU acceleration, lock-free structures, JSONL compression
+- **Optimization**: SIMD (AVX2/SSE4.2), **GPU compute shaders**, lock-free structures, JSONL compression
 
 ## Getting Started
 
@@ -374,9 +434,9 @@ JAMNet/
 
 1. Clone the JAMNet repository
 2. Review multimedia specifications:
-   - JSONMIDI: `JSONMIDI_Framework/Initialization.md`
+   - JMID: `JMID_Framework/Initialization.md`
    - JDAT: `JDAT_Framework/README.md`
-   - JSONVID: `JSONVID_Framework/README.md`
+   - JVID: `JVID_Framework/README.md`
 3. Build and test individual frameworks
 4. Run examples for each multimedia domain
 
@@ -393,9 +453,11 @@ JAMNet/
 
 ## The JAMNet Vision: Beyond Current Technology
 
-JAMNet represents a paradigm shift in multimedia networking, proving that JSON can achieve performance previously thought impossible. By approaching the physical limits of network latency, we've created the foundation for truly distributed multimedia computing.
+JAMNet represents a paradigm shift in multimedia networking, proving that JSON can achieve performance previously thought impossible. By approaching the physical limits of network latency and leveraging GPU-native processing for structured data (inspired by distributed computing architectures like Ethereum's parallel processing model), we've created the foundation for truly distributed multimedia computing.
 
 **This is not just an optimization. This is the reinvention of how multimedia flows across networks.**
+
+The GPU-native approach treats multimedia streaming as a **structured data processing problem** rather than a traditional audio/video transport challenge. Just as Ethereum demonstrated that complex state transitions could be processed in parallel across distributed nodes, JAMNet proves that JSONL multimedia streams can be parsed, predicted, and rendered simultaneously on GPU hardware for unprecedented performance gains.
 
 ## Contributing
 

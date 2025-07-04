@@ -18,14 +18,14 @@ This section outlines how to initialize and prepare the video stream layer for J
 
 ### 2. Project Structure
 
-/jsonvid/
+/jvid/
 ├── jamcam.js # Video capture + frame tokenizer
 ├── render.js # Receiver-side visual renderer
 ├── compressors/
 │ ├── downscale.js # Resize input video to ~low res
 │ └── jpegstrip.js # Reduce frame to essential pixels
 ├── stream/
-│ ├── packetize.js # Wrap JSONVID packets for TOAST
+│ ├── packetize.js # Wrap JVID packets for TOAST
 │ └── depacketize.js # Unwrap on receiver side
 └── utils/
 └── timestamp.js # Frame sync with audio & MIDI
@@ -45,7 +45,7 @@ Edit
 **b. Send over TOAST:**
 
 - `packetize.js` splits each frame into TOAST-compatible datagrams.
-- Transmit using the same socket manager as JSONADAT/MIDI.
+- Transmit using the same socket manager as JDAT/MIDI.
 
 **c. Receive and decode:**
 

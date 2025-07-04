@@ -9,7 +9,7 @@ Integrate .jsonl streaming + multicast dispatch into your existing bassoon.js st
 
 Based on your codebase, you have:
 
-- ✅ **JSONMIDI Framework** with BassoonParser (C++ SIMD-optimized)
+- ✅ **JMID Framework** with BassoonParser (C++ SIMD-optimized)
 - ✅ **TOAST Transport Layer** (TCP/UDP) for real-time streaming
 - ✅ **TOASTer JUCE Application** with network panels and MIDI testing
 - ✅ **ClockDriftArbiter** for microsecond-precision timing
@@ -24,14 +24,14 @@ Based on your codebase, you have:
 
 ```cpp
 // Your existing BassoonParser usage in TOASTer:
-parser = std::make_unique<JSONMIDI::BassoonParser>();
+parser = std::make_unique<JMID::BassoonParser>();
 auto message = parser->parseMessageWithValidation(json);
 ```
 
 ✅ **Network Flow Analysis**
 
 ```
-MIDI Hardware → JSONMIDI → BassoonParser → TOAST Transport → Network
+MIDI Hardware → JMID → BassoonParser → TOAST Transport → Network
      ↓              ↓           ↓              ↓            ↓
  JUCE MIDI    JSON Schema   C++ Parser    TCP/UDP      Remote TOASTer
 ```
@@ -52,7 +52,7 @@ MIDI Hardware → JSONMIDI → BassoonParser → TOAST Transport → Network
 **1.1: Extend BassoonParser for Streaming**
 
 ```cpp
-// In JSONMIDI_Framework/include/JSONMIDIParser.h
+// In JMID_Framework/include/JMIDParser.h
 class BassoonParser {
 public:
     // Add JSONL streaming capabilities
@@ -107,7 +107,7 @@ std::string BassoonParser::compactifyMessage(const MIDIMessage& msg) {
 **2.1: Add TOAST JSONL Message Type**
 
 ```cpp
-// In JSONMIDI_Framework/include/TOASTTransport.h
+// In JMID_Framework/include/TOASTTransport.h
 enum class MessageType : uint8_t {
     MIDI = 0x01,
     JSONL_STREAM = 0x08,  // New message type
@@ -127,7 +127,7 @@ public:
 **2.2: Implement JSONL Multicast in ConnectionManager**
 
 ```cpp
-// In JSONMIDI_Framework/src/TOASTTransport.cpp
+// In JMID_Framework/src/TOASTTransport.cpp
 class ConnectionManager::Impl {
 public:
     // JSONL subscriber management
@@ -166,10 +166,10 @@ public:
 
     void startJsonlCapture();
     void stopJsonlCapture();
-    void setStreamingMode(JSONMIDI::BassoonParser::ParseMode mode);
+    void setStreamingMode(JMID::BassoonParser::ParseMode mode);
 
 private:
-    std::unique_ptr<JSONMIDI::BassoonParser> jsonlParser_;
+    std::unique_ptr<JMID::BassoonParser> jsonlParser_;
     juce::TextEditor jsonlOutput_;
     juce::ToggleButton compactModeToggle_;
     juce::Label performanceLabel_;
@@ -182,7 +182,7 @@ private:
 // In TOASTer/Source/MIDIManager.cpp
 void MIDIManager::handleIncomingMidiMessage(juce::MidiInput* source,
                                           const juce::MidiMessage& message) {
-    auto jsonMidiMessage = convertJuceMidiToJSONMIDI(message);
+    auto jsonMidiMessage = convertJuceMidiToJMID(message);
 
     // Existing queue processing
     if (incomingMessageQueue.tryPush(jsonMidiMessage)) {
@@ -206,13 +206,13 @@ void MIDIManager::handleIncomingMidiMessage(juce::MidiInput* source,
 **4.1: Session-Based JSONL Streaming**
 
 ```cpp
-// In JSONMIDI_Framework/include/TOASTTransport.h
+// In JMID_Framework/include/TOASTTransport.h
 class SessionManager {
 public:
     struct JsonlSession {
         std::string sessionId;
         std::vector<std::string> subscribedClients;
-        JSONMIDI::BassoonParser::ParseMode parseMode;
+        JMID::BassoonParser::ParseMode parseMode;
         bool isActive;
     };
 
@@ -220,7 +220,7 @@ public:
     bool joinJsonlSession(const std::string& sessionId, const std::string& clientId);
     void streamJsonlToSession(const std::string& sessionId, const std::string& jsonlLine);
     void setSessionParseMode(const std::string& sessionId,
-                           JSONMIDI::BassoonParser::ParseMode mode);
+                           JMID::BassoonParser::ParseMode mode);
 };
 ```
 
@@ -252,7 +252,7 @@ private:
 **5.1: SIMD-Optimized JSONL Parser**
 
 ```cpp
-// In JSONMIDI_Framework/src/BassoonParser.cpp
+// In JMID_Framework/src/BassoonParser.cpp
 class BassoonParser::JsonlOptimizer {
 public:
     // Pre-compiled compact format templates
@@ -294,7 +294,7 @@ public:
     bool tryPopJsonl(JsonlEvent& event);
 
 private:
-    JSONMIDI::LockFreeQueue<JsonlEvent, CAPACITY> queue_;
+    JMID::LockFreeQueue<JsonlEvent, CAPACITY> queue_;
 };
 ```
 
@@ -383,7 +383,7 @@ private:
 
 ## 🎯 **Expected Outcomes**
 
-- ✅ **Full backward compatibility** with existing JSONMIDI/TOAST
+- ✅ **Full backward compatibility** with existing JMID/TOAST
 - ✅ **<30μs JSONL parsing** (improved from 50μs JSON target)
 - ✅ **2x network efficiency** via compact format
 - ✅ **Real-time multicast streaming** for JAMNet

@@ -50,7 +50,7 @@ Read file: copilotlog.md
 
 <think><details><summary>Thought Process</summary>Based on reading the end of the copilotlog.md file, I can see the context of where Copilot left off. It appears that:
 
-1. A major integration milestone was recently completed - the Phase 2 integration of MIDILink with the JSONMIDI Framework
+1. A major integration milestone was recently completed - the Phase 2 integration of MIDILink with the JMID Framework
 2. The project was successfully backed up to git with a milestone tag v0.5.0-phase2-integration-complete
 3. The user then provided an older ChatGPT assessment that listed various requirements that "still need to be done"
 4. Copilot was trying to analyze what's actually been implemented vs what the older assessment claimed was missing
@@ -66,15 +66,15 @@ Based on reading the copilotlog.md file from the end, I can see that Copilot had
 
 ---
 
-Read file: JSONMIDI_Framework/include/TOASTTransport.h
+Read file: JMID_Framework/include/TOASTTransport.h
 
 ---
 
-Read file: JSONMIDI_Framework/src/JSONMIDIMessage.cpp
+Read file: JMID_Framework/src/JMIDMessage.cpp
 
 ---
 
-Read file: JSONMIDI_Framework/schemas/jsonmidi-message.schema.json
+Read file: JMID_Framework/schemas/jmid-message.schema.json
 
 ---
 
@@ -83,7 +83,7 @@ Read file: JSONMIDI_Framework/schemas/jsonmidi-message.schema.json
 ---
 
 <details>
-            <summary>Listed directory JSONMIDI_Framework/tests • **8** results</summary>
+            <summary>Listed directory JMID_Framework/tests • **8** results</summary>
         
 | Name |
 |-------|
@@ -100,7 +100,7 @@ Read file: JSONMIDI_Framework/schemas/jsonmidi-message.schema.json
 
 ---
 
-Read file: JSONMIDI_Framework/src/ClockDriftArbiter.cpp
+Read file: JMID_Framework/src/ClockDriftArbiter.cpp
 
 ---
 

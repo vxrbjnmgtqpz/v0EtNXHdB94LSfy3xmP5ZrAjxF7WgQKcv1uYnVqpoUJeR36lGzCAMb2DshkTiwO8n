@@ -1158,6 +1158,15 @@
           addSingleChordPlayback(bubbleDiv, responseData.chord);
         }
 
+        // Add voice leading information display
+        if (responseData.voice_leading) {
+          addVoiceLeadingDisplay(
+            bubbleDiv,
+            responseData.voice_leading,
+            responseData.chords
+          );
+        }
+
         // Add detailed emotion display for single chord responses
         if (
           responseData.intent === "single_chord" &&
@@ -1769,6 +1778,174 @@
           checkConnection();
         }
       });
+
+      function addVoiceLeadingDisplay(parentDiv, voiceLeadingData, chords) {
+        if (!voiceLeadingData || voiceLeadingData.error) {
+          return;
+        }
+
+        const voiceLeadingDiv = document.createElement("div");
+        voiceLeadingDiv.style.marginTop = "12px";
+        voiceLeadingDiv.style.padding = "12px";
+        voiceLeadingDiv.style.background =
+          "linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.05))";
+        voiceLeadingDiv.style.borderRadius = "10px";
+        voiceLeadingDiv.style.border = "1px solid rgba(102, 126, 234, 0.3)";
+        voiceLeadingDiv.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.1)";
+
+        const titleDiv = document.createElement("div");
+        titleDiv.style.fontWeight = "bold";
+        titleDiv.style.fontSize = "13px";
+        titleDiv.style.marginBottom = "10px";
+        titleDiv.style.color = "#333";
+        titleDiv.style.textAlign = "center";
+        titleDiv.innerHTML = "🎹 Voice Leading & Register Analysis";
+        voiceLeadingDiv.appendChild(titleDiv);
+
+        // Register summary
+        const registerSummaryDiv = document.createElement("div");
+        registerSummaryDiv.style.marginBottom = "10px";
+        registerSummaryDiv.style.padding = "8px";
+        registerSummaryDiv.style.background = "rgba(255, 255, 255, 0.6)";
+        registerSummaryDiv.style.borderRadius = "6px";
+        registerSummaryDiv.style.fontSize = "11px";
+
+        const avgRegister = voiceLeadingData.average_register || 4.5;
+        const registerRange = voiceLeadingData.register_range || [4, 5];
+        const totalCost = voiceLeadingData.total_voice_leading_cost || 0;
+
+        registerSummaryDiv.innerHTML = `
+          <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+            <span><strong>🎼 Register:</strong> ${avgRegister.toFixed(
+              1
+            )} (range ${registerRange[0]}-${registerRange[1]})</span>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span><strong>🎵 Voice Movement:</strong> ${totalCost.toFixed(
+              1
+            )} semitones total</span>
+            ${
+              chords && chords.length > 1
+                ? `<span><strong>📊 Avg/Chord:</strong> ${(
+                    totalCost /
+                    (chords.length - 1)
+                  ).toFixed(1)} semitones</span>`
+                : ""
+            }
+          </div>
+        `;
+        voiceLeadingDiv.appendChild(registerSummaryDiv);
+
+        // Individual chord voicings
+        const voicedChordsDiv = document.createElement("div");
+        voicedChordsDiv.style.marginTop = "8px";
+
+        const voicedChordsToggle = document.createElement("button");
+        voicedChordsToggle.className = "play-button";
+        voicedChordsToggle.style.fontSize = "10px";
+        voicedChordsToggle.style.background = "#667eea";
+        voicedChordsToggle.style.width = "100%";
+        voicedChordsToggle.innerHTML = "🎹 Show Detailed Voicings";
+
+        const voicingsDetailDiv = document.createElement("div");
+        voicingsDetailDiv.style.display = "none";
+        voicingsDetailDiv.style.marginTop = "8px";
+        voicingsDetailDiv.style.maxHeight = "200px";
+        voicingsDetailDiv.style.overflowY = "auto";
+        voicingsDetailDiv.style.padding = "6px";
+        voicingsDetailDiv.style.background = "rgba(255, 255, 255, 0.8)";
+        voicingsDetailDiv.style.borderRadius = "6px";
+
+        let isExpanded = false;
+        voicedChordsToggle.onclick = () => {
+          isExpanded = !isExpanded;
+          voicingsDetailDiv.style.display = isExpanded ? "block" : "none";
+          voicedChordsToggle.innerHTML = isExpanded
+            ? "🎹 Hide Detailed Voicings"
+            : "🎹 Show Detailed Voicings";
+        };
+
+        // Populate voicing details
+        if (
+          voiceLeadingData.voiced_chords &&
+          voiceLeadingData.voiced_chords.length > 0
+        ) {
+          voiceLeadingData.voiced_chords.forEach((voicedChord, index) => {
+            const chordDiv = document.createElement("div");
+            chordDiv.style.marginBottom = "8px";
+            chordDiv.style.padding = "6px";
+            chordDiv.style.background =
+              index % 2 === 0
+                ? "rgba(102, 126, 234, 0.1)"
+                : "rgba(118, 75, 162, 0.1)";
+            chordDiv.style.borderRadius = "4px";
+            chordDiv.style.fontSize = "10px";
+
+            const chordHeader = document.createElement("div");
+            chordHeader.style.fontWeight = "bold";
+            chordHeader.style.marginBottom = "3px";
+            chordHeader.innerHTML = `${index + 1}. ${voicedChord.chord_symbol}`;
+
+            const voicingInfo = document.createElement("div");
+            voicingInfo.style.color = "#666";
+            voicingInfo.innerHTML = `
+              🎵 Notes: ${voicedChord.notes_display || "N/A"}<br>
+              🎼 Register: ${
+                voicedChord.register_range
+                  ? voicedChord.register_range.join("-")
+                  : "N/A"
+              }
+              ${
+                index > 0
+                  ? `<br>🎶 Movement: ${
+                      voicedChord.voice_leading_cost?.toFixed(1) || 0
+                    } semitones`
+                  : ""
+              }
+            `;
+
+            chordDiv.appendChild(chordHeader);
+            chordDiv.appendChild(voicingInfo);
+            voicingsDetailDiv.appendChild(chordDiv);
+          });
+        } else {
+          voicingsDetailDiv.innerHTML =
+            "<div style='text-align: center; color: #666; font-style: italic;'>No detailed voicing data available</div>";
+        }
+
+        voicedChordsDiv.appendChild(voicedChordsToggle);
+        voicedChordsDiv.appendChild(voicingsDetailDiv);
+        voiceLeadingDiv.appendChild(voicedChordsDiv);
+
+        // Voice leading quality indicator
+        const qualityDiv = document.createElement("div");
+        qualityDiv.style.marginTop = "8px";
+        qualityDiv.style.textAlign = "center";
+        qualityDiv.style.fontSize = "10px";
+        qualityDiv.style.color = "#666";
+
+        let qualityText = "🎵 Smooth voice leading";
+        let qualityColor = "#34c759";
+
+        if (chords && chords.length > 1) {
+          const avgMovement = totalCost / (chords.length - 1);
+          if (avgMovement < 2) {
+            qualityText = "🌟 Excellent voice leading (minimal movement)";
+            qualityColor = "#34c759";
+          } else if (avgMovement < 4) {
+            qualityText = "✅ Good voice leading (smooth transitions)";
+            qualityColor = "#ff9500";
+          } else {
+            qualityText = "⚠️ Challenging voice leading (large movements)";
+            qualityColor = "#ff3b30";
+          }
+        }
+
+        qualityDiv.innerHTML = `<span style="color: ${qualityColor};">${qualityText}</span>`;
+        voiceLeadingDiv.appendChild(qualityDiv);
+
+        parentDiv.appendChild(voiceLeadingDiv);
+      }
 
       function addIndividualAnalysisBreakdown(
         parentDiv,

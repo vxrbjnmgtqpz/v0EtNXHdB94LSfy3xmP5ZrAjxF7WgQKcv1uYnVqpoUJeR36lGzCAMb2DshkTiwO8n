@@ -44,9 +44,9 @@
 ```
 JAMNet/
 ├── TOASTer/                           # ✅ Ready for testing
-├── JSONMIDI_Framework/                # ✅ TCP TOAST ready
-├── JSONADAT_Framework/                # ✅ Audio framework
-├── JSONVID_Framework/                 # ✅ Video framework
+├── JMID_Framework/                # ✅ TCP TOAST ready
+├── JDAT_Framework/                # ✅ Audio framework
+├── JVID_Framework/                 # ✅ Video framework
 └── VirtualAssistance/                 # ✅ Major v3 updates
     ├── emotion_interpolation_engine.py
     ├── comprehensive_edge_case_detector.py

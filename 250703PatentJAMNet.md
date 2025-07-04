@@ -46,7 +46,7 @@ Key components include:
 •
 JELLIE: JAM Embedded Low Latency Instrument Encoding — a stream encoder that divides mono audio
 into 4 simultaneous PCM JSONL streams over JDAT (even/odd sample interleaving plus redundancy)
-modeled after ADAT protocol behavior.
+modeled after 4-channel interleaving protocol behavior.
 •
 PNTBTR: Predictive Network Temporal Buffered Transmission Recovery — an adaptive audio, MIDI, and
 video prediction layer that prioritizes throttling while continuously predicting the next 50ms of packets

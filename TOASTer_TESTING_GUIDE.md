@@ -17,7 +17,7 @@
    - `test_tcp_communication`: Automated protocol validation tests
    - Status: ✅ All binaries built and tested
 
-3. **JSONMIDI Framework**: Core protocol implementation
+3. **JMID Framework**: Core protocol implementation
    - Message parsing, validation, and serialization
    - Performance profiling and benchmarking
    - Status: ✅ Complete with examples and tests
@@ -30,7 +30,7 @@ Test the core TCP TOAST protocol between two terminal sessions:
 
 ```bash
 # Terminal 1 - Start the server
-cd /Users/timothydowler/Projects/MIDIp2p/JSONMIDI_Framework
+cd /Users/timothydowler/Projects/MIDIp2p/JMID_Framework
 ./toast_server
 
 # Terminal 2 - Connect a client
@@ -45,7 +45,7 @@ cd /Users/timothydowler/Projects/MIDIp2p/JSONMIDI_Framework
 
 **Expected Results**:
 - Server accepts client connections
-- JSONMIDI messages transmitted successfully
+- JMID messages transmitted successfully
 - Session management works
 - Heartbeat mechanism functional
 
@@ -64,7 +64,7 @@ open TOASTer.app
 2. **MIDI Testing Panel**: Test MIDI I/O and message handling
 3. **Performance Monitor**: Check latency measurements and throughput
 4. **Clock Sync Panel**: Test clock synchronization features
-5. **JSONMIDI Integration**: Test JSON message processing
+5. **JMID Integration**: Test JSON message processing
 
 ### Scenario 3: Multi-Client Session Testing
 
@@ -99,7 +99,7 @@ Test latency and throughput characteristics:
 
 ```bash
 # Run automated performance tests
-cd /Users/timothydowler/Projects/MIDIp2p/JSONMIDI_Framework
+cd /Users/timothydowler/Projects/MIDIp2p/JMID_Framework
 ./test_tcp_communication
 
 # Check specific benchmarks
@@ -142,7 +142,7 @@ open TOASTer.app
 ### Phase 1: Local Testing ✅
 - [x] TOASTer app launches without crashes
 - [x] TCP server/client communication works
-- [x] JSONMIDI messages parse correctly
+- [x] JMID messages parse correctly
 - [x] GUI panels display and respond
 
 ### Phase 2: Network Testing (Ready to Test)
@@ -193,7 +193,7 @@ open TOASTer.app
 |-----------|--------|-------|
 | **TOASTer App** | ✅ Ready | Built, launches, GUI functional |
 | **TCP Protocol** | ✅ Ready | Server/client tested, working |
-| **JSONMIDI Core** | ✅ Ready | Parsing/validation complete |
+| **JMID Core** | ✅ Ready | Parsing/validation complete |
 | **Multi-Client** | 🟡 Ready to Test | Infrastructure complete |
 | **LAN Testing** | 🟡 Ready to Test | Need two machines |
 | **Performance** | 🟡 Ready to Test | Benchmarks available |
@@ -225,7 +225,7 @@ open TOASTer.app
 
 - ✅ **Complete TCP TOAST implementation**
 - ✅ **Native macOS application** 
-- ✅ **JSONMIDI protocol stack**
+- ✅ **JMID protocol stack**
 - ✅ **Multi-client session management**
 - ✅ **Performance monitoring tools**
 

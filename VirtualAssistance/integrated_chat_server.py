@@ -22,6 +22,7 @@ from individual_chord_model import IndividualChordModel
 import sys
 sys.path.append('./TheoryEngine')
 from enhanced_solfege_theory_engine import EnhancedSolfegeTheoryEngine
+from voice_leading_engine import EnhancedVoiceLeadingEngine
 
 app = Flask(__name__)
 app.secret_key = 'music_theory_chat_secret_key'  # For session management
@@ -197,7 +198,11 @@ class IntentClassifier:
             "disgust", "surprise", "trust", "shame", "love", "envy",
             "romantic", "melancholy", "energetic", "peaceful", "dramatic",
             "nostalgic", "uplifting", "mysterious", "bright", "dark",
-            "tender", "aggressive", "calming", "exciting", "soulful"
+            "tender", "aggressive", "calming", "exciting", "soulful",
+            "transcendent", "mystical", "ethereal", "otherworldly", "cosmic",
+            "divine", "spiritual", "enlightened", "transcendental", "sublime",
+            "celestial", "dreamlike", "lucid", "visionary", "floating",
+            "weightless", "ego death", "dissolution", "sacred", "dissonant"
         ]
         
         self.style_keywords = [
@@ -253,45 +258,81 @@ class IntentClassifier:
         )
     
     def _extract_parameters(self, text: str) -> Dict[str, Any]:
-        """Extract relevant parameters from user text"""
+        """Extract musical parameters from user text"""
         params = {}
+        text_lower = text.lower()
         
         # Extract emotions
-        found_emotions = []
-        for emotion in self.emotion_keywords:
-            if emotion in text:
-                found_emotions.append(emotion)
-        if found_emotions:
-            params["emotions"] = found_emotions
-            params["primary_emotion"] = found_emotions[0]
+        emotion_keywords = {
+            'happy': ['happy', 'joy', 'joyful', 'cheerful', 'bright', 'upbeat', 'positive'],
+            'sad': ['sad', 'melancholy', 'sorrowful', 'depressed', 'down', 'blue', 'mournful'],
+            'angry': ['angry', 'rage', 'furious', 'mad', 'aggressive', 'intense', 'harsh'],
+            'fear': ['scary', 'frightening', 'tense', 'anxious', 'nervous', 'worried', 'dark'],
+            'love': ['love', 'romantic', 'tender', 'affectionate', 'warm', 'intimate'],
+            'wonder': ['wonder', 'awe', 'mysterious', 'magical', 'ethereal', 'transcendent'],
+            'trust': ['trust', 'confidence', 'steady', 'reliable', 'stable', 'grounded'],
+            'surprise': ['surprise', 'unexpected', 'shocking', 'sudden', 'startling'],
+            'transcendence': ['transcendent', 'mystical', 'ethereal', 'otherworldly', 'cosmic', 'divine', 'spiritual', 'enlightened', 'transcendental', 'sublime', 'celestial', 'dreamlike', 'lucid', 'visionary', 'floating', 'weightless', 'ego death', 'dissolution', 'sacred', 'dissonant']
+        }
         
-        # Extract styles
-        found_styles = []
-        for style in self.style_keywords:
-            if style in text:
-                found_styles.append(style.title())
-        if found_styles:
-            params["styles"] = found_styles
-            params["primary_style"] = found_styles[0]
+        detected_emotions = []
+        for emotion, keywords in emotion_keywords.items():
+            if any(keyword in text_lower for keyword in keywords):
+                detected_emotions.append(emotion)
+        
+        if detected_emotions:
+            params['primary_emotion'] = detected_emotions[0]
+            params['detected_emotions'] = detected_emotions
+        
+        # Extract consonant/dissonant preferences
+        consonant_keywords = ['consonant', 'smooth', 'peaceful', 'gentle', 'soft', 'harmonious', 'stable', 'resolved']
+        dissonant_keywords = ['dissonant', 'tense', 'harsh', 'edgy', 'rough', 'complex', 'unresolved', 'tension']
+        moderate_keywords = ['moderate', 'balanced', 'medium', 'some tension', 'bit of edge']
+        
+        if any(keyword in text_lower for keyword in consonant_keywords):
+            params['consonant_dissonant_preference'] = 'consonant'
+        elif any(keyword in text_lower for keyword in dissonant_keywords):
+            params['consonant_dissonant_preference'] = 'dissonant'
+        elif any(keyword in text_lower for keyword in moderate_keywords):
+            params['consonant_dissonant_preference'] = 'moderate'
         
         # Extract modes
-        found_modes = []
-        for mode in self.mode_keywords:
-            if mode in text:
-                if mode == "major":
-                    found_modes.append("Ionian")
-                elif mode == "minor":
-                    found_modes.append("Aeolian") 
-                else:
-                    found_modes.append(mode.title())
-        if found_modes:
-            params["modes"] = found_modes
-            params["primary_mode"] = found_modes[0]
+        mode_keywords = {
+            'major': ['major', 'ionian', 'bright', 'happy'],
+            'minor': ['minor', 'aeolian', 'sad', 'dark'],
+            'dorian': ['dorian', 'folk', 'modal'],
+            'mixolydian': ['mixolydian', 'bluesy', 'dominant'],
+            'lydian': ['lydian', 'dreamy', 'floating'],
+            'phrygian': ['phrygian', 'spanish', 'exotic']
+        }
         
-        # Extract length preferences
-        length_match = re.search(r'(\d+)\s*(chord|note)', text)
-        if length_match:
-            params["length"] = int(length_match.group(1))
+        for mode, keywords in mode_keywords.items():
+            if any(keyword in text_lower for keyword in keywords):
+                params['primary_mode'] = mode.capitalize()
+                break
+        
+        # Extract styles
+        style_keywords = {
+            'jazz': ['jazz', 'swing', 'bebop', 'smooth jazz'],
+            'classical': ['classical', 'baroque', 'romantic', 'orchestral'],
+            'pop': ['pop', 'commercial', 'radio', 'mainstream'],
+            'rock': ['rock', 'guitar', 'electric', 'power'],
+            'blues': ['blues', 'twelve bar', 'shuffle'],
+            'folk': ['folk', 'acoustic', 'traditional']
+        }
+        
+        for style, keywords in style_keywords.items():
+            if any(keyword in text_lower for keyword in keywords):
+                params['primary_style'] = style.capitalize()
+                break
+        
+        # Extract numbers
+        import re
+        numbers = re.findall(r'\d+', text)
+        if numbers:
+            params['num_options'] = min(int(numbers[0]), 10)  # Cap at 10 options
+            if len(numbers) > 1:
+                params['length'] = min(int(numbers[1]), 16)  # Cap at 16 chord progressions
         
         return params
 
@@ -373,6 +414,26 @@ class ResponseSynthesizer:
         elif generation_method == "neural_generation" and not has_substitutions:
             message_parts.append("🧠 Neural Network agreed with database defaults")
         
+        # Process voice leading optimization
+        voice_leading_data = None
+        if chords and emotions:
+            # Extract key and style from progression result or use defaults
+            key = progression_result.get("key", "C")
+            style = progression_result.get("genre", "classical")
+            
+            voice_leading_data = self._process_voice_leading(chords, emotions, key, style)
+            
+            # Add voice leading info to message
+            if voice_leading_data and not voice_leading_data.get("error"):
+                avg_register = voice_leading_data.get("average_register", 4.5)
+                voice_cost = voice_leading_data.get("total_voice_leading_cost", 0.0)
+                register_range = voice_leading_data.get("register_range", [4, 5])
+                
+                message_parts.append(f"🎹 Voice Leading: Register {avg_register:.1f} (range {register_range[0]}-{register_range[1]})")
+                if len(chords) > 1:
+                    avg_movement = voice_cost / (len(chords) - 1)
+                    message_parts.append(f"🎵 Smooth transitions: {avg_movement:.1f} semitones average movement")
+        
         return {
             "message": "\n\n".join(message_parts),
             "chords": cleaned_chords,
@@ -381,6 +442,7 @@ class ResponseSynthesizer:
             "substitution_count": substitution_count,  # NEW: Count of substitutions
             "generation_method": generation_method,  # NEW: How chords were generated
             "has_substitutions": has_substitutions,  # NEW: Boolean flag
+            "voice_leading": voice_leading_data,  # NEW: Voice leading optimization data
             "emotion": emotions,
             "primary_result": progression_result,
             "alternatives": theory_result.get("style_alternatives", {}),
@@ -389,54 +451,63 @@ class ResponseSynthesizer:
         }
     
     def _synthesize_single_chord(self, intent: UserIntent, results: Dict[str, Any]) -> Dict[str, Any]:
-        """Synthesize response for single chord requests"""
-        individual_result = results.get("individual", {})
-        theory_result = results.get("theory", {})
-        
-        # Handle individual chord model result (which returns a list)
-        chord_data = None
-        if isinstance(individual_result, list) and len(individual_result) > 0:
-            chord_data = individual_result[0]  # Take the first result
-        elif isinstance(individual_result, dict) and not individual_result.get("error"):
-            chord_data = individual_result.get("chord", individual_result)
-        
-        message_parts = []
-        if chord_data:
-            symbol = chord_data.get("chord_symbol", chord_data.get("symbol", "Unknown"))
-            roman = chord_data.get("roman_numeral", "N/A")
-            message_parts.append(f"🎵 **{symbol} ({roman})**")
+        """Synthesize response for individual chord requests"""
+        if "individual_results" not in results:
+            return {"error": "No individual chord results available"}
             
-            if chord_data.get("emotion_weights"):
-                emotions = chord_data["emotion_weights"]
-                top_emotions = sorted(emotions.items(), key=lambda x: x[1], reverse=True)[:3]
-                emotion_text = ", ".join([f"{k} ({v:.2f})" for k, v in top_emotions if v > 0])
-                if emotion_text:
-                    message_parts.append(f"🎭 Primary emotions: {emotion_text}")
-            
-            if chord_data.get("mode_context") or chord_data.get("style_context"):
-                mode = chord_data.get("mode_context", "Unknown")
-                style = chord_data.get("style_context", "Unknown")
-                message_parts.append(f"🎼 Context: {mode} ({style})")
-                
-            if chord_data.get("emotional_score"):
-                score = chord_data["emotional_score"]
-                message_parts.append(f"🎯 Emotional fit: {score:.2f}")
-        else:
-            # Handle error case
-            error_msg = individual_result.get("error", "No chord data available")
-            message_parts.append(f"❌ {error_msg}")
+        individual_results = results["individual_results"]
         
-        # Add theory alternatives
-        if theory_result.get("style_alternatives"):
-            alt_count = len(theory_result["style_alternatives"])
-            message_parts.append(f"🎶 {alt_count} style alternatives available")
+        if not individual_results or len(individual_results) == 0:
+            return {"error": "No chord suggestions generated"}
+            
+        # Get the best chord suggestion
+        best_chord = individual_results[0]
+        
+        # Extract CD information
+        cd_value = best_chord.get("consonant_dissonant_value", 0.5)
+        cd_description = best_chord.get("consonant_dissonant_description", "moderate")
+        cd_preference = intent.extracted_params.get("consonant_dissonant_preference", "not specified")
+        
+        # Build response message
+        chord_symbol = best_chord.get("chord_symbol", "?")
+        roman_numeral = best_chord.get("roman_numeral", "?")
+        mode_context = best_chord.get("mode_context", "Unknown")
+        style_context = best_chord.get("style_context", "Unknown")
+        
+        # Format emotional content
+        emotion_weights = best_chord.get("emotion_weights", {})
+        top_emotions = sorted(emotion_weights.items(), key=lambda x: x[1], reverse=True)[:3]
+        emotion_text = ", ".join([f"{emotion} ({weight:.2f})" for emotion, weight in top_emotions])
+        
+        # Create comprehensive response
+        response_text = f"🎵 **{chord_symbol}** ({roman_numeral})\n\n"
+        response_text += f"🎭 **Emotions**: {emotion_text}\n"
+        response_text += f"🎼 **Context**: {mode_context} / {style_context}\n"
+        response_text += f"🎶 **Harmonic Character**: {cd_description} (CD: {cd_value:.2f})\n"
+        
+        if cd_preference != "not specified":
+            response_text += f"🎯 **Preference Match**: {cd_preference} harmonic character\n"
+        
+        # Add alternative suggestions if available
+        if len(individual_results) > 1:
+            response_text += f"\n🎲 **Alternative chords**:\n"
+            for i, alt_chord in enumerate(individual_results[1:4], 2):  # Show up to 3 alternatives
+                alt_symbol = alt_chord.get("chord_symbol", "?")
+                alt_cd = alt_chord.get("consonant_dissonant_value", 0.5)
+                response_text += f"   {i}. {alt_symbol} (CD: {alt_cd:.2f})\n"
         
         return {
-            "message": "\n\n".join(message_parts),
-            "chord": chord_data or {},
-            "primary_result": individual_result,
-            "theory_context": theory_result,
-            "suggestions": self._generate_suggestions(intent, "single_chord")
+            "message": response_text,
+            "chord_symbol": chord_symbol,
+            "roman_numeral": roman_numeral,
+            "emotions": emotion_weights,
+            "mode_context": mode_context,
+            "style_context": style_context,
+            "consonant_dissonant_value": cd_value,
+            "consonant_dissonant_description": cd_description,
+            "consonant_dissonant_preference": cd_preference,
+            "all_chord_options": individual_results,
+            "suggestions": self._generate_suggestions(intent, "individual_chord")
         }
     
     def _synthesize_theory_request(self, intent: UserIntent, results: Dict[str, Any]) -> Dict[str, Any]:
@@ -466,10 +537,24 @@ class ResponseSynthesizer:
         raw_chords = theory_result.get("progression", [])
         cleaned_chords = [self._clean_chord_symbol(chord) for chord in raw_chords]
         
+        # Process voice leading for theory requests
+        voice_leading_data = None
+        if raw_chords and progression_result.get("emotion_weights"):
+            emotions = progression_result["emotion_weights"]
+            key = theory_result.get("key", "C")
+            voice_leading_data = self._process_voice_leading(raw_chords, emotions, key, style)
+            
+            # Add voice leading info to message if available
+            if voice_leading_data and not voice_leading_data.get("error"):
+                avg_register = voice_leading_data.get("average_register", 4.5)
+                voice_cost = voice_leading_data.get("total_voice_leading_cost", 0.0)
+                message_parts.append(f"🎹 Voice leading optimized for {style} style (Register: {avg_register:.1f})")
+        
         return {
             "message": "\n\n".join(message_parts),
             "chords": cleaned_chords,
             "original_chords": raw_chords,  # Keep originals for reference
+            "voice_leading": voice_leading_data,  # NEW: Voice leading data
             "style": style,
             "mode": mode,
             "primary_result": theory_result,
@@ -640,7 +725,7 @@ class ResponseSynthesizer:
                 "Compare across musical styles",
                 "Explain the music theory"
             ],
-            "single_chord": [
+            "individual_chord": [
                 "Show me similar chords",
                 "Create a progression with this chord",
                 "Explain why this chord fits",
@@ -727,6 +812,57 @@ class ResponseSynthesizer:
                 cleaned = base_match
         
         return cleaned or "I"  # Final safety fallback
+        
+    def _process_voice_leading(self, chords: List[str], emotions: Dict[str, float], key: str = "C", style: str = "classical") -> Dict[str, Any]:
+        """Process voice leading for chord progression"""
+        try:
+            # Use voice leading engine to optimize voicings
+            voice_leading_result = self.voice_leading_engine.optimize_with_style_context(
+                chord_progression=chords,
+                emotion_weights=emotions,
+                key=key,
+                style_context=style.lower()
+            )
+            
+            # Extract voice leading data
+            voice_leading_data = {
+                "voiced_chords": [],
+                "register_analysis": voice_leading_result.register_analysis,
+                "total_voice_leading_cost": voice_leading_result.total_voice_leading_cost,
+                "harmonic_rhythm": voice_leading_result.harmonic_rhythm,
+                "average_register": voice_leading_result.register_analysis.get("average_register", 4.5),
+                "register_range": [
+                    min(vc.register_range[0] for vc in voice_leading_result.voiced_chords),
+                    max(vc.register_range[1] for vc in voice_leading_result.voiced_chords)
+                ] if voice_leading_result.voiced_chords else [4, 5]
+            }
+            
+            # Process each voiced chord
+            for voiced_chord in voice_leading_result.voiced_chords:
+                chord_data = {
+                    "chord_symbol": voiced_chord.chord_symbol,
+                    "notes": voiced_chord.notes,
+                    "register_range": voiced_chord.register_range,
+                    "voice_leading_cost": voiced_chord.voice_leading_cost,
+                    "emotional_fitness": voiced_chord.emotional_fitness,
+                    "notes_display": " - ".join([f"{note}{octave}" for note, octave in voiced_chord.notes])
+                }
+                voice_leading_data["voiced_chords"].append(chord_data)
+            
+            return voice_leading_data
+            
+        except Exception as e:
+            print(f"Voice leading processing error: {e}")
+            # Return fallback data
+            return {
+                "voiced_chords": [{"chord_symbol": chord, "notes": [], "register_range": [4, 5], "voice_leading_cost": 0.0, "emotional_fitness": 0.5, "notes_display": "Fallback mode"} for chord in chords],
+                "register_analysis": {"target_registers": [4, 5], "average_register": 4.5},
+                "total_voice_leading_cost": 0.0,
+                "harmonic_rhythm": {"tensions": [0.5] * len(chords), "durations": [1.0] * len(chords)},
+                "average_register": 4.5,
+                "register_range": [4, 5],
+                "error": str(e)
+            }
 
 class PersistentChatLog:
     """Manages persistent chat logs stored in a JSON file."""
@@ -797,6 +933,9 @@ class IntegratedMusicChatServer:
         
         print("Loading Enhanced Solfege Theory Engine...")
         self.theory_engine = EnhancedSolfegeTheoryEngine()
+        
+        print("Loading Voice Leading Engine...")
+        self.voice_leading_engine = EnhancedVoiceLeadingEngine()
         
         # Initialize support systems
         self.intent_classifier = IntentClassifier()
@@ -951,14 +1090,32 @@ class IntegratedMusicChatServer:
     def _call_individual_model(self, user_input: str, intent: UserIntent) -> Dict[str, Any]:
         """Call the individual chord model"""
         try:
-            # Use primary emotion or parse from text
-            emotion_text = intent.extracted_params.get("primary_emotion", user_input)
+            # Extract consonant/dissonant preference from intent
+            consonant_dissonant_preference = intent.extracted_params.get("consonant_dissonant_preference")
             
-            result = self.individual_model.generate_chord_from_prompt(emotion_text)
-            return result
+            # Convert string preferences to numerical values
+            if consonant_dissonant_preference == "consonant":
+                consonant_dissonant_preference = 0.2
+            elif consonant_dissonant_preference == "dissonant":
+                consonant_dissonant_preference = 0.8
+            elif consonant_dissonant_preference == "moderate":
+                consonant_dissonant_preference = 0.5
             
+            num_options = intent.extracted_params.get("num_options", 3)
+            mode_preference = intent.extracted_params.get("mode_preference")
+            style_preference = intent.extracted_params.get("style_preference")
+            
+            results = self.individual_model.generate_chord_from_prompt(
+                user_input,
+                num_options=num_options,
+                mode_preference=mode_preference,
+                style_preference=style_preference,
+                consonant_dissonant_preference=consonant_dissonant_preference
+            )
+            
+            return {"individual_results": results}
         except Exception as e:
-            return {"error": f"Individual chord model error: {str(e)}"}
+            return {"error": f"Individual model error: {str(e)}"}
     
     def _call_theory_engine(self, user_input: str, intent: UserIntent) -> Dict[str, Any]:
         """Call the enhanced solfege theory engine"""
@@ -1010,7 +1167,9 @@ class IntegratedMusicChatServer:
                 if context_emotion:
                     emotion_mode_map = {
                         "Joy": "Ionian", "Sadness": "Aeolian", "Fear": "Phrygian",
-                        "Anger": "Phrygian", "Love": "Mixolydian", "Trust": "Dorian"
+                        "Anger": "Phrygian", "Love": "Mixolydian", "Trust": "Dorian",
+                        "Malice": "Locrian", "Wonder": "Lydian", "Empowerment": "Ionian",
+                        "Gratitude": "Ionian", "Reverence": "Lydian", "Transcendence": "Lydian"
                     }
                     candidate_mode = emotion_mode_map.get(context_emotion, "Ionian")
                 else:
@@ -1073,7 +1232,10 @@ class IntegratedMusicChatServer:
         emotion_weights = {
             "Joy": 0.0, "Sadness": 0.0, "Fear": 0.0, "Anger": 0.0,
             "Disgust": 0.0, "Surprise": 0.0, "Trust": 0.0, "Anticipation": 0.0,
-            "Shame": 0.0, "Love": 0.0, "Envy": 0.0, "Aesthetic Awe": 0.0
+            "Shame": 0.0, "Love": 0.0, "Envy": 0.0, "Aesthetic Awe": 0.0,
+            "Malice": 0.0, "Arousal": 0.0, "Guilt": 0.0, "Reverence": 0.0,
+            "Wonder": 0.0, "Dissociation": 0.0, "Empowerment": 0.0, 
+            "Belonging": 0.0, "Ideology": 0.0, "Gratitude": 0.0, "Transcendence": 0.0
         }
         
         # Minor chords generally evoke sadness
@@ -1110,7 +1272,7 @@ class IntegratedMusicChatServer:
                 emotion_weights["Aesthetic Awe"] = 0.5
         
         return emotion_weights
-
+    
 if __name__ == "__main__":
     # Initialize the integrated server
     integrated_server = IntegratedMusicChatServer()
@@ -1272,6 +1434,69 @@ if __name__ == "__main__":
         except Exception as e:
             return jsonify({"error": f"Debug error: {str(e)}"}), 500
     
+    @app.route('/chord/generate', methods=['POST'])
+    def generate_chord():
+        """Generate individual chords with consonant/dissonant preferences"""
+        try:
+            data = request.get_json()
+            emotion_prompt = data.get('emotion_prompt', '')
+            num_options = data.get('num_options', 3)
+            consonant_dissonant_preference = data.get('consonant_dissonant_preference')
+            mode_preference = data.get('mode_preference')
+            style_preference = data.get('style_preference')
+            
+            if not emotion_prompt:
+                return jsonify({"error": "No emotion prompt provided"}), 400
+            
+            # Generate chords using individual model
+            results = integrated_server.individual_model.generate_chord_from_prompt(
+                emotion_prompt,
+                num_options=num_options,
+                consonant_dissonant_preference=consonant_dissonant_preference,
+                mode_preference=mode_preference,
+                style_preference=style_preference
+            )
+            
+            return jsonify({
+                "results": results,
+                "query": emotion_prompt,
+                "parameters": {
+                    "num_options": num_options,
+                    "consonant_dissonant_preference": consonant_dissonant_preference,
+                    "mode_preference": mode_preference,
+                    "style_preference": style_preference
+                }
+            })
+            
+        except Exception as e:
+            return jsonify({"error": f"Chord generation error: {str(e)}"}), 500
+
+    @app.route('/progression/analyze', methods=['POST'])
+    def analyze_progression_cd():
+        """Analyze a progression with consonant/dissonant features"""
+        try:
+            data = request.get_json()
+            chords = data.get('chords', [])
+            
+            if not chords:
+                return jsonify({"error": "No chords provided"}), 400
+            
+            # Use integrated server to analyze progression
+            analysis = integrated_server.analyze_progression_context(chords)
+            
+            return jsonify({
+                "analysis": analysis,
+                "chords": chords,
+                "cd_features": {
+                    "average_consonant_dissonant": analysis.get('average_consonant_dissonant', 0.5),
+                    "cd_flow_description": analysis.get('cd_flow_description', 'No description available'),
+                    "consonant_dissonant_trajectory": analysis.get('consonant_dissonant_trajectory', [])
+                }
+            })
+            
+        except Exception as e:
+            return jsonify({"error": f"Progression analysis error: {str(e)}"}), 500
+    
     print("✓ All models loaded successfully!")
     print("🎼 Integrated Music Chat Server is ready!")
     print("\nAvailable endpoints:")
@@ -1280,6 +1505,8 @@ if __name__ == "__main__":
     print("  POST /chat/integrated - Integrated chat")
     print("  POST /chat/analyze   - Progression analysis")
     print("  GET  /debug/context  - Debug conversation context")
+    print("  POST /chord/generate - Generate individual chords with preferences")
+    print("  POST /progression/analyze - Analyze a progression with consonant/dissonant features")
     print()
     
     # Run the server

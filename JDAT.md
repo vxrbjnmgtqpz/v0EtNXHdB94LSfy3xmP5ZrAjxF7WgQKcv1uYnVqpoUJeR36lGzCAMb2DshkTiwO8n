@@ -9,11 +9,11 @@ You're building a real-time audio+MIDI streaming protocol stack, optimized for u
 | MIDI Stack                 | Audio Stack                     |
 | -------------------------- | ------------------------------- |
 | **MIDIp2p**                | **JELLIE**                      |
-| → `JSONMIDI` format        | → `JDAT` format             |
+| → `JMID` format            | → `JDAT` format             |
 | → Sent over TOAST/UDP      | → Sent over TOAST/UDP           |
 | → PNTBTR fills lost events | → PNTBTR predicts waveform gaps |
 
-Both systems ride over **TOAST**, your custom UDP-based protocol, and both use **PNTBTR** as the fallback mechanism to smooth over data loss or jitter.e’s the full concept of how `JSONADAT`, `JELLIE`, and your high-speed 192k strategy all tie together, with a structured breakdown and analogies to the MIDI side:
+Both systems ride over **TOAST**, your custom UDP-based protocol, and both use **PNTBTR** as the fallback mechanism to smooth over data loss or jitter.e’s the full concept of how `JDAT`, `JELLIE`, and your high-speed 192k strategy all tie together, with a structured breakdown and analogies to the MIDI side:
 
 ---
 
@@ -24,7 +24,7 @@ You’re building a real-time audio+MIDI streaming protocol stack, optimized for
 | MIDI Stack                 | Audio Stack                     |
 | -------------------------- | ------------------------------- |
 | **MIDIp2p**                | **JELLIE**                      |
-| → `JSONMIDI` format        | → `JSONADAT` format             |
+| → `JMID` format            | → `JDAT` format             |
 | → Sent over TOAST/UDP      | → Sent over TOAST/UDP           |
 | → PNTBTR fills lost events | → PNTBTR predicts waveform gaps |
 
@@ -130,7 +130,7 @@ In `MIDIp2p`, it works at the **event/CC/message** level.
 | Property            | MIDI Stack                    | Audio Stack                         |
 | ------------------- | ----------------------------- | ----------------------------------- |
 | Transport           | `TOAST` (UDP)                 | `TOAST` (UDP)                       |
-| Packet Format       | `JSONMIDI`                    | `JDAT`                          |
+| Packet Format       | `JMID`                        | `JDAT`                          |
 | Recovery Layer      | `PNTBTR` (event smoothing)    | `PNTBTR` (waveform prediction)      |
 | Stream App          | `MIDIp2p`                     | `JELLIE`                            |
 | Stream Method       | Per-channel JSON over UDP     | Redundant mono JSON slices over UDP |

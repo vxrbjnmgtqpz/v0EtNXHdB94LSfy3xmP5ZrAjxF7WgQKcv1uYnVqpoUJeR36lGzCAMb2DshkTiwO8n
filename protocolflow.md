@@ -32,8 +32,8 @@ TOAST is the custom UDP packet layer responsible for delivering time-critical st
 
 ### JELLIE and MIDIp2p
 
-- **JELLIE (JAM Embedded Low-Latency Instrument Encoding)** is the audio transport protocol built on JSONADAT. It streams mono audio over ADAT-style channel representations using JSON formatting, enabling platform-independent encoding without raw binary.
-- **MIDIp2p** is the MIDI transport layer built on JSONMIDI. It handles channel-separated MIDI events as JSON packets, supporting transport sync, CC, and note events in real time.
+- **JELLIE (JAM Embedded Low-Latency Instrument Encoding)** is the audio transport protocol built on JDAT. It streams mono audio over 4-channel interleaving style channel representations using JSON formatting, enabling platform-independent encoding without raw binary.
+- **MIDIp2p** is the MIDI transport layer built on JMID. It handles channel-separated MIDI events as JSON packets, supporting transport sync, CC, and note events in real time.
 
 ### User Sync Hub
 
@@ -48,7 +48,7 @@ This system keeps all participants musically synced in real time, regardless of 
 
 ### PNTBTR (Predictive Network Temporal Buffered Transmission Recovery)
 
-PNTBTR is the intelligent fallback mechanism. It automatically throttles between 192k, 96k, 48k, and 44.1k sample rates based on real-time network throughput. In case of data loss, it performs waveform prediction using tokenized JSONADAT to synthesize audio for up to 50ms, making dropouts inaudible.
+PNTBTR is the intelligent fallback mechanism. It automatically throttles between 192k, 96k, 48k, and 44.1k sample rates based on real-time network throughput. In case of data loss, it performs waveform prediction using tokenized JDAT to synthesize audio for up to 50ms, making dropouts inaudible.
 
 ### Waveform + MIDI Prediction Layer
 

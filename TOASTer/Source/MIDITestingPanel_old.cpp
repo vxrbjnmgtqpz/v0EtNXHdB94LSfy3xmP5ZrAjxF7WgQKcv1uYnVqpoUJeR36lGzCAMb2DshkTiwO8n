@@ -5,8 +5,8 @@
 MIDITestingPanel::MIDITestingPanel()
     : sendTestNoteButton("Send Test Note"), clearLogButton("Clear Log")
 {
-    // Initialize JSONMIDI Framework components
-    parser = std::make_unique<JSONMIDI::BassoonParser>();
+    // Initialize JMID Framework components
+    parser = std::make_unique<JMID::BassoonParser>();
     
     // Set up title
     titleLabel.setText("MIDI Testing", juce::dontSendNotification);
@@ -116,15 +116,15 @@ void MIDITestingPanel::sendTestNoteClicked()
         
         std::string json = noteOnData.dump();
         
-        // Create JSONMIDI message using our framework
-        auto noteOnMessage = JSONMIDI::MessageFactory::createFromJSON(json);
+        // Create JMID message using our framework
+        auto noteOnMessage = JMID::MessageFactory::createFromJSON(json);
         
         if (noteOnMessage) {
             // Test parsing
             auto parsedMessage = parser->parseMessage(json);
             
             if (parsedMessage) {
-                logMessage("✅ JSONMIDI Note On created and parsed successfully");
+                logMessage("✅ JMID Note On created and parsed successfully");
                 logMessage("Channel: " + juce::String(channel) + ", Note: " + juce::String(note) + ", Velocity: " + juce::String(velocity));
                 logMessage("JSON: " + juce::String(json.substr(0, 80)) + "...");
                 
@@ -136,10 +136,10 @@ void MIDITestingPanel::sendTestNoteClicked()
                 }
                 logMessage(midiHex);
             } else {
-                logMessage("❌ Failed to parse JSONMIDI message");
+                logMessage("❌ Failed to parse JMID message");
             }
         } else {
-            logMessage("❌ Failed to create JSONMIDI message");
+            logMessage("❌ Failed to create JMID message");
         }
         
     } catch (const std::exception& e) {

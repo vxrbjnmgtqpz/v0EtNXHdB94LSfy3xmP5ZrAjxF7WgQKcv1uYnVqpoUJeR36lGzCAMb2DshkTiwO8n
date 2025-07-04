@@ -4,8 +4,8 @@ project(TOASTer VERSION 1.0.0)
 
 set(CMAKE_CXX_STANDARD 17)
 
-# Add our JSONMIDI Framework
-add_subdirectory(../JSONMIDI_Framework jsonmidi_framework)
+# Add our JMID Framework
+add_subdirectory(../JMID_Framework jmid_framework)
 
 # Add JUCE
 include(FetchContent)
@@ -37,13 +37,13 @@ target_sources(TOASTer PRIVATE
     Source/MIDIManager.cpp
     Source/PerformanceMonitorPanel.cpp
     Source/ClockSyncPanel.cpp
-    Source/JSONMIDIIntegrationPanel.cpp
+    Source/JMIDIntegrationPanel.cpp
 )
 
 # Add header files
 target_include_directories(TOASTer PRIVATE 
     Source
-    ../JSONMIDI_Framework/include
+    ../JMID_Framework/include
 )
 
 # Link JUCE modules and our framework
@@ -59,7 +59,7 @@ target_link_libraries(TOASTer PRIVATE
     juce::juce_data_structures
     juce::juce_events
     juce::juce_graphics
-    jsonmidi_framework
+    jmid_framework
     nlohmann_json::nlohmann_json
 )
 

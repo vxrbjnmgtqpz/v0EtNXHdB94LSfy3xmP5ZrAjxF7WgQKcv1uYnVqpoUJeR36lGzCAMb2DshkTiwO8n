@@ -1,7 +1,7 @@
 #pragma once
 
 #include <juce_gui_basics/juce_gui_basics.h>
-#include "JSONMIDIParser.h"
+#include "JMIDParser.h"
 #include <memory>
 
 // Forward declarations for framework components
@@ -55,7 +55,7 @@ private:
     double frameworkLatency = 0.0;
     
     // Framework integration
-    // std::unique_ptr<JSONMIDI::PerformanceProfiler> profiler; // Not implemented yet
+    // std::unique_ptr<JMID::PerformanceProfiler> profiler; // Not implemented yet
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PerformanceMonitorPanel)
 };

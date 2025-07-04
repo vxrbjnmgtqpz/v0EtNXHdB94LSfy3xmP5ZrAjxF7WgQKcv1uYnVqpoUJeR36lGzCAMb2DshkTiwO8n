@@ -28,7 +28,7 @@ static juce::Font getEmojiCompatibleFont(float size = 12.0f, bool isMonospaced =
 PerformanceMonitorPanel::PerformanceMonitorPanel()
 {
     // Initialize performance profiler when available
-    // profiler = std::make_unique<JSONMIDI::PerformanceProfiler>(); // Not implemented yet
+    // profiler = std::make_unique<JMID::PerformanceProfiler>(); // Not implemented yet
     
     // Set up title
     titleLabel.setText("Framework Performance Monitor", juce::dontSendNotification);

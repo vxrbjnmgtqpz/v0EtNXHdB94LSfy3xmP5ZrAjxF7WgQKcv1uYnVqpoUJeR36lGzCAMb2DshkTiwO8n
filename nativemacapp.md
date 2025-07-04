@@ -7,7 +7,7 @@
 
 ## Project Overview
 
-**TOASTer** is a native macOS application designed to test and validate the JAMNet JSONMIDI framework over TOAST (Transport Oriented Audio Synchronization Tunnel) network connections. This app serves as the primary testing platform for the JAMNet ecosystem, enabling real-world validation of distributed multimedia synchronization between multiple Mac devices.
+**TOASTer** is a native macOS application designed to test and validate the JAMNet JMID framework over TOAST (Transport Oriented Audio Synchronization Tunnel) network connections. This app serves as the primary testing platform for the JAMNet ecosystem, enabling real-world validation of distributed multimedia synchronization between multiple Mac devices.
 
 ### Key Requirements
 - **Native macOS Application** (replacing Electron-based approach)
@@ -31,7 +31,7 @@
 │  └─────────────────┘  └──────────────────┘  └─────────────────┘ │
 ├─────────────────────────────────────────────────────────────────┤
 │  ┌─────────────────┐  ┌──────────────────┐  ┌─────────────────┐ │
-│  │ JSONMIDI Engine │  │  Bassoon.js Core │  │ Performance Mon │ │
+│  │ JMID Engine │  │  Bassoon.js Core │  │ Performance Mon │ │
 │  │  (Protocol)     │  │  (Ultra-Low Lat) │  │  (Latency)      │ │
 │  └─────────────────┘  └──────────────────┘  └─────────────────┘ │
 ├─────────────────────────────────────────────────────────────────┤
@@ -268,7 +268,7 @@ private:
 
 #### 2.2 **TOAST TCP Implementation**
 - [ ] Implement TCP connection management
-- [ ] Create JSONMIDI message framing
+- [ ] Create JMID message framing
 - [ ] Build on existing file-based messaging pattern
 - [ ] Add network message queuing and buffering
 
@@ -448,4 +448,4 @@ juce::var createTOASTMessage(const juce::String& messageType,
 
 ---
 
-*MIDILink serves as the critical validation platform for the MIDIp2p framework, providing hands-on testing capabilities that will prove the viability of JSONMIDI over TOAST for professional audio applications. Success with this native Mac app will demonstrate the readiness for broader JamNet deployment.*
+*MIDILink serves as the critical validation platform for the MIDIp2p framework, providing hands-on testing capabilities that will prove the viability of JMID over TOAST for professional audio applications. Success with this native Mac app will demonstrate the readiness for broader JamNet deployment.*

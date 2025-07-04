@@ -8,7 +8,7 @@
 ### **Major Components Implemented:**
 
 #### **✅ ClockDriftArbiter (Phase 2.1)**
-- **Location**: `JSONMIDI_Framework/include/ClockDriftArbiter.h` & `src/ClockDriftArbiter.cpp`
+- **Location**: `JMID_Framework/include/ClockDriftArbiter.h` & `src/ClockDriftArbiter.cpp`
 - **Lines of Code**: 225 header + 460 implementation = 685 total
 - **Features**:
   - Network timing synchronization with microsecond precision
@@ -18,7 +18,7 @@
   - Performance: Sub-10ms synchronization targeting
 
 #### **✅ TOAST Transport Protocol (Phase 2.2)**
-- **Location**: `JSONMIDI_Framework/include/TOASTTransport.h` & `src/TOASTTransport.cpp`
+- **Location**: `JMID_Framework/include/TOASTTransport.h` & `src/TOASTTransport.cpp`
 - **Features**:
   - Binary message framing with frame structure:
     ```
@@ -26,7 +26,7 @@
     [4 bytes: Message Type] 
     [8 bytes: Master Timestamp]
     [4 bytes: Sequence Number]
-    [N bytes: JSONMIDI Payload]
+    [N bytes: JMID Payload]
     [4 bytes: CRC32 Checksum]
     ```
   - CRC32 checksum validation for data integrity
@@ -61,12 +61,12 @@
 
 ```
 MIDIp2p/
-├── JSONMIDI_Framework/           # Core framework ✅ COMPLETE
+├── JMID_Framework/           # Core framework ✅ COMPLETE
 │   ├── include/
 │   │   ├── ClockDriftArbiter.h   # Phase 2.1 implementation
 │   │   ├── TOASTTransport.h      # Phase 2.2 implementation  
-│   │   ├── JSONMIDIMessage.h     # Phase 1 complete
-│   │   ├── JSONMIDIParser.h      # Phase 1 complete
+│   │   ├── JMIDMessage.h     # Phase 1 complete
+│   │   ├── JMIDParser.h      # Phase 1 complete
 │   │   └── ...
 │   ├── src/
 │   │   ├── ClockDriftArbiter.cpp # Working timing sync
