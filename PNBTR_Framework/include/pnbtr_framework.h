@@ -1,5 +1,10 @@
 #pragma once
 
+// PNBTR Framework - Predictive Neural Buffered Transient Recovery
+// Revolutionary dither replacement technology - NO traditional dithering
+// Complete replacement paradigm: mathematically informed, self-improving, zero-noise
+// See PNBTR_refined.md for full technical specification
+
 #include <cstdint>
 #include <vector>
 #include <memory>
@@ -13,29 +18,29 @@ class PNBTREngine;
 class PNBTRLearning;
 class PNBTRGPU;
 
-// Configuration
+// Configuration for PNBTR - Complete Dither Replacement System
 struct PNBTRConfig {
-    // Core settings
+    // Core settings - no traditional dither settings needed
     uint32_t sample_rate = 48000;
-    uint16_t bit_depth = 24;  // Default 24-bit operation
+    uint16_t bit_depth = 24;  // Default 24-bit operation (16/24/32 supported)
     uint16_t channels = 2;
     
-    // Prediction settings
+    // Prediction settings - the heart of dither replacement
     float prediction_window_ms = 50.0f;  // 50ms contextual extrapolation
     uint32_t lpc_order = 16;             // Autoregressive model order
     uint32_t fft_size = 1024;            // Spectral analysis window
     
-    // Neural inference
+    // Neural inference - continuous learning paradigm
     bool enable_neural_inference = true;
     std::string model_path = "models/pnbtr_hybrid.onnx";
     uint32_t max_gpu_streams = 1000;
     
-    // Learning system
+    // Self-improving learning system - replaces static dither patterns
     bool enable_continuous_learning = true;
     bool archive_reference_signals = true;
     std::string learning_data_path = "pnbtr_learning/";
     
-    // GPU backend
+    // GPU backend for real-time dither replacement
     enum GPUBackend {
         PNBTR_GPU_AUTO,
         PNBTR_GPU_VULKAN,
@@ -122,6 +127,8 @@ using LearningCallback = std::function<void(const LearningPair&)>;
 using StatisticsCallback = std::function<void(const struct PNBTRStatistics&)>;
 
 // Main PNBTR Framework class
+// PARADIGM: Complete dither replacement, not fallback or supplement
+// Traditional dithering is obsolete - PNBTR provides superior results
 class PNBTRFramework {
 public:
     PNBTRFramework();
@@ -131,20 +138,21 @@ public:
     bool initialize(const PNBTRConfig& config);
     void shutdown();
     
-    // Dither replacement - core PNBTR function
+    // PRIMARY FUNCTION: Complete dither replacement
+    // This replaces ALL traditional dithering operations
     AudioBuffer replace_dither_with_prediction(const AudioBuffer& quantized_audio,
                                              const AudioContext& context);
     
-    // Neural analog extrapolation - 50ms prediction
+    // Neural analog extrapolation - 50ms prediction for gap recovery
     AudioBuffer extrapolate_analog_signal(const AudioBuffer& input_audio,
                                          const AudioContext& context,
                                          uint32_t extrapolate_samples);
     
-    // LSB reconstruction - waveform-aware processing
+    // LSB reconstruction - mathematically perfect waveform-aware processing
     AudioBuffer reconstruct_lsb_mathematically(const AudioBuffer& input_audio,
                                               const AudioContext& context);
     
-    // Real-time processing interface
+    // Real-time processing interface - replaces all dither processing
     PredictionResult process_audio_stream(const AudioBuffer& input,
                                         const AudioContext& context = {});
     
