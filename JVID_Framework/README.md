@@ -4,7 +4,29 @@ Ultra-low latency JSON video streaming framework for real-time applications.
 
 ## Overview
 
-JVID is the video counterpart to JDAT, designed for streaming compressed visual data as JSON objects with frame-by-frame precision. It prioritizes ultra-low latency over quality, targeting <300μs end-to-end video transmission latency for real-time collaborative applications.
+JVID is the video counterpart to JDAT, designed for streaming compressed visual data as **stateless JSON objects** with frame-by-frame precision over **fire-and-forget UDP multicast**. It prioritizes ultra-low latency over quality, targeting <300μs end-to-end video transmission latency for real-time collaborative applications.
+
+### Core UDP GPU Fundamentals
+
+**JVID embodies JAMNet's stateless, optimized, fire-and-forget architecture:**
+
+#### **Stateless Frame Design**
+- **Self-Contained Messages**: Every frame JSON is complete and independent - no dependencies on previous frames
+- **Sequence-Based Recovery**: Lost frames don't break the stream - next frame can be processed immediately  
+- **No Session State**: Zero connection state, handshake overhead, or acknowledgment tracking
+- **Independent Decode**: Any frame can be decoded without prior frame data
+
+#### **Fire-and-Forget UDP Multicast**
+- **No Handshakes**: Eliminates TCP connection establishment (~3ms saved per stream)
+- **No Acknowledgments**: Zero waiting for delivery confirmation or retransmission requests
+- **No Retransmission**: Lost packets are never requested again - the show must go on
+- **Multicast Efficiency**: Single video transmission reaches unlimited receivers simultaneously
+
+#### **GPU-Accelerated Processing**
+- **Memory-Mapped Buffers**: Zero-copy video frame processing from capture to GPU
+- **Parallel Frame Processing**: GPU threads handle capture, compression, and JSON encoding simultaneously
+- **Hardware Acceleration**: Leverages GPU for scaling, color conversion, and JPEG encoding
+- **Lock-Free Pipelines**: Lockless producer-consumer patterns for maximum video throughput
 
 ## Key Features
 
@@ -48,6 +70,18 @@ JVID is the video counterpart to JDAT, designed for streaming compressed visual 
 | **Complete Pipeline** | **<400μs**     | **Including network**        |
 
 _Compare to traditional video streaming: 500ms-3000ms typical latency_
+
+## 📚 Detailed Implementation Guide
+
+For a comprehensive, step-by-step guide to implementing JVID's stateless UDP GPU fundamentals, see **[adapt.md](adapt.md)** - it provides detailed instructions for:
+
+- **Live Camera Streaming**: Complete implementation of 300×400 color feed over JVID
+- **GPU Optimization**: Memory-mapped buffers and GPU-accelerated processing
+- **Fire-and-Forget UDP**: Detailed explanation of stateless multicast transmission
+- **JSON Frame Encoding**: Frame-by-frame JSON structure and packetization
+- **Real-Time Performance**: Achieving <300μs latency with practical optimizations
+
+**The `adapt.md` file is essential reading for understanding JVID's core architecture.**
 
 ## Resolution Presets
 

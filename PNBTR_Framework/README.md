@@ -1,8 +1,30 @@
 # PNBTR Framework
 
-**Predictive Neural Buffered Transient Recovery - Revolutionary Dither Replacement**
+**Predictive Neural Buffered Transient Recovery - Open Source Revolutionary Dither Replacement**
 
 PNBTR completely eliminates traditional noise-based dithering, replacing it with mathematically informed, waveform-aware LSB reconstruction that predicts what infinite-resolution analog audio would sound like.
+
+## Core UDP GPU Integration
+
+**PNBTR is designed for JAMNet's stateless, fire-and-forget architecture:**
+
+### **Stateless Audio Reconstruction**
+- **Self-Contained Processing**: PNBTR reconstructs audio from individual packets without session state
+- **Independent Prediction**: Each audio chunk processed independently - no dependencies on previous packets
+- **Zero-State Recovery**: Lost packets reconstructed using only available context - no waiting for retransmission
+- **Real-Time Reconstruction**: GPU shaders provide immediate audio reconstruction without buffering delays
+
+### **Fire-and-Forget Compatibility**
+- **No Retransmission Dependency**: PNBTR never waits for lost packets - reconstructs immediately
+- **Continuous Audio Flow**: Maintains unbroken audio stream regardless of packet loss
+- **Multicast Optimization**: Single PNBTR-enhanced stream serves unlimited listeners simultaneously
+- **Prediction-Based Recovery**: Neural networks predict missing audio content rather than requesting retransmission
+
+### **GPU-Accelerated Architecture**
+- **Parallel Reconstruction**: Thousands of GPU threads process audio prediction simultaneously
+- **Real-Time Neural Inference**: <1ms processing time via compute shaders
+- **Memory-Mapped Processing**: Zero-copy audio reconstruction from network buffers to GPU
+- **Compute Shader Pipeline**: Full PNBTR processing stack runs on GPU for maximum performance
 
 ## Core Innovation
 

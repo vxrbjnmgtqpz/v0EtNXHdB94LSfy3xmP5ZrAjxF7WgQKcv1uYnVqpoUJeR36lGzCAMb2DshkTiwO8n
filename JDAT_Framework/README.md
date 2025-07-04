@@ -1,10 +1,34 @@
 # JDAT Framework
 
-**JAM Embedded Low Latency Instrument Encoding (JELLIE) for Audio Streaming**
+**JSON as ADAT: Open Source Audio Streaming with GPU/Memory Mapped Processing over TOAST**
 
-JDAT is the audio streaming counterpart to JMID, implementing a revolutionary approach to real-time audio transmission using JSON-based messaging over UDP with TOAST protocol and PNBTR neural reconstruction.
+JDAT is the open source framework implementing **stateless, fire-and-forget UDP multicast** audio streaming using JSON-based messaging with TOAST protocol and GPU-accelerated processing.
 
-## 🎯 Overview
+## 🎯 Core UDP GPU Fundamentals
+
+**JDAT embodies JAMNet's revolutionary stateless architecture:**
+
+### **Stateless Audio Message Design**
+- **Self-Contained PCM Chunks**: Every audio message carries complete sample data - no session dependencies
+- **Independent Processing**: Audio chunks can arrive out-of-order and still be processed immediately
+- **No Connection State**: Zero handshake overhead, session management, or acknowledgment tracking
+- **Sequence Recovery**: GPU shaders reconstruct perfect audio timeline from unordered packets
+
+### **Fire-and-Forget UDP Multicast**
+- **No Handshakes**: Eliminates TCP connection establishment (~3ms saved per audio stream)
+- **No Acknowledgments**: Zero waiting for delivery confirmation or audio buffer acknowledgments
+- **No Retransmission**: Lost audio packets are never requested again - PNBTR reconstructs missing data
+- **Infinite Audio Scalability**: Single mono signal transmission reaches unlimited listeners simultaneously
+
+### **GPU-Accelerated Audio Processing**
+- **Memory-Mapped Audio Buffers**: Zero-copy audio processing from network to GPU memory
+- **Parallel Sample Processing**: Thousands of GPU threads process PCM samples simultaneously
+- **Compute Shader Pipeline**: Audio filtering, resampling, and PNBTR reconstruction on GPU
+- **Lock-Free Audio Rings**: Lockless producer-consumer patterns for real-time audio throughput
+
+## 🏗️ JELLIE: Proprietary Application Architecture
+
+**JELLIE** is JAMNet Studio LLC's proprietary application of the JDAT framework, specifically optimized for **single mono signal** transmission with advanced features:
 
 The JDAT Framework enables:
 
