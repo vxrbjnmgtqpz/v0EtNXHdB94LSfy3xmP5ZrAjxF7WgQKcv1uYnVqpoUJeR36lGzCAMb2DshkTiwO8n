@@ -572,8 +572,6 @@ public:
 - [ ] Use **existing GPU processing pipeline** for visual rendering
 - [ ] Implement **real-time waveform visualization** from GPU audio buffers
 - [ ] Create **MIDI note trails + controller visualizations** via shaders
-- [ ] Add **predictive annotation overlay** ("you lost this, here's what we filled")
-- [ ] Build **emotional visualization mapping** tied to Virtual Assistance
 
 ### 5.2 JVID Compute + Render Pipeline
 
@@ -582,7 +580,6 @@ public:
 - [ ] **Shared GPU memory** between audio processing and visual rendering
 - [ ] **Real-time shader parameter modulation** from MIDI CC data
 - [ ] **Direct pixel array processing** eliminating base64 encoding overhead
-- [ ] **Emotional visual mapping**: pitch→color, velocity→intensity, emotion→deformation
 - [ ] **Session-aware visual themes** per multicast group
 - [ ] **GPU-rendered video streaming** back to JAMCam clients without base64 conversion
 
@@ -599,10 +596,6 @@ public:
     void processDirectPixelArray(const PixelArray& pixels);
     void renderPixelsToGPUTexture(const DirectPixelData& data);
     
-    // Emotional visualization
-    void mapEmotionToVisual(const EmotionData& emotion);
-    void modulateShaderFromMIDI(const MIDIControllerData& cc);
-    
     // Session integration
     void renderSessionOverlay(const SessionUUID& sessionId);
     void streamVisualToClients(const JVIDFrame& frame);
@@ -615,7 +608,6 @@ public:
 - [ ] GPU handles audio processing, prediction, AND visualization in unified pipeline
 - [ ] Visual feedback enhances musical experience and debugging
 - [ ] JVID streams back to clients as natural extension of architecture
-- [ ] Emotional intelligence visualization becomes part of collaborative experience
 
 **Revolutionary Integration:**
 - Single GPU processes audio, predicts losses, AND renders visuals
@@ -697,7 +689,7 @@ public:
 
 ### Milestone 5: Complete GPU+UDP Ecosystem (Week 16)
 - **Criteria**: Unified GPU pipeline processes audio, predicts, AND renders visuals
-- **Test**: Full collaborative session with visual feedback and prediction overlay
+- **Test**: Full collaborative session with visual feedback
 - **Verification**: Single GPU handles complete multimedia pipeline
 - **Success**: Revolutionary architecture proven in real-world scenarios
 

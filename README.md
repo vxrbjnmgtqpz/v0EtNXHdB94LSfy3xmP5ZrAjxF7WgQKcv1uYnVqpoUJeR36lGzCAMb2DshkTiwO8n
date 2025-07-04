@@ -478,8 +478,8 @@ JAMNet/
 ### Phase 5: JVID GPU Visual Integration (Weeks 17-20)
 
 - **GPU-rendered visualization** layer integrated with audio processing
-- **Waveform rendering + predictive annotation** in real-time
-- **MIDI note trails** and **emotional metadata** visualization
+- **Waveform rendering** in real-time
+- **MIDI note trails** visualization
 - **Unified GPU memory map** across parsing, prediction, and rendering
 
 ### Phase 6: Production & Cross-Platform (Weeks 21-24)
@@ -527,7 +527,7 @@ Traditional DAWs underutilize GPU resources, focusing only on visual effects. JA
 - **Enables pristine 24-bit audio without traditional dithering artifacts**
 
 **🎨 Real-Time Visual Integration**
-- GPU renders waveforms, MIDI events, and emotional metadata
+- GPU renders waveforms and MIDI events
 - Shader-based visualizers react to JSONL stream data
 - Unified GPU memory map shared between parsers, predictors, and renderers
 
