@@ -213,38 +213,79 @@ void NetworkConnectionPanel::connectButtonClicked()
         statusLabel.setColour(juce::Label::textColourId, juce::Colours::yellow);
         
         if (isUDP) {
-            // For UDP, we'll use a simpler connection test for now
-            // In a full implementation, this would use a UDP ConnectionManager
-            statusLabel.setText("✅ UDP connection ready (connection-less protocol)", juce::dontSendNotification);
-            statusLabel.setColour(juce::Label::textColourId, juce::Colours::lightgreen);
-            isConnected = true;
+            // For now, UDP is not fully implemented - show warning
+            statusLabel.setText("⚠️ UDP mode not yet implemented (use TCP)", juce::dontSendNotification);
+            statusLabel.setColour(juce::Label::textColourId, juce::Colours::orange);
+            return;
         } else {
-            // Use TCP ConnectionManager - add null check
-            if (!connectionManager) {
-                statusLabel.setText("❌ Connection manager not initialized", juce::dontSendNotification);
-                statusLabel.setColour(juce::Label::textColourId, juce::Colours::lightcoral);
-                return;
-            }
-            
-            if (connectionManager->connectToServer(ip, port)) {
-                isConnected = true;
-                statusLabel.setText("✅ TCP Connected to " + ip + ":" + std::to_string(port), juce::dontSendNotification);
-                statusLabel.setColour(juce::Label::textColourId, juce::Colours::lightgreen);
+            // TCP connection - check if we should be server or client
+            if (ip == "0.0.0.0" || ip == "localhost" || ip == "127.0.0.1") {
+                // Start as server (listen mode)
+                if (!connectionManager) {
+                    statusLabel.setText("❌ Connection manager not initialized", juce::dontSendNotification);
+                    statusLabel.setColour(juce::Label::textColourId, juce::Colours::lightcoral);
+                    return;
+                }
+                
+                if (connectionManager->startServer(port)) {
+                    isServer = true;
+                    statusLabel.setText("🔄 TCP Server listening on port " + std::to_string(port) + " - Waiting for client...", juce::dontSendNotification);
+                    statusLabel.setColour(juce::Label::textColourId, juce::Colours::yellow);
+                    
+                    // Set up message handler for incoming messages
+                    connectionManager->setMessageHandler([this](std::unique_ptr<TOAST::TransportMessage> message) {
+                        handleIncomingMessage(std::move(message));
+                    });
+                    
+                    // Only mark as connected when a client actually connects
+                    // This will be updated in the message handler when we receive the first message
+                    isConnected = false; // Wait for actual client connection
+                } else {
+                    statusLabel.setText("❌ Failed to start TCP server on port " + std::to_string(port), juce::dontSendNotification);
+                    statusLabel.setColour(juce::Label::textColourId, juce::Colours::lightcoral);
+                    return;
+                }
             } else {
-                statusLabel.setText("❌ TCP Connection failed to " + ip + ":" + std::to_string(port), juce::dontSendNotification);
-                statusLabel.setColour(juce::Label::textColourId, juce::Colours::lightcoral);
-                return;
+                // Connect as client
+                if (!connectionManager) {
+                    statusLabel.setText("❌ Connection manager not initialized", juce::dontSendNotification);
+                    statusLabel.setColour(juce::Label::textColourId, juce::Colours::lightcoral);
+                    return;
+                }
+                
+                if (connectionManager->connectToServer(ip, port)) {
+                    isServer = false;
+                    statusLabel.setText("🔄 TCP Connected to " + ip + ":" + std::to_string(port) + " - Verifying...", juce::dontSendNotification);
+                    statusLabel.setColour(juce::Label::textColourId, juce::Colours::yellow);
+                    
+                    // Set up message handler for incoming messages
+                    connectionManager->setMessageHandler([this](std::unique_ptr<TOAST::TransportMessage> message) {
+                        handleIncomingMessage(std::move(message));
+                    });
+                    
+                    // Send a handshake message to verify two-way communication
+                    sendConnectionVerificationHandshake();
+                    
+                    // Mark as connected tentatively - will be confirmed when we get a response
+                    isConnected = true;
+                } else {
+                    statusLabel.setText("❌ TCP Connection failed to " + ip + ":" + std::to_string(port), juce::dontSendNotification);
+                    statusLabel.setColour(juce::Label::textColourId, juce::Colours::lightcoral);
+                    return;
+                }
             }
         }
         
         if (isConnected) {
+            // Don't enable UI controls yet - wait for handshake verification
             connectButton.setEnabled(false);
             disconnectButton.setEnabled(true);
-            createSessionButton.setEnabled(true);
-            joinSessionButton.setEnabled(true);
+            createSessionButton.setEnabled(false); // Will be enabled after handshake
+            joinSessionButton.setEnabled(false);   // Will be enabled after handshake
             
             // Show protocol info in performance label
-            performanceLabel.setText("🌐 Connected via " + protocol + " to " + ip + ":" + std::to_string(port), 
+            std::string modeStr = isServer ? "Server" : "Client";
+            performanceLabel.setText("🔄 " + protocol + " " + modeStr + " - Establishing handshake...", 
                                    juce::dontSendNotification);
         }
         
@@ -274,11 +315,14 @@ void NetworkConnectionPanel::connectButtonClicked()
 void NetworkConnectionPanel::disconnectButtonClicked()
 {
     try {
-        if (toastHandler) {
-            // toastHandler->disconnect(); // Will implement when available
+        if (connectionManager) {
+            connectionManager->disconnect();
         }
         
+        // Reset all connection state
         isConnected = false;
+        isServer = false;
+        handshakeVerified = false;
         currentSessionId.clear();
         
         connectButton.setEnabled(true);
@@ -290,6 +334,9 @@ void NetworkConnectionPanel::disconnectButtonClicked()
         statusLabel.setColour(juce::Label::textColourId, juce::Colours::lightcoral);
         sessionInfoLabel.setText("No active session", juce::dontSendNotification);
         performanceLabel.setText("", juce::dontSendNotification);
+        
+        DBG("Disconnected from peer");
+        
     } catch (const std::exception& e) {
         statusLabel.setText("Disconnect error: " + std::string(e.what()), 
                           juce::dontSendNotification);
@@ -585,4 +632,254 @@ void NetworkConnectionPanel::establishConnection(const std::string& ip, const st
     
     // Auto-enable transport sync - no manual intervention needed
     // This will be handled by the TransportController automatically
+}
+
+//==============================================================================
+// Message Handling Implementation
+
+void NetworkConnectionPanel::handleIncomingMessage(std::unique_ptr<TOAST::TransportMessage> message)
+{
+    if (!message) {
+        return;
+    }
+    
+    try {
+        TOAST::MessageType msgType = message->getType();
+        const std::string& payload = message->getPayload();
+        
+        switch (msgType) {
+            case TOAST::MessageType::MIDI: {
+                // Handle incoming MIDI message
+                if (payload.size() >= 3) {
+                    uint8_t status = static_cast<uint8_t>(payload[0]);
+                    uint8_t note = static_cast<uint8_t>(payload[1]);
+                    uint8_t velocity = static_cast<uint8_t>(payload[2]);
+                    
+                    // Update performance label to show received MIDI
+                    performanceLabel.setText("🎵 Received MIDI: Note " + std::to_string(note) + 
+                                           " Velocity " + std::to_string(velocity), 
+                                           juce::dontSendNotification);
+                    
+                    // TODO: Forward to MIDI output device or internal synth
+                    // For now, just log that we received it
+                    DBG("Received MIDI note: " << (int)note << " velocity: " << (int)velocity);
+                }
+                break;
+            }
+            
+            case TOAST::MessageType::SESSION_CONTROL: {
+                // Handle transport control messages
+                std::string command = payload;
+                
+                if (command == "TRANSPORT_START") {
+                    // Start local transport
+                    performanceLabel.setText("▶️ Remote transport START received", juce::dontSendNotification);
+                    // TODO: Trigger local transport start
+                    DBG("Transport START command received from peer");
+                    
+                } else if (command == "TRANSPORT_STOP") {
+                    // Stop local transport
+                    performanceLabel.setText("⏹️ Remote transport STOP received", juce::dontSendNotification);
+                    // TODO: Trigger local transport stop
+                    DBG("Transport STOP command received from peer");
+                    
+                } else if (command == "TRANSPORT_PAUSE") {
+                    // Pause local transport
+                    performanceLabel.setText("⏸️ Remote transport PAUSE received", juce::dontSendNotification);
+                    // TODO: Trigger local transport pause
+                    DBG("Transport PAUSE command received from peer");
+                }
+                break;
+            }
+            
+            case TOAST::MessageType::CLOCK_SYNC: {
+                // Handle clock sync messages
+                if (clockArbiter && payload.size() >= 8) {
+                    uint64_t peerTimestamp = *reinterpret_cast<const uint64_t*>(payload.data());
+                    // Update clock arbiter with peer timing
+                    // clockArbiter->updatePeerClock(peerTimestamp);
+                    
+                    performanceLabel.setText("⏰ Clock sync received", juce::dontSendNotification);
+                }
+                break;
+            }
+            
+            case TOAST::MessageType::CONNECTION_HANDSHAKE: {
+                // Handle connection handshake messages
+                std::string handshakeData = payload;
+                
+                if (handshakeData.find("HANDSHAKE:") == 0) {
+                    std::string peerClientId = handshakeData.substr(10); // Remove "HANDSHAKE:" prefix
+                    
+                    if (isServer && !handshakeVerified) {
+                        // Server received handshake from client - send response
+                        sendConnectionVerificationHandshake();
+                        confirmConnectionEstablished();
+                        
+                        DBG("Server: Received handshake from client " << peerClientId);
+                        
+                    } else if (!isServer && !handshakeVerified) {
+                        // Client received handshake response from server
+                        confirmConnectionEstablished();
+                        
+                        DBG("Client: Received handshake response from server");
+                    }
+                } else if (handshakeData == "HANDSHAKE_ACK") {
+                    // Acknowledgment received
+                    if (!handshakeVerified) {
+                        confirmConnectionEstablished();
+                    }
+                }
+                break;
+            }
+            
+            case TOAST::MessageType::HEARTBEAT: {
+                // Handle heartbeat - connection is alive
+                performanceLabel.setText("💓 Connection alive", juce::dontSendNotification);
+                break;
+            }
+            
+            case TOAST::MessageType::ERROR: {
+                // Handle error messages
+                std::string errorMsg = payload;
+                statusLabel.setText("❌ Peer error: " + errorMsg, juce::dontSendNotification);
+                statusLabel.setColour(juce::Label::textColourId, juce::Colours::orange);
+                break;
+            }
+            
+            default:
+                DBG("Received unknown message type: " << (int)msgType);
+                break;
+        }
+    } catch (const std::exception& e) {
+        DBG("Error handling incoming message: " << e.what());
+        statusLabel.setText("⚠️ Message handling error", juce::dontSendNotification);
+        statusLabel.setColour(juce::Label::textColourId, juce::Colours::orange);
+    }
+}
+
+void NetworkConnectionPanel::sendTransportCommand(const std::string& command)
+{
+    if (!isConnected || !connectionManager) {
+        DBG("Cannot send transport command - not connected");
+        return;
+    }
+    
+    try {
+        // Create transport control message with current timestamp
+        uint64_t timestamp = std::chrono::duration_cast<std::chrono::microseconds>(
+            std::chrono::system_clock::now().time_since_epoch()).count();
+        
+        auto message = std::make_unique<TOAST::TransportMessage>(
+            TOAST::MessageType::SESSION_CONTROL, command, timestamp);
+        
+        // Send the message
+        if (connectionManager->sendMessage(std::move(message))) {
+            performanceLabel.setText("📤 Sent: " + command, juce::dontSendNotification);
+            DBG("Successfully sent transport command: " << command);
+        } else {
+            performanceLabel.setText("❌ Failed to send: " + command, juce::dontSendNotification);
+            DBG("Failed to send transport command: " << command);
+        }
+        
+    } catch (const std::exception& e) {
+        DBG("Error sending transport command: " << e.what());
+        performanceLabel.setText("❌ Send error: " + command, juce::dontSendNotification);
+    }
+}
+
+void NetworkConnectionPanel::sendMIDINote(uint8_t note, uint8_t velocity, bool isOn)
+{
+    if (!isConnected || !connectionManager) {
+        DBG("Cannot send MIDI note - not connected");
+        return;
+    }
+    
+    try {
+        // Build MIDI message payload
+        std::string payload;
+        payload.reserve(3);
+        
+        // MIDI status byte (note on/off)
+        uint8_t status = isOn ? 0x90 : 0x80; // Note on (0x90) or Note off (0x80)
+        payload.push_back(static_cast<char>(status));
+        payload.push_back(static_cast<char>(note));
+        payload.push_back(static_cast<char>(velocity));
+        
+        // Create MIDI message with current timestamp
+        uint64_t timestamp = std::chrono::duration_cast<std::chrono::microseconds>(
+            std::chrono::system_clock::now().time_since_epoch()).count();
+        
+        auto message = std::make_unique<TOAST::TransportMessage>(
+            TOAST::MessageType::MIDI, payload, timestamp);
+        
+        // Send the message
+        if (connectionManager->sendMessage(std::move(message))) {
+            std::string noteAction = isOn ? "ON" : "OFF";
+            performanceLabel.setText("🎵 Sent MIDI: Note " + std::to_string(note) + " " + noteAction, 
+                                   juce::dontSendNotification);
+            DBG("Successfully sent MIDI note: " << (int)note << " velocity: " << (int)velocity << " " << noteAction);
+        } else {
+            performanceLabel.setText("❌ Failed to send MIDI note", juce::dontSendNotification);
+            DBG("Failed to send MIDI note: " << (int)note);
+        }
+        
+    } catch (const std::exception& e) {
+        DBG("Error sending MIDI note: " << e.what());
+        performanceLabel.setText("❌ MIDI send error", juce::dontSendNotification);
+    }
+}
+
+void NetworkConnectionPanel::sendConnectionVerificationHandshake()
+{
+    if (!connectionManager) {
+        return;
+    }
+    
+    try {
+        // Build handshake payload with client ID
+        std::string handshakeData = "HANDSHAKE:" + clientId;
+        
+        // Create handshake message with current timestamp
+        uint64_t timestamp = std::chrono::duration_cast<std::chrono::microseconds>(
+            std::chrono::system_clock::now().time_since_epoch()).count();
+        
+        auto message = std::make_unique<TOAST::TransportMessage>(
+            TOAST::MessageType::CONNECTION_HANDSHAKE, handshakeData, timestamp);
+        
+        // Send the handshake
+        if (connectionManager->sendMessage(std::move(message))) {
+            DBG("Sent connection verification handshake");
+        } else {
+            DBG("Failed to send connection verification handshake");
+        }
+        
+    } catch (const std::exception& e) {
+        DBG("Error sending connection verification: " << e.what());
+    }
+}
+
+void NetworkConnectionPanel::confirmConnectionEstablished()
+{
+    if (!handshakeVerified) {
+        handshakeVerified = true;
+        
+        // Update UI to show true connection
+        statusLabel.setText("✅ Connection verified - Two-way communication established!", juce::dontSendNotification);
+        statusLabel.setColour(juce::Label::textColourId, juce::Colours::lightgreen);
+        
+        // Enable UI controls now that connection is verified
+        connectButton.setEnabled(false);
+        disconnectButton.setEnabled(true);
+        createSessionButton.setEnabled(true);
+        joinSessionButton.setEnabled(true);
+        
+        // Show detailed connection info
+        std::string modeStr = isServer ? "Server" : "Client";
+        std::string protocol = "TCP"; // For now, always TCP
+        performanceLabel.setText("🌐 " + protocol + " " + modeStr + " - Ready for transport sync and MIDI!", 
+                               juce::dontSendNotification);
+        
+        DBG("Connection fully established and verified");
+    }
 }

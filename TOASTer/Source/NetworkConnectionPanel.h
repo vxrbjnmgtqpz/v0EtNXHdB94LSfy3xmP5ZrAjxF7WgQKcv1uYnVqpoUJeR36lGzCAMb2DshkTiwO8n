@@ -16,6 +16,18 @@ public:
     void paint (juce::Graphics&) override;
     void resized() override;
     
+    // Public interface for testing transport and MIDI
+    bool isConnectedToRemote() const { return isConnected && handshakeVerified; }
+    void testTransportStart() { if (isConnectedToRemote()) sendTransportCommand("TRANSPORT_START"); }
+    void testTransportStop() { if (isConnectedToRemote()) sendTransportCommand("TRANSPORT_STOP"); }
+    void testTransportPause() { if (isConnectedToRemote()) sendTransportCommand("TRANSPORT_PAUSE"); }
+    void testMIDINote(uint8_t note, uint8_t velocity = 127) { 
+        if (isConnectedToRemote()) { 
+            sendMIDINote(note, velocity, true);  // Note on
+            // Note off will be sent after a short delay in a real implementation
+        } 
+    }
+    
     // BonjourDiscovery::Listener implementation
     void deviceDiscovered(const BonjourDiscovery::DiscoveredDevice& device) override;
     void deviceLost(const std::string& deviceName) override;
@@ -30,6 +42,13 @@ private:
     void autoConnectToDHCPDevice();
     void startSimulationMode();
     void establishConnection(const std::string& ip, const std::string& port, const std::string& connectionType);
+    
+    // Message handling
+    void handleIncomingMessage(std::unique_ptr<TOAST::TransportMessage> message);
+    void sendTransportCommand(const std::string& command);
+    void sendMIDINote(uint8_t note, uint8_t velocity, bool isOn);
+    void sendConnectionVerificationHandshake();
+    void confirmConnectionEstablished();
     
     // UI Components
     juce::Label titleLabel;
@@ -54,7 +73,10 @@ private:
     std::unique_ptr<TOAST::ProtocolHandler> toastHandler;
     std::unique_ptr<TOAST::SessionManager> sessionManager;
     
+    // Connection state
     bool isConnected = false;
+    bool isServer = false;
+    bool handshakeVerified = false;
     std::string currentSessionId;
     std::string clientId;
     

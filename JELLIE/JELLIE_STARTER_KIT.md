@@ -2,7 +2,7 @@
 
 ## 🎯 JELLIE: JAM Embedded Low-Latency Instrument Encoding
 
-**JELLIE is now fully implemented and ready for production!** This starter kit provides everything needed to integrate professional audio streaming with 4-stream redundancy, ADAT-inspired protocol behavior, and PNBTR prediction integration.
+**JELLIE is now fully implemented and ready for production!** This starter kit provides everything needed to integrate professional audio streaming with 4-stream redundancy, ADAT-inspired protocol behavior, and PNBTR revolutionary dither replacement technology.
 
 ## 🏗️ Architecture Overview
 
@@ -41,10 +41,10 @@
 - **Timestamp Sync**: Microsecond precision synchronization
 
 ### ✅ PNBTR Integration
-- **Predictive Recovery**: Neural prediction when redundancy fails
-- **Waveform Continuity**: Zero-noise transient recovery
-- **Adaptive Learning**: Continuous improvement from reference data
-- **GPU Acceleration**: Compute shader ready prediction
+- **Revolutionary Dither Replacement**: PNBTR completely eliminates traditional noise-based dithering
+- **Predictive LSB Modeling**: Intelligent micro-amplitude movement generation instead of random noise
+- **Neural Analog Extrapolation**: Reconstructs what the original analog signal would have been with infinite resolution
+- **Zero-Noise Processing**: "Here's the sound that would have happened if your DAC had infinite resolution"
 
 ### ✅ GPU-Ready Architecture
 - **Batch Processing**: Optimized for parallel audio chunks
@@ -168,7 +168,7 @@ decoder->enableGPUAcceleration("shaders/jellie_decoder.comp");
 ### Professional Audio Workflow
 1. **Input**: Guitar/vocal → Audio interface → JELLIE Encoder
 2. **Transport**: 4 JSONL streams → TOAST UDP multicast → Network
-3. **Recovery**: Redundancy-first → PNBTR prediction if needed
+3. **Recovery**: Redundancy-first → PNBTR revolutionary dither replacement provides seamless audio continuity
 4. **Output**: JELLIE Decoder → Audio interface → Studio monitors
 
 ### Latency Performance
@@ -178,9 +178,9 @@ decoder->enableGPUAcceleration("shaders/jellie_decoder.comp");
 - **Total**: **<200μs end-to-end** for professional audio
 
 ### Quality Metrics
-- **Bit Depth**: 24-bit native, PNBTR extends perceived resolution
+- **Bit Depth**: 24-bit native, PNBTR's predictive LSB modeling eliminates traditional dithering
 - **Sample Rate**: Up to 192kHz with burst transmission
-- **THD+N**: <0.0003% with PNBTR dither replacement
+- **THD+N**: <0.0003% with PNBTR's zero-noise digital audio completion
 - **Packet Loss**: 5% loss handled transparently via redundancy
 
 ## 🔬 Advanced Features
@@ -194,13 +194,13 @@ Stream 2: parity_data[redundancy_1]              // Parity A
 Stream 3: parity_data[redundancy_2]              // Parity B
 ```
 
-### PNBTR Continuous Learning
+### PNBTR Revolutionary Dither Replacement
 ```cpp
-// Reference recording for training
+// Enable PNBTR's zero-noise digital audio completion
 encoder->enableReferenceRecording(true);
-decoder->enableLearningMode(true);
+decoder->enablePNBTRDitherReplacement(true);
 
-// Global dataset integration
+// PNBTR replaces ALL traditional dithering with predictive LSB modeling
 pnbtr_system->uploadTrainingData(reference_samples, predictions);
 pnbtr_system->downloadUpdatedModel();
 ```
