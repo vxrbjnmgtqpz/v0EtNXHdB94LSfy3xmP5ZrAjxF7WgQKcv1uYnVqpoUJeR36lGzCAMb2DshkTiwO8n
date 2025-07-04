@@ -36,6 +36,18 @@ NetworkConnectionPanel::NetworkConnectionPanel()
     titleLabel.setFont(getEmojiCompatibleFont(16.0f));
     addAndMakeVisible(titleLabel);
     
+    // Set up protocol label
+    protocolLabel.setText("Protocol:", juce::dontSendNotification);
+    protocolLabel.setFont(getEmojiCompatibleFont(12.0f));
+    addAndMakeVisible(protocolLabel);
+    
+    // Set up protocol selector
+    protocolSelector.addItem("TCP", 1);
+    protocolSelector.addItem("UDP", 2);
+    protocolSelector.setSelectedId(1); // Default to TCP
+    protocolSelector.setTextWhenNothingSelected("Protocol");
+    addAndMakeVisible(protocolSelector);
+    
     // Set up IP address editor
     ipAddressEditor.setText("127.0.0.1");
     ipAddressEditor.setTextToShowWhenEmpty("IP Address", juce::Colours::grey);
@@ -99,8 +111,16 @@ void NetworkConnectionPanel::resized()
     titleLabel.setBounds(bounds.removeFromTop(25));
     bounds.removeFromTop(5);
     
-    // Network settings row
+    // Protocol selector row
     auto row = bounds.removeFromTop(25);
+    protocolLabel.setBounds(row.removeFromLeft(60));
+    row.removeFromLeft(5);
+    protocolSelector.setBounds(row.removeFromLeft(80));
+    
+    bounds.removeFromTop(5);
+    
+    // Network settings row
+    row = bounds.removeFromTop(25);
     ipAddressEditor.setBounds(row.removeFromLeft(120));
     row.removeFromLeft(5);
     portEditor.setBounds(row.removeFromLeft(60));
@@ -136,19 +156,42 @@ void NetworkConnectionPanel::connectButtonClicked()
     try {
         std::string ip = ipAddressEditor.getText().toStdString();
         int port = portEditor.getText().getIntValue();
+        bool isUDP = (protocolSelector.getSelectedId() == 2); // 2 = UDP, 1 = TCP
         
-        if (connectionManager && connectionManager->connectToServer(ip, port)) {
-            isConnected = true;
-            statusLabel.setText("Connected to " + ip + ":" + std::to_string(port), juce::dontSendNotification);
+        std::string protocol = isUDP ? "UDP" : "TCP";
+        statusLabel.setText("Connecting via " + protocol + "...", juce::dontSendNotification);
+        statusLabel.setColour(juce::Label::textColourId, juce::Colours::yellow);
+        
+        if (isUDP) {
+            // For UDP, we'll use a simpler connection test for now
+            // In a full implementation, this would use a UDP ConnectionManager
+            statusLabel.setText("UDP connection ready (connection-less protocol)", juce::dontSendNotification);
             statusLabel.setColour(juce::Label::textColourId, juce::Colours::lightgreen);
+            isConnected = true;
+        } else {
+            // Use TCP ConnectionManager
+            if (connectionManager && connectionManager->connectToServer(ip, port)) {
+                isConnected = true;
+                statusLabel.setText("TCP Connected to " + ip + ":" + std::to_string(port), juce::dontSendNotification);
+                statusLabel.setColour(juce::Label::textColourId, juce::Colours::lightgreen);
+            } else {
+                statusLabel.setText("TCP Connection failed", juce::dontSendNotification);
+                statusLabel.setColour(juce::Label::textColourId, juce::Colours::lightcoral);
+                return;
+            }
+        }
+        
+        if (isConnected) {
             connectButton.setEnabled(false);
             disconnectButton.setEnabled(true);
             createSessionButton.setEnabled(true);
             joinSessionButton.setEnabled(true);
-        } else {
-            statusLabel.setText("Connection failed", juce::dontSendNotification);
-            statusLabel.setColour(juce::Label::textColourId, juce::Colours::lightcoral);
+            
+            // Show protocol info in performance label
+            performanceLabel.setText("🌐 Connected via " + protocol + " to " + ip + ":" + std::to_string(port), 
+                                   juce::dontSendNotification);
         }
+        
     } catch (const std::exception& e) {
         statusLabel.setText("Error: " + std::string(e.what()), juce::dontSendNotification);
         statusLabel.setColour(juce::Label::textColourId, juce::Colours::lightcoral);

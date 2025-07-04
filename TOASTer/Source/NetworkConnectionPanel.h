@@ -24,6 +24,8 @@ private:
     
     // UI Components
     juce::Label titleLabel;
+    juce::Label protocolLabel;
+    juce::ComboBox protocolSelector;
     juce::TextEditor ipAddressEditor;
     juce::TextEditor portEditor;
     juce::TextEditor sessionNameEditor;

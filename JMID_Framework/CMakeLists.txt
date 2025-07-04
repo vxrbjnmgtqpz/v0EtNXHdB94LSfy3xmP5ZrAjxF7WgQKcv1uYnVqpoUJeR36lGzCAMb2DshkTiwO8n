@@ -154,6 +154,25 @@ if(BUILD_BENCHMARKS)
     add_subdirectory(benchmarks)
 endif()
 
+# TOAST UDP Server and Client
+add_executable(toast_udp_server toast_udp_server.cpp)
+target_link_libraries(toast_udp_server PRIVATE 
+    jmid_framework
+    nlohmann_json::nlohmann_json
+    simdjson::simdjson
+    Threads::Threads
+    ${PLATFORM_LIBS}
+)
+
+add_executable(toast_udp_client toast_udp_client.cpp)
+target_link_libraries(toast_udp_client PRIVATE 
+    jmid_framework
+    nlohmann_json::nlohmann_json
+    simdjson::simdjson
+    Threads::Threads
+    ${PLATFORM_LIBS}
+)
+
 # Install configuration - disabled for Phase 1.1
 # Will be enabled in future phases
 if(FALSE)

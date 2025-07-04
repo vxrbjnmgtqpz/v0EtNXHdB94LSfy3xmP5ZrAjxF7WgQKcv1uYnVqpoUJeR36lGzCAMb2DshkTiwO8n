@@ -20203,5 +20203,908 @@
         "last_style": "Pop",
         "last_mode": "Aeolian",
         "timestamp": 1751606121.727561
+    },
+    "session_1751612385_2850": {
+        "last_response": {
+            "message": "\ud83c\udfbc **I6/9**\n\n\ud83c\udfad Emotions: Transcendence (1.00), Joy (0.00)\n\n\ud83c\udfaf Specific sub-emotion: Harmonic_Nirvana (within Transcendence)\n\n\ud83c\udfb5 Mode: Lydian\n\n\ud83d\udd0d Individual chord emotions available - ask for details!\n\n\ud83c\udfb6 8 style alternatives available",
+            "chords": [
+                "I6/9"
+            ],
+            "original_chords": [
+                "I6/9"
+            ],
+            "chord_metadata": [
+                {
+                    "is_substitution": false,
+                    "original_chord": "I6/9",
+                    "source": "database"
+                }
+            ],
+            "substitution_count": 0,
+            "generation_method": "unknown",
+            "has_substitutions": false,
+            "voice_leading": {
+                "voiced_chords": [
+                    {
+                        "chord_symbol": "I6/9",
+                        "notes": [],
+                        "register_range": [
+                            4,
+                            5
+                        ],
+                        "voice_leading_cost": 0.0,
+                        "emotional_fitness": 0.5,
+                        "notes_display": "Fallback mode"
+                    }
+                ],
+                "register_analysis": {
+                    "target_registers": [
+                        4,
+                        5
+                    ],
+                    "average_register": 4.5
+                },
+                "total_voice_leading_cost": 0.0,
+                "harmonic_rhythm": {
+                    "tensions": [
+                        0.5
+                    ],
+                    "durations": [
+                        1.0
+                    ]
+                },
+                "average_register": 4.5,
+                "register_range": [
+                    4,
+                    5
+                ],
+                "error": "'ResponseSynthesizer' object has no attribute 'voice_leading_engine'"
+            },
+            "emotion": {
+                "Joy": 0.0,
+                "Sadness": 0.0,
+                "Fear": 0.0,
+                "Anger": 0.0,
+                "Disgust": 0.0,
+                "Surprise": 0.0,
+                "Trust": 0.0,
+                "Anticipation": 0.0,
+                "Shame": 0.0,
+                "Love": 0.0,
+                "Envy": 0.0,
+                "Aesthetic Awe": 0.0,
+                "Malice": 0.0,
+                "Arousal": 0.0,
+                "Guilt": 0.0,
+                "Reverence": 0.0,
+                "Wonder": 0.0,
+                "Dissociation": 0.0,
+                "Empowerment": 0.0,
+                "Belonging": 0.0,
+                "Ideology": 0.0,
+                "Gratitude": 0.0,
+                "Transcendence": 1.0
+            },
+            "primary_result": {
+                "progression_id": "generated_0",
+                "prompt": "harmonic nirvana",
+                "emotion_weights": {
+                    "Joy": 0.0,
+                    "Sadness": 0.0,
+                    "Fear": 0.0,
+                    "Anger": 0.0,
+                    "Disgust": 0.0,
+                    "Surprise": 0.0,
+                    "Trust": 0.0,
+                    "Anticipation": 0.0,
+                    "Shame": 0.0,
+                    "Love": 0.0,
+                    "Envy": 0.0,
+                    "Aesthetic Awe": 0.0,
+                    "Malice": 0.0,
+                    "Arousal": 0.0,
+                    "Guilt": 0.0,
+                    "Reverence": 0.0,
+                    "Wonder": 0.0,
+                    "Dissociation": 0.0,
+                    "Empowerment": 0.0,
+                    "Belonging": 0.0,
+                    "Ideology": 0.0,
+                    "Gratitude": 0.0,
+                    "Transcendence": 1.0
+                },
+                "detected_sub_emotion": "Transcendence:Harmonic_Nirvana",
+                "primary_mode": "Lydian",
+                "mode_blend": {
+                    "Ionian": 0.0,
+                    "Aeolian": 0.0,
+                    "Phrygian": 0.0,
+                    "Phrygian Dominant": 0.0,
+                    "Locrian": 0.0,
+                    "Lydian": 1.0,
+                    "Dorian": 0.0,
+                    "Melodic Minor": 0.0,
+                    "Harmonic Minor": 0.0,
+                    "Mixolydian": 0.0,
+                    "Hungarian Minor": 0.0,
+                    "Lydian Augmented": 0.0
+                },
+                "chords": [
+                    "I6/9"
+                ],
+                "chord_metadata": [
+                    {
+                        "is_substitution": false,
+                        "original_chord": "I6/9",
+                        "source": "database"
+                    }
+                ],
+                "substitution_count": 0,
+                "genre": "Pop",
+                "metadata": {
+                    "generation_method": "database_selection",
+                    "timestamp": "2025-07-04T02:59:45.519497",
+                    "neural_mode": false,
+                    "has_substitutions": false
+                }
+            },
+            "alternatives": {
+                "Blues": [
+                    "V+",
+                    "I",
+                    "IVsus4",
+                    "vi7"
+                ],
+                "Jazz": [
+                    "I",
+                    "ii7",
+                    "V13",
+                    "I"
+                ],
+                "Classical": [
+                    "I",
+                    "IV",
+                    "IV",
+                    "I"
+                ],
+                "Pop": [
+                    "I",
+                    "ii",
+                    "vi",
+                    "IV"
+                ],
+                "Rock": [
+                    "I",
+                    "IVsus4",
+                    "iisus4",
+                    "I7"
+                ],
+                "Folk": [
+                    "I",
+                    "V",
+                    "vi",
+                    "ii"
+                ],
+                "RnB": [
+                    "I",
+                    "I6",
+                    "IVM7",
+                    "IVM7"
+                ],
+                "Cinematic": [
+                    "I",
+                    "vii\u00b0",
+                    "V7#11",
+                    "IM7#5"
+                ]
+            },
+            "individual_analysis": {
+                "individual_results": [
+                    {
+                        "chord_id": "fallback_001",
+                        "prompt": "harmonic nirvana",
+                        "emotion_weights": {
+                            "Joy": 0.0,
+                            "Sadness": 0.0,
+                            "Fear": 0.0,
+                            "Anger": 0.0,
+                            "Disgust": 0.0,
+                            "Surprise": 0.0,
+                            "Trust": 0.0,
+                            "Anticipation": 0.0,
+                            "Shame": 0.0,
+                            "Love": 0.0,
+                            "Envy": 0.0,
+                            "Aesthetic Awe": 0.0,
+                            "Malice": 0.0,
+                            "Arousal": 0.0,
+                            "Guilt": 0.0,
+                            "Reverence": 0.0,
+                            "Wonder": 0.0,
+                            "Dissociation": 0.0,
+                            "Empowerment": 0.0,
+                            "Belonging": 0.0,
+                            "Ideology": 0.0,
+                            "Gratitude": 0.0,
+                            "Transcendence": 1.0
+                        },
+                        "chord_symbol": "C",
+                        "roman_numeral": "I",
+                        "mode_context": "Ionian",
+                        "style_context": "Classical",
+                        "emotional_score": 1.0,
+                        "key": "C",
+                        "consonant_dissonant_value": null,
+                        "consonant_dissonant_description": null,
+                        "metadata": {
+                            "generation_method": "emotion_weighted_selection",
+                            "timestamp": "2025-07-04T02:59:45.519624",
+                            "mode_filter": null,
+                            "style_filter": null,
+                            "consonant_dissonant_preference": null
+                        }
+                    }
+                ]
+            },
+            "suggestions": [
+                "Try this in a different style",
+                "Show me individual chord emotions",
+                "Compare across musical styles",
+                "Explain the music theory"
+            ],
+            "intent": "emotional_progression",
+            "confidence": 0.3,
+            "models_used": [
+                "progression",
+                "individual",
+                "theory"
+            ],
+            "timestamp": 1751612387.535722
+        },
+        "last_progression": [
+            "I6/9"
+        ],
+        "last_emotion": "",
+        "last_style": "Pop",
+        "last_mode": "Lydian",
+        "timestamp": 1751612387.535928
+    },
+    "session_1751612404_8952": {
+        "last_response": {
+            "message": "\ud83c\udfbc **V \u2192 I6/9**\n\n\ud83c\udfad Emotions: Transcendence (1.00), Joy (0.00)\n\n\ud83c\udfaf Specific sub-emotion: Harmonic_Nirvana (within Transcendence)\n\n\ud83c\udfb5 Mode: Lydian\n\n\ud83d\udd0d Individual chord emotions available - ask for details!\n\n\ud83c\udfb6 8 style alternatives available",
+            "chords": [
+                "V",
+                "I6/9"
+            ],
+            "original_chords": [
+                "V",
+                "I6/9"
+            ],
+            "chord_metadata": [
+                {
+                    "is_substitution": false,
+                    "original_chord": "V",
+                    "source": "database"
+                },
+                {
+                    "is_substitution": false,
+                    "original_chord": "I6/9",
+                    "source": "database"
+                }
+            ],
+            "substitution_count": 0,
+            "generation_method": "unknown",
+            "has_substitutions": false,
+            "voice_leading": {
+                "voiced_chords": [
+                    {
+                        "chord_symbol": "V",
+                        "notes": [],
+                        "register_range": [
+                            4,
+                            5
+                        ],
+                        "voice_leading_cost": 0.0,
+                        "emotional_fitness": 0.5,
+                        "notes_display": "Fallback mode"
+                    },
+                    {
+                        "chord_symbol": "I6/9",
+                        "notes": [],
+                        "register_range": [
+                            4,
+                            5
+                        ],
+                        "voice_leading_cost": 0.0,
+                        "emotional_fitness": 0.5,
+                        "notes_display": "Fallback mode"
+                    }
+                ],
+                "register_analysis": {
+                    "target_registers": [
+                        4,
+                        5
+                    ],
+                    "average_register": 4.5
+                },
+                "total_voice_leading_cost": 0.0,
+                "harmonic_rhythm": {
+                    "tensions": [
+                        0.5,
+                        0.5
+                    ],
+                    "durations": [
+                        1.0,
+                        1.0
+                    ]
+                },
+                "average_register": 4.5,
+                "register_range": [
+                    4,
+                    5
+                ],
+                "error": "'ResponseSynthesizer' object has no attribute 'voice_leading_engine'"
+            },
+            "emotion": {
+                "Joy": 0.0,
+                "Sadness": 0.0,
+                "Fear": 0.0,
+                "Anger": 0.0,
+                "Disgust": 0.0,
+                "Surprise": 0.0,
+                "Trust": 0.0,
+                "Anticipation": 0.0,
+                "Shame": 0.0,
+                "Love": 0.0,
+                "Envy": 0.0,
+                "Aesthetic Awe": 0.0,
+                "Malice": 0.0,
+                "Arousal": 0.0,
+                "Guilt": 0.0,
+                "Reverence": 0.0,
+                "Wonder": 0.0,
+                "Dissociation": 0.0,
+                "Empowerment": 0.0,
+                "Belonging": 0.0,
+                "Ideology": 0.0,
+                "Gratitude": 0.0,
+                "Transcendence": 1.0
+            },
+            "primary_result": {
+                "progression_id": "generated_0",
+                "prompt": "harmonic nirvana",
+                "emotion_weights": {
+                    "Joy": 0.0,
+                    "Sadness": 0.0,
+                    "Fear": 0.0,
+                    "Anger": 0.0,
+                    "Disgust": 0.0,
+                    "Surprise": 0.0,
+                    "Trust": 0.0,
+                    "Anticipation": 0.0,
+                    "Shame": 0.0,
+                    "Love": 0.0,
+                    "Envy": 0.0,
+                    "Aesthetic Awe": 0.0,
+                    "Malice": 0.0,
+                    "Arousal": 0.0,
+                    "Guilt": 0.0,
+                    "Reverence": 0.0,
+                    "Wonder": 0.0,
+                    "Dissociation": 0.0,
+                    "Empowerment": 0.0,
+                    "Belonging": 0.0,
+                    "Ideology": 0.0,
+                    "Gratitude": 0.0,
+                    "Transcendence": 1.0
+                },
+                "detected_sub_emotion": "Transcendence:Harmonic_Nirvana",
+                "primary_mode": "Lydian",
+                "mode_blend": {
+                    "Ionian": 0.0,
+                    "Aeolian": 0.0,
+                    "Phrygian": 0.0,
+                    "Phrygian Dominant": 0.0,
+                    "Locrian": 0.0,
+                    "Lydian": 1.0,
+                    "Dorian": 0.0,
+                    "Melodic Minor": 0.0,
+                    "Harmonic Minor": 0.0,
+                    "Mixolydian": 0.0,
+                    "Hungarian Minor": 0.0,
+                    "Lydian Augmented": 0.0
+                },
+                "chords": [
+                    "V",
+                    "I6/9"
+                ],
+                "chord_metadata": [
+                    {
+                        "is_substitution": false,
+                        "original_chord": "V",
+                        "source": "database"
+                    },
+                    {
+                        "is_substitution": false,
+                        "original_chord": "I6/9",
+                        "source": "database"
+                    }
+                ],
+                "substitution_count": 0,
+                "genre": "Pop",
+                "metadata": {
+                    "generation_method": "database_selection",
+                    "timestamp": "2025-07-04T03:00:04.121328",
+                    "neural_mode": false,
+                    "has_substitutions": false
+                }
+            },
+            "alternatives": {
+                "Blues": [
+                    "I9",
+                    "V7",
+                    "V7",
+                    "IV7"
+                ],
+                "Jazz": [
+                    "I",
+                    "vi7",
+                    "vi",
+                    "ii"
+                ],
+                "Classical": [
+                    "I",
+                    "IV",
+                    "ii",
+                    "ii"
+                ],
+                "Pop": [
+                    "I",
+                    "V",
+                    "vi",
+                    "vi"
+                ],
+                "Rock": [
+                    "I",
+                    "iisus4",
+                    "Vsus4",
+                    "I7"
+                ],
+                "Folk": [
+                    "I",
+                    "IV",
+                    "V",
+                    "I"
+                ],
+                "RnB": [
+                    "I",
+                    "I6",
+                    "ii7",
+                    "ii7"
+                ],
+                "Cinematic": [
+                    "I",
+                    "vii\u00b0",
+                    "V7#5",
+                    "V7#5"
+                ]
+            },
+            "individual_analysis": {
+                "individual_results": [
+                    {
+                        "chord_id": "fallback_001",
+                        "prompt": "harmonic nirvana",
+                        "emotion_weights": {
+                            "Joy": 0.0,
+                            "Sadness": 0.0,
+                            "Fear": 0.0,
+                            "Anger": 0.0,
+                            "Disgust": 0.0,
+                            "Surprise": 0.0,
+                            "Trust": 0.0,
+                            "Anticipation": 0.0,
+                            "Shame": 0.0,
+                            "Love": 0.0,
+                            "Envy": 0.0,
+                            "Aesthetic Awe": 0.0,
+                            "Malice": 0.0,
+                            "Arousal": 0.0,
+                            "Guilt": 0.0,
+                            "Reverence": 0.0,
+                            "Wonder": 0.0,
+                            "Dissociation": 0.0,
+                            "Empowerment": 0.0,
+                            "Belonging": 0.0,
+                            "Ideology": 0.0,
+                            "Gratitude": 0.0,
+                            "Transcendence": 1.0
+                        },
+                        "chord_symbol": "C",
+                        "roman_numeral": "I",
+                        "mode_context": "Ionian",
+                        "style_context": "Classical",
+                        "emotional_score": 1.0,
+                        "key": "C",
+                        "consonant_dissonant_value": null,
+                        "consonant_dissonant_description": null,
+                        "metadata": {
+                            "generation_method": "emotion_weighted_selection",
+                            "timestamp": "2025-07-04T03:00:04.121417",
+                            "mode_filter": null,
+                            "style_filter": null,
+                            "consonant_dissonant_preference": null
+                        }
+                    }
+                ]
+            },
+            "suggestions": [
+                "Try this in a different style",
+                "Show me individual chord emotions",
+                "Compare across musical styles",
+                "Explain the music theory"
+            ],
+            "intent": "emotional_progression",
+            "confidence": 0.3,
+            "models_used": [
+                "progression",
+                "individual",
+                "theory"
+            ],
+            "timestamp": 1751612405.991929
+        },
+        "last_progression": [
+            "V",
+            "I6/9"
+        ],
+        "last_emotion": "",
+        "last_style": "Pop",
+        "last_mode": "Lydian",
+        "timestamp": 1751612405.9920268
+    },
+    "session_1751612685_3865": {
+        "last_response": {
+            "message": "\ud83c\udfbc **V7\u266d9\u266d13 \u2192 i \u2192 V7\u266f11 \u2192 i**\n\n\ud83c\udfad Emotions: Malice (1.00), Joy (0.00)\n\n\ud83c\udfaf Specific sub-emotion: Wrath (within Malice)\n\n\ud83c\udfb5 Mode: Locrian\n\n\ud83d\udd0d Individual chord emotions available - ask for details!\n\n\ud83c\udfb6 8 style alternatives available",
+            "chords": [
+                "V7\u266d9\u266d7",
+                "i",
+                "V7\u266f7",
+                "i"
+            ],
+            "original_chords": [
+                "V7\u266d9\u266d13",
+                "i",
+                "V7\u266f11",
+                "i"
+            ],
+            "chord_metadata": [
+                {
+                    "is_substitution": false,
+                    "original_chord": "V7\u266d9\u266d13",
+                    "source": "database"
+                },
+                {
+                    "is_substitution": false,
+                    "original_chord": "i",
+                    "source": "database"
+                },
+                {
+                    "is_substitution": false,
+                    "original_chord": "V7\u266f11",
+                    "source": "database"
+                },
+                {
+                    "is_substitution": false,
+                    "original_chord": "i",
+                    "source": "database"
+                }
+            ],
+            "substitution_count": 0,
+            "generation_method": "unknown",
+            "has_substitutions": false,
+            "voice_leading": {
+                "voiced_chords": [
+                    {
+                        "chord_symbol": "V7\u266d9\u266d13",
+                        "notes": [],
+                        "register_range": [
+                            4,
+                            5
+                        ],
+                        "voice_leading_cost": 0.0,
+                        "emotional_fitness": 0.5,
+                        "notes_display": "Fallback mode"
+                    },
+                    {
+                        "chord_symbol": "i",
+                        "notes": [],
+                        "register_range": [
+                            4,
+                            5
+                        ],
+                        "voice_leading_cost": 0.0,
+                        "emotional_fitness": 0.5,
+                        "notes_display": "Fallback mode"
+                    },
+                    {
+                        "chord_symbol": "V7\u266f11",
+                        "notes": [],
+                        "register_range": [
+                            4,
+                            5
+                        ],
+                        "voice_leading_cost": 0.0,
+                        "emotional_fitness": 0.5,
+                        "notes_display": "Fallback mode"
+                    },
+                    {
+                        "chord_symbol": "i",
+                        "notes": [],
+                        "register_range": [
+                            4,
+                            5
+                        ],
+                        "voice_leading_cost": 0.0,
+                        "emotional_fitness": 0.5,
+                        "notes_display": "Fallback mode"
+                    }
+                ],
+                "register_analysis": {
+                    "target_registers": [
+                        4,
+                        5
+                    ],
+                    "average_register": 4.5
+                },
+                "total_voice_leading_cost": 0.0,
+                "harmonic_rhythm": {
+                    "tensions": [
+                        0.5,
+                        0.5,
+                        0.5,
+                        0.5
+                    ],
+                    "durations": [
+                        1.0,
+                        1.0,
+                        1.0,
+                        1.0
+                    ]
+                },
+                "average_register": 4.5,
+                "register_range": [
+                    4,
+                    5
+                ],
+                "error": "'ResponseSynthesizer' object has no attribute 'voice_leading_engine'"
+            },
+            "emotion": {
+                "Joy": 0.0,
+                "Sadness": 0.0,
+                "Fear": 0.0,
+                "Anger": 0.0,
+                "Disgust": 0.0,
+                "Surprise": 0.0,
+                "Trust": 0.0,
+                "Anticipation": 0.0,
+                "Shame": 0.0,
+                "Love": 0.0,
+                "Envy": 0.0,
+                "Aesthetic Awe": 0.0,
+                "Malice": 1.0,
+                "Arousal": 0.0,
+                "Guilt": 0.0,
+                "Reverence": 0.0,
+                "Wonder": 0.0,
+                "Dissociation": 0.0,
+                "Empowerment": 0.0,
+                "Belonging": 0.0,
+                "Ideology": 0.0,
+                "Gratitude": 0.0,
+                "Transcendence": 0.0
+            },
+            "primary_result": {
+                "progression_id": "generated_0",
+                "prompt": "angry",
+                "emotion_weights": {
+                    "Joy": 0.0,
+                    "Sadness": 0.0,
+                    "Fear": 0.0,
+                    "Anger": 0.0,
+                    "Disgust": 0.0,
+                    "Surprise": 0.0,
+                    "Trust": 0.0,
+                    "Anticipation": 0.0,
+                    "Shame": 0.0,
+                    "Love": 0.0,
+                    "Envy": 0.0,
+                    "Aesthetic Awe": 0.0,
+                    "Malice": 1.0,
+                    "Arousal": 0.0,
+                    "Guilt": 0.0,
+                    "Reverence": 0.0,
+                    "Wonder": 0.0,
+                    "Dissociation": 0.0,
+                    "Empowerment": 0.0,
+                    "Belonging": 0.0,
+                    "Ideology": 0.0,
+                    "Gratitude": 0.0,
+                    "Transcendence": 0.0
+                },
+                "detected_sub_emotion": "Malice:Wrath",
+                "primary_mode": "Locrian",
+                "mode_blend": {
+                    "Ionian": 0.0,
+                    "Aeolian": 0.0,
+                    "Phrygian": 0.0,
+                    "Phrygian Dominant": 0.0,
+                    "Locrian": 1.0,
+                    "Lydian": 0.0,
+                    "Dorian": 0.0,
+                    "Melodic Minor": 0.0,
+                    "Harmonic Minor": 0.0,
+                    "Mixolydian": 0.0,
+                    "Hungarian Minor": 0.0,
+                    "Lydian Augmented": 0.0
+                },
+                "chords": [
+                    "V7\u266d9\u266d13",
+                    "i",
+                    "V7\u266f11",
+                    "i"
+                ],
+                "chord_metadata": [
+                    {
+                        "is_substitution": false,
+                        "original_chord": "V7\u266d9\u266d13",
+                        "source": "database"
+                    },
+                    {
+                        "is_substitution": false,
+                        "original_chord": "i",
+                        "source": "database"
+                    },
+                    {
+                        "is_substitution": false,
+                        "original_chord": "V7\u266f11",
+                        "source": "database"
+                    },
+                    {
+                        "is_substitution": false,
+                        "original_chord": "i",
+                        "source": "database"
+                    }
+                ],
+                "substitution_count": 0,
+                "genre": "Pop",
+                "metadata": {
+                    "generation_method": "database_selection",
+                    "timestamp": "2025-07-04T03:04:45.912810",
+                    "neural_mode": false,
+                    "has_substitutions": false
+                }
+            },
+            "alternatives": {
+                "Blues": [
+                    "bIII9",
+                    "bIII9",
+                    "bIII9",
+                    "bIII9"
+                ],
+                "Jazz": [
+                    "I",
+                    "ii",
+                    "V9",
+                    "I"
+                ],
+                "Classical": [
+                    "I",
+                    "ii",
+                    "vii\u00b0",
+                    "I"
+                ],
+                "Pop": [
+                    "I",
+                    "I",
+                    "vi",
+                    "IV"
+                ],
+                "Rock": [
+                    "I",
+                    "viadd9",
+                    "Iadd9",
+                    "ii+"
+                ],
+                "Folk": [
+                    "I",
+                    "ii",
+                    "V",
+                    "I"
+                ],
+                "RnB": [
+                    "I",
+                    "I",
+                    "ii",
+                    "V"
+                ],
+                "Cinematic": [
+                    "I",
+                    "V7#5",
+                    "IM7#5",
+                    "vi"
+                ]
+            },
+            "individual_analysis": {
+                "individual_results": [
+                    {
+                        "chord_id": "fallback_001",
+                        "prompt": "angry",
+                        "emotion_weights": {
+                            "Joy": 0.0,
+                            "Sadness": 0.0,
+                            "Fear": 0.0,
+                            "Anger": 1.0,
+                            "Disgust": 0.0,
+                            "Surprise": 0.0,
+                            "Trust": 0.0,
+                            "Anticipation": 0.0,
+                            "Shame": 0.0,
+                            "Love": 0.0,
+                            "Envy": 0.0,
+                            "Aesthetic Awe": 0.0,
+                            "Malice": 0.0,
+                            "Arousal": 0.0,
+                            "Guilt": 0.0,
+                            "Reverence": 0.0,
+                            "Wonder": 0.0,
+                            "Dissociation": 0.0,
+                            "Empowerment": 0.0,
+                            "Belonging": 0.0,
+                            "Ideology": 0.0,
+                            "Gratitude": 0.0,
+                            "Transcendence": 0.0
+                        },
+                        "chord_symbol": "C",
+                        "roman_numeral": "I",
+                        "mode_context": "Ionian",
+                        "style_context": "Classical",
+                        "emotional_score": 1.0,
+                        "key": "C",
+                        "consonant_dissonant_value": null,
+                        "consonant_dissonant_description": null,
+                        "metadata": {
+                            "generation_method": "emotion_weighted_selection",
+                            "timestamp": "2025-07-04T03:04:45.912923",
+                            "mode_filter": null,
+                            "style_filter": null,
+                            "consonant_dissonant_preference": null
+                        }
+                    }
+                ]
+            },
+            "suggestions": [
+                "Try this in a different style",
+                "Show me individual chord emotions",
+                "Compare across musical styles",
+                "Explain the music theory"
+            ],
+            "intent": "emotional_progression",
+            "confidence": 0.3,
+            "models_used": [
+                "progression",
+                "individual",
+                "theory"
+            ],
+            "timestamp": 1751612687.6541052
+        },
+        "last_progression": [
+            "V7\u266d9\u266d7",
+            "i",
+            "V7\u266f7",
+            "i"
+        ],
+        "last_emotion": "",
+        "last_style": "Pop",
+        "last_mode": "Locrian",
+        "timestamp": 1751612687.654224
     }
 }
