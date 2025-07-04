@@ -27,6 +27,9 @@ private:
     void createSessionClicked();
     void joinSessionClicked();
     void updateConnectionStatus();
+    void autoConnectToDHCPDevice();
+    void startSimulationMode();
+    void establishConnection(const std::string& ip, const std::string& port, const std::string& connectionType);
     
     // UI Components
     juce::Label titleLabel;
