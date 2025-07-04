@@ -34,6 +34,7 @@ target_sources(TOASTer PRIVATE
     Source/TransportController.cpp
     Source/NetworkConnectionPanel.cpp
     Source/ConnectionDiscovery.cpp
+    Source/BonjourDiscovery.mm
     Source/MIDITestingPanel.cpp
     Source/MIDIManager.cpp
     Source/PerformanceMonitorPanel.cpp
@@ -63,6 +64,13 @@ target_link_libraries(TOASTer PRIVATE
     jmid_framework
     nlohmann_json::nlohmann_json
 )
+
+# Add macOS-specific frameworks for Bonjour/mDNS
+if(APPLE)
+    target_link_libraries(TOASTer PRIVATE
+        "-framework Foundation"
+    )
+endif()
 
 # Compiler definitions
 target_compile_definitions(TOASTer PRIVATE

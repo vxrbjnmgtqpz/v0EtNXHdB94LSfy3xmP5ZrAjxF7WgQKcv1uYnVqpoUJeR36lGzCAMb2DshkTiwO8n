@@ -3,10 +3,11 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 #include "TOASTTransport.h"
 #include "ClockDriftArbiter.h"
+#include "BonjourDiscovery.h"
 #include <memory>
 
 //==============================================================================
-class NetworkConnectionPanel : public juce::Component
+class NetworkConnectionPanel : public juce::Component, public BonjourDiscovery::Listener
 {
 public:
     NetworkConnectionPanel();
@@ -14,6 +15,11 @@ public:
 
     void paint (juce::Graphics&) override;
     void resized() override;
+    
+    // BonjourDiscovery::Listener implementation
+    void deviceDiscovered(const BonjourDiscovery::DiscoveredDevice& device) override;
+    void deviceLost(const std::string& deviceName) override;
+    void deviceConnected(const BonjourDiscovery::DiscoveredDevice& device) override;
 
 private:
     void connectButtonClicked();
@@ -25,6 +31,7 @@ private:
     // UI Components
     juce::Label titleLabel;
     juce::Label networkInfoLabel;
+    std::unique_ptr<BonjourDiscovery> bonjourDiscovery;
     juce::Label protocolLabel;
     juce::ComboBox protocolSelector;
     juce::TextEditor ipAddressEditor;

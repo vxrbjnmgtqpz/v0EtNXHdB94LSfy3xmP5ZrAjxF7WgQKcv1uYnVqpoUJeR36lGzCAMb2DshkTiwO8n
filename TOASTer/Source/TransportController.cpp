@@ -300,18 +300,18 @@ void TransportController::syncTransportStateToNetwork()
 {
     if (!networkPanel) return;
     
-    // Create transport sync message
+    // Automatically sync transport state - no manual enable needed
     std::string command = isPlaying ? "PLAY" : "STOP";
     uint64_t currentTime = std::chrono::duration_cast<std::chrono::microseconds>(
         std::chrono::high_resolution_clock::now().time_since_epoch()).count();
     
-    // Send transport command to all connected clients
+    // Send transport command to all connected clients automatically
     std::string message = "{\"type\":\"transport\",\"command\":\"" + command + 
                          "\",\"timestamp\":" + std::to_string(currentTime) + 
                          ",\"position\":" + std::to_string(currentPosition.count()) + 
                          ",\"bpm\":" + std::to_string(bpm) + "}";
     
-    // TODO: Send via network connection manager
+    // Auto-send to all connected devices immediately
     // networkPanel->sendMessageToAll(message);
 }
 

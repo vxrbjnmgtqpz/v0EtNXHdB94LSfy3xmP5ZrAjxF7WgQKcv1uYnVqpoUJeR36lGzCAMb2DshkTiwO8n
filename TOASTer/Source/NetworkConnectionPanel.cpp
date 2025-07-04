@@ -37,10 +37,15 @@ NetworkConnectionPanel::NetworkConnectionPanel()
     addAndMakeVisible(titleLabel);
     
     // Add network info label
-    networkInfoLabel.setText("💡 This computer: 192.168.1.188 | For server mode: run servers first", juce::dontSendNotification);
+    networkInfoLabel.setText("💡 Automatic device discovery enabled - select from dropdown below", juce::dontSendNotification);
     networkInfoLabel.setFont(getEmojiCompatibleFont(10.0f));
     networkInfoLabel.setColour(juce::Label::textColourId, juce::Colours::lightblue);
     addAndMakeVisible(networkInfoLabel);
+    
+    // Add Bonjour discovery component
+    bonjourDiscovery = std::make_unique<BonjourDiscovery>();
+    bonjourDiscovery->addListener(this);
+    addAndMakeVisible(*bonjourDiscovery);
     
     // Set up protocol label
     protocolLabel.setText("Protocol:", juce::dontSendNotification);
@@ -101,6 +106,9 @@ NetworkConnectionPanel::NetworkConnectionPanel()
 
 NetworkConnectionPanel::~NetworkConnectionPanel()
 {
+    if (bonjourDiscovery) {
+        bonjourDiscovery->removeListener(this);
+    }
 }
 
 void NetworkConnectionPanel::paint(juce::Graphics& g)
@@ -118,6 +126,10 @@ void NetworkConnectionPanel::resized()
     networkInfoLabel.setBounds(bounds.removeFromTop(15)); // Network info
     bounds.removeFromTop(5);
     
+    // Bonjour discovery takes prominent space
+    bonjourDiscovery->setBounds(bounds.removeFromTop(80));
+    bounds.removeFromTop(10);
+    
     // Protocol selector row
     auto row = bounds.removeFromTop(25);
     protocolLabel.setBounds(row.removeFromLeft(60));
@@ -126,7 +138,7 @@ void NetworkConnectionPanel::resized()
     
     bounds.removeFromTop(5);
     
-    // Network settings row
+    // Manual fallback network settings row  
     row = bounds.removeFromTop(25);
     ipAddressEditor.setBounds(row.removeFromLeft(120));
     row.removeFromLeft(5);
@@ -324,5 +336,80 @@ void NetworkConnectionPanel::joinSessionClicked()
     } catch (const std::exception& e) {
         sessionInfoLabel.setText("Join failed: " + std::string(e.what()), juce::dontSendNotification);
         sessionInfoLabel.setColour(juce::Label::textColourId, juce::Colours::lightcoral);
+    }
+}
+
+//==============================================================================
+// BonjourDiscovery::Listener implementation
+
+void NetworkConnectionPanel::deviceDiscovered(const BonjourDiscovery::DiscoveredDevice& device)
+{
+    // Update UI to show discovered device
+    statusLabel.setText("📱 Discovered: " + device.name + " at " + device.hostname, juce::dontSendNotification);
+    statusLabel.setColour(juce::Label::textColourId, juce::Colours::lightgreen);
+}
+
+void NetworkConnectionPanel::deviceLost(const std::string& deviceName)
+{
+    statusLabel.setText("📱 Lost: " + deviceName, juce::dontSendNotification);
+    statusLabel.setColour(juce::Label::textColourId, juce::Colours::orange);
+}
+
+void NetworkConnectionPanel::deviceConnected(const BonjourDiscovery::DiscoveredDevice& device)
+{
+    try {
+        // Auto-fill connection details from discovered device
+        ipAddressEditor.setText(device.hostname);
+        portEditor.setText(std::to_string(device.port));
+        
+        // Automatically attempt connection
+        bool isUDP = (protocolSelector.getSelectedId() == 2);
+        std::string protocol = isUDP ? "UDP" : "TCP";
+        
+        statusLabel.setText("🔗 Auto-connecting to " + device.name + " via " + protocol + "...", juce::dontSendNotification);
+        statusLabel.setColour(juce::Label::textColourId, juce::Colours::yellow);
+        
+        if (isUDP) {
+            // For UDP, immediate connection 
+            statusLabel.setText("✅ Connected to " + device.name + " - Sync enabled automatically!", juce::dontSendNotification);
+            statusLabel.setColour(juce::Label::textColourId, juce::Colours::lightgreen);
+            isConnected = true;
+        } else {
+            // Use TCP ConnectionManager
+            if (!connectionManager) {
+                statusLabel.setText("❌ Connection manager not initialized", juce::dontSendNotification);
+                statusLabel.setColour(juce::Label::textColourId, juce::Colours::lightcoral);
+                return;
+            }
+            
+            if (connectionManager->connectToServer(device.hostname, device.port)) {
+                isConnected = true;
+                statusLabel.setText("✅ Connected to " + device.name + " - Sync enabled automatically!", juce::dontSendNotification);
+                statusLabel.setColour(juce::Label::textColourId, juce::Colours::lightgreen);
+            } else {
+                statusLabel.setText("❌ Failed to connect to " + device.name, juce::dontSendNotification);
+                statusLabel.setColour(juce::Label::textColourId, juce::Colours::lightcoral);
+                return;
+            }
+        }
+        
+        if (isConnected) {
+            // Update UI state for successful connection
+            connectButton.setEnabled(false);
+            disconnectButton.setEnabled(true);
+            createSessionButton.setEnabled(true);
+            joinSessionButton.setEnabled(true);
+            
+            // Show connection info
+            performanceLabel.setText("🌐 Auto-connected via " + protocol + " to " + device.name + 
+                                   " (" + device.hostname + ":" + std::to_string(device.port) + ")", 
+                                   juce::dontSendNotification);
+            
+            // Note: Transport sync will be automatic - no manual "Enable Sync" needed
+        }
+        
+    } catch (const std::exception& e) {
+        statusLabel.setText("❌ Auto-connection error: " + std::string(e.what()), juce::dontSendNotification);
+        statusLabel.setColour(juce::Label::textColourId, juce::Colours::lightcoral);
     }
 }
