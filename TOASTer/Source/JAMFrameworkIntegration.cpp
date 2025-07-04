@@ -1,8 +1,9 @@
 #include "JAMFrameworkIntegration.h"
 
 // Include JAM Framework v2 headers
-#include "../JAM_Framework_v2/include/jam_toast.h"
-#include "../JAM_Framework_v2/include/gpu_backend.h"
+#include "jam_toast.h"
+#include "jam_core.h" 
+#include "compute_pipeline.h"
 
 #include <juce_core/juce_core.h>
 
@@ -27,18 +28,19 @@ bool JAMFrameworkIntegration::initialize(const std::string& multicast_addr,
         toastProtocol = std::make_unique<jam::TOASTv2Protocol>();
         
         // Set up frame callback
-        toastProtocol->setFrameCallback([this](const jam::TOASTFrame& frame) {
+        toastProtocol->set_midi_callback([this](const jam::TOASTFrame& frame) {
             handleIncomingFrame(frame);
         });
         
         // Set up error callback
-        toastProtocol->setErrorCallback([this](const std::string& error) {
+        toastProtocol->set_error_callback([this](const std::string& error) {
             juce::Logger::writeToLog("JAM Framework Error: " + juce::String(error));
             notifyStatusChange("Error: " + error, false);
         });
         
-        // Initialize the protocol
-        bool success = toastProtocol->initialize(multicast_addr, port, session_name);
+        // Initialize the protocol with session name converted to ID
+        uint32_t session_id = std::hash<std::string>{}(session_name);
+        bool success = toastProtocol->initialize(multicast_addr, port, session_id);
         
         if (success) {
             notifyStatusChange("JAM Framework v2 initialized", false);
@@ -58,9 +60,9 @@ bool JAMFrameworkIntegration::initialize(const std::string& multicast_addr,
 bool JAMFrameworkIntegration::initializeGPU() {
     try {
         // Initialize Metal GPU backend on macOS
-        gpuBackend = std::make_unique<jam::GPUBackend>();
+        gpuPipeline = std::make_unique<jam::ComputePipeline>();
         
-        bool success = gpuBackend->initialize();
+        bool success = gpuPipeline->initialize();
         gpuInitialized = success;
         
         if (success) {
@@ -87,7 +89,7 @@ bool JAMFrameworkIntegration::startNetwork() {
     }
     
     try {
-        bool success = toastProtocol->start();
+        bool success = toastProtocol->start_processing();
         networkActive = success;
         
         if (success) {
@@ -112,7 +114,7 @@ bool JAMFrameworkIntegration::startNetwork() {
 
 void JAMFrameworkIntegration::stopNetwork() {
     if (toastProtocol && networkActive) {
-        toastProtocol->stop();
+        toastProtocol->stop_processing();
         networkActive = false;
         activePeers = 0;
         notifyStatusChange("Disconnected", false);
@@ -131,7 +133,7 @@ void JAMFrameworkIntegration::sendMIDIEvent(uint8_t status, uint8_t data1, uint8
         
         // Create TOAST frame
         jam::TOASTFrame frame;
-        frame.header.frame_type = jam::TOASTFrameType::MIDI;
+        frame.header.frame_type = static_cast<uint8_t>(jam::TOASTFrameType::MIDI);
         frame.header.timestamp_us = static_cast<uint32_t>(
             juce::Time::getHighResolutionTicks() / 1000); // Convert to microseconds
         frame.payload = midiData;
@@ -142,11 +144,10 @@ void JAMFrameworkIntegration::sendMIDIEvent(uint8_t status, uint8_t data1, uint8
             burstConfig.burst_size = 3;  // Send 3 packets per MIDI event
             burstConfig.jitter_window_us = 500;  // 500μs jitter window
             burstConfig.enable_redundancy = true;
-            
-            toastProtocol->sendBurst(frame, burstConfig);
-        } else {
-            toastProtocol->sendFrame(frame);
         }
+        
+        // Send frame with burst setting
+        toastProtocol->send_frame(frame, use_burst);
         
         // Update throughput metrics
         currentMetrics.throughput_mbps += (midiData.size() * 8.0) / 1000000.0;
@@ -164,7 +165,7 @@ void JAMFrameworkIntegration::sendMIDIData(const uint8_t* data, size_t size, boo
     try {
         // Create TOAST frame
         jam::TOASTFrame frame;
-        frame.header.frame_type = jam::TOASTFrameType::MIDI;
+        frame.header.frame_type = static_cast<uint8_t>(jam::TOASTFrameType::MIDI);
         frame.header.timestamp_us = static_cast<uint32_t>(
             juce::Time::getHighResolutionTicks() / 1000);
         frame.payload.assign(data, data + size);
@@ -174,11 +175,10 @@ void JAMFrameworkIntegration::sendMIDIData(const uint8_t* data, size_t size, boo
             burstConfig.burst_size = 3;
             burstConfig.jitter_window_us = 500;
             burstConfig.enable_redundancy = true;
-            
-            toastProtocol->sendBurst(frame, burstConfig);
-        } else {
-            toastProtocol->sendFrame(frame);
         }
+        
+        // Send frame with burst setting
+        toastProtocol->send_frame(frame, use_burst);
         
         // Update metrics
         currentMetrics.throughput_mbps += (size * 8.0) / 1000000.0;
@@ -206,7 +206,7 @@ void JAMFrameworkIntegration::sendAudioData(const float* samples, int numSamples
         frame.payload = audioData;
         
         // TODO: Integrate PNBTR audio prediction when enablePrediction is true
-        if (enablePrediction && pnbtrAudioEnabled && gpuBackend) {
+        if (enablePrediction && pnbtrAudioEnabled && gpuPipeline) {
             // PNBTR prediction will be implemented here
             // For now, just log that prediction is requested
             juce::Logger::writeToLog("PNBTR audio prediction requested (implementation pending)");
@@ -249,7 +249,7 @@ void JAMFrameworkIntegration::sendVideoFrame(const uint8_t* frameData, int width
         frame.payload = videoData;
         
         // TODO: Integrate PNBTR-JVID video prediction when enablePrediction is true
-        if (enablePrediction && pnbtrVideoEnabled && gpuBackend) {
+        if (enablePrediction && pnbtrVideoEnabled && gpuPipeline) {
             // PNBTR-JVID prediction will be implemented here
             juce::Logger::writeToLog("PNBTR-JVID video prediction requested (implementation pending)");
         }
@@ -335,7 +335,7 @@ void JAMFrameworkIntegration::updatePerformanceMetrics() {
         currentMetrics.packet_loss_rate = toastProtocol->getPacketLossRate();
         
         // Update prediction accuracy if GPU backend is available
-        if (gpuBackend && gpuInitialized) {
+        if (gpuPipeline && gpuInitialized) {
             // TODO: Get prediction accuracy from PNBTR system
             currentMetrics.prediction_accuracy = predictionConfidence;
         }

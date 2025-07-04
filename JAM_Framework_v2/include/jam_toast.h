@@ -32,19 +32,19 @@ enum class TOASTFrameType : uint8_t {
  * TOAST v2 Frame Header (32 bytes fixed)
  */
 struct TOASTFrameHeader {
-    uint32_t magic = 0x54534F54;        // "TOST" magic number
-    uint8_t version = 2;                // TOAST version 2
-    TOASTFrameType frame_type;          // Frame type
-    uint16_t flags = 0;                 // Control flags
-    uint32_t sequence_number = 0;       // Sequence number
-    uint32_t timestamp_us = 0;          // Microsecond timestamp
-    uint32_t payload_size = 0;          // Payload size in bytes
-    uint32_t burst_id = 0;              // Burst identifier (0 = no burst)
-    uint8_t burst_index = 0;            // Index in burst (0-based)
-    uint8_t burst_total = 1;            // Total packets in burst
-    uint16_t checksum = 0;              // Header + payload checksum
-    uint32_t session_id = 0;            // Session identifier
-    uint32_t reserved = 0;              // Reserved for future use
+    uint32_t magic = 0x54534F54;        // "TOST" magic number (4 bytes)
+    uint8_t version = 2;                // TOAST version 2 (1 byte)
+    uint8_t frame_type;                 // Frame type (1 byte, changed from enum)
+    uint16_t flags = 0;                 // Control flags (2 bytes)
+    uint32_t sequence_number = 0;       // Sequence number (4 bytes)
+    uint32_t timestamp_us = 0;          // Microsecond timestamp (4 bytes)
+    uint32_t payload_size = 0;          // Payload size in bytes (4 bytes)
+    uint32_t burst_id = 0;              // Burst identifier (4 bytes)
+    uint8_t burst_index = 0;            // Index in burst (1 byte)
+    uint8_t burst_total = 1;            // Total packets in burst (1 byte)
+    uint16_t checksum = 0;              // Header + payload checksum (2 bytes)
+    uint32_t session_id = 0;            // Session identifier (4 bytes)
+    // Total: 32 bytes exactly
 } __attribute__((packed));
 
 static_assert(sizeof(TOASTFrameHeader) == 32, "TOASTFrameHeader must be 32 bytes");

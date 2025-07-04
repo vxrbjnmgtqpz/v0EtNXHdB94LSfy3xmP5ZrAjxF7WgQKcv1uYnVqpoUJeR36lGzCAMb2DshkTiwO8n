@@ -65,7 +65,7 @@ public:
      * @param format_type Type identifier for receiver processing
      * @param burst_count Number of duplicate packets
      */
-    virtual void send_binary(std::span<const uint8_t> data, const std::string& format_type, uint8_t burst_count = 1) = 0;
+    virtual void send_binary(const std::vector<uint8_t>& data, const std::string& format_type, uint8_t burst_count = 1) = 0;
 
     /**
      * Set message receiver callback
@@ -82,7 +82,7 @@ public:
      * 
      * @param callback Function to handle received binary data
      */
-    virtual void set_binary_callback(std::function<void(std::span<const uint8_t> data, const std::string& format_type)> callback) = 0;
+    virtual void set_binary_callback(std::function<void(const std::vector<uint8_t>& data, const std::string& format_type)> callback) = 0;
 
     /**
      * Start UDP multicast listening and GPU processing
@@ -153,7 +153,7 @@ public:
      * @return Processing time in microseconds
      */
     virtual uint64_t process_batch(
-        std::span<const JAMMessage> messages,
+        const std::vector<JAMMessage>& messages,
         std::vector<JAMMessage>& deduplicated
     ) = 0;
     

@@ -7,7 +7,7 @@
 
 // Forward declarations
 class TransportController;
-class JAMNetworkPanel;  // Updated to use JAM Framework v2
+class JAMNetworkPanel;  // Using JAM Framework v2 panel
 class MIDITestingPanel;
 class PerformanceMonitorPanel;
 class ClockSyncPanel;
@@ -73,7 +73,7 @@ private:
     
     // UI Components
     std::unique_ptr<TransportController> transportController;
-    std::unique_ptr<JAMNetworkPanel> jamNetworkPanel;  // Updated to JAM Framework v2
+    std::unique_ptr<JAMNetworkPanel> jamNetworkPanel;  // Using JAM Framework v2 panel
     std::unique_ptr<MIDITestingPanel> midiPanel;
     std::unique_ptr<PerformanceMonitorPanel> performancePanel;
     std::unique_ptr<ClockSyncPanel> clockSyncPanel;

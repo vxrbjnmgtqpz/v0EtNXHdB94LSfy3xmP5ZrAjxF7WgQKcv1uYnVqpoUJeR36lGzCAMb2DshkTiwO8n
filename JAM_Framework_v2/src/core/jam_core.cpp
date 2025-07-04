@@ -60,6 +60,23 @@ public:
         running_ = false;
     }
     
+    Statistics get_statistics() const override {
+        Statistics stats;
+        stats.messages_sent = 0;
+        stats.messages_received = 0;
+        stats.bytes_sent = 0;
+        stats.bytes_received = 0;
+        stats.average_latency_us = 0;
+        stats.packets_dropped = 0;
+        stats.duplicate_packets = 0;
+        // TODO: Implement actual statistics collection
+        return stats;
+    }
+    
+    void flush_gpu_pipeline() override {
+        // TODO: Implement GPU pipeline flush
+    }
+    
 private:
     std::string multicast_group_;
     uint16_t port_;

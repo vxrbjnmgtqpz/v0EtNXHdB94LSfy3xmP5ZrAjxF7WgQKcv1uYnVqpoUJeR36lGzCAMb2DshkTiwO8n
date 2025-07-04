@@ -8,6 +8,7 @@
  */
 
 #include <juce_core/juce_core.h>
+#include <juce_events/juce_events.h>
 #include <memory>
 #include <functional>
 #include <vector>
@@ -18,7 +19,7 @@ namespace jam {
     class TOASTv2Protocol;
     struct TOASTFrame;
     struct BurstConfig;
-    class GPUBackend;
+    class ComputePipeline;
 }
 
 /**
@@ -182,7 +183,7 @@ public:
 private:
     // JAM Framework v2 components
     std::unique_ptr<jam::TOASTv2Protocol> toastProtocol;
-    std::unique_ptr<jam::GPUBackend> gpuBackend;
+    std::unique_ptr<jam::ComputePipeline> gpuPipeline;
     
     // State management
     bool networkActive = false;

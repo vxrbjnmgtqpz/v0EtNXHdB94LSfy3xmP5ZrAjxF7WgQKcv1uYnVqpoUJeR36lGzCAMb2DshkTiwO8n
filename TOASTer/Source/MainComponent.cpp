@@ -1,6 +1,6 @@
 #include "MainComponent.h"
 #include "TransportController.h"
-#include "JAMNetworkPanel.h"  // Updated to JAM Framework v2
+#include "JAMNetworkPanel.h"  // Using JAM Framework v2 panel
 #include "MIDITestingPanel.h"
 #include "PerformanceMonitorPanel.h"
 #include "ClockSyncPanel.h"
@@ -17,7 +17,7 @@ MainComponent::MainComponent()
     transportController = std::make_unique<TransportController>();
     addAndMakeVisible(transportController.get());
     
-    jamNetworkPanel = std::make_unique<JAMNetworkPanel>();  // Updated to JAM Framework v2
+    jamNetworkPanel = std::make_unique<JAMNetworkPanel>();  // Using JAM Framework v2 panel
     addAndMakeVisible(jamNetworkPanel.get());
     
     midiPanel = std::make_unique<MIDITestingPanel>();
@@ -33,7 +33,7 @@ MainComponent::MainComponent()
     jmidPanel = std::make_unique<JMIDIntegrationPanel>();
     addAndMakeVisible(jmidPanel.get());
     
-    // Connect TransportController to JAM Network Panel for automatic sync
+    // Connect TransportController to Network Panel for automatic sync
     transportController->setNetworkPanel(jamNetworkPanel.get());
     
     // Start timer to coordinate state updates between panels

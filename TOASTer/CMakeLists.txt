@@ -33,8 +33,8 @@ target_sources(TOASTer PRIVATE
     Source/Main.cpp
     Source/MainComponent.cpp
     Source/TransportController.cpp
-    Source/JAMNetworkPanel.cpp          # New JAM Framework v2 network panel
-    Source/JAMFrameworkIntegration.cpp  # JAM Framework v2 integration layer
+    Source/JAMNetworkPanel.cpp          # Re-enabled JAM Framework v2 panel
+    Source/JAMFrameworkIntegration.cpp  # Re-enabled JAM Framework v2 integration
     Source/NetworkConnectionPanel.cpp   # Legacy TCP panel (for fallback)
     Source/ConnectionDiscovery.cpp
     Source/BonjourDiscovery.mm

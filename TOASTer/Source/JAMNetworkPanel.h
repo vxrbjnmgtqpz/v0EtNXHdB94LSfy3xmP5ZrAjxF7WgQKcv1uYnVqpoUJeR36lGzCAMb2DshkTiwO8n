@@ -101,8 +101,9 @@ private:
     void onJAMMIDIReceived(uint8_t status, uint8_t data1, uint8_t data2, uint32_t timestamp);
     
     // BonjourDiscovery::Listener implementation
-    void deviceFound(const std::string& name, const std::string& ip, int port) override;
-    void deviceLost(const std::string& name) override;
+    void deviceDiscovered(const BonjourDiscovery::DiscoveredDevice& device) override;
+    void deviceLost(const std::string& deviceName) override;
+    void deviceConnected(const BonjourDiscovery::DiscoveredDevice& device) override;
     
     // Timer callback
     void timerCallback() override;
