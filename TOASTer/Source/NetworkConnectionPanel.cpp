@@ -37,7 +37,7 @@ NetworkConnectionPanel::NetworkConnectionPanel()
     addAndMakeVisible(titleLabel);
     
     // Add network info label
-    networkInfoLabel.setText("💡 Automatic device discovery enabled - select from dropdown below", juce::dontSendNotification);
+    networkInfoLabel.setText("💡 Automatic device discovery - DHCP, Link-Local, USB4, WiFi all supported", juce::dontSendNotification);
     networkInfoLabel.setFont(getEmojiCompatibleFont(10.0f));
     networkInfoLabel.setColour(juce::Label::textColourId, juce::Colours::lightblue);
     addAndMakeVisible(networkInfoLabel);

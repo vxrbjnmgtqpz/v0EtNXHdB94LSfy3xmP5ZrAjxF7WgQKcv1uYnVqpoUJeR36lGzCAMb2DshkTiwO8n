@@ -125,64 +125,10 @@ class EmotionIntegrationLayer:
         This ensures compatibility with existing chord progression data
         """
         return {
-            # Direct mappings
-            'Joy': 'Joy',
-            'Sadness': 'Sadness', 
-            'Anger': 'Anger',
-            'Fear': 'Fear',
-            'Trust': 'Trust',
-            'Love': 'Love',
-            'Disgust': 'Disgust',
-            'Surprise': 'Surprise',
-            'Anticipation': 'Anticipation',
-            
-            # Enhanced emotions to database emotions
-            'Aesthetic': 'Wonder',
-            'Awe': 'Wonder',
-            'Beauty': 'Wonder',
-            'Transcendence': 'Wonder',
-            'Wonder': 'Wonder',
-            
-            'Shame': 'Shame',
-            'Envy': 'Envy', 
-            'Pride': 'Empowerment',
-            'Guilt': 'Shame',
-            
-            'Reverence': 'Reverence',
-            'Gratitude': 'Gratitude',
-            'Humility': 'Trust',
-            'Peace': 'Trust',
-            
-            'Nostalgia': 'Sadness',  # Bittersweet mapping
-            'Malice': 'Malice',
-            'Empowerment': 'Empowerment',
-            'Loneliness': 'Sadness',
-            
-            # Sub-emotion mappings
-            'Excitement': 'Joy',
-            'Contentment': 'Joy',
-            'Euphoria': 'Joy',
-            'Cheerfulness': 'Joy',
-            
-            'Melancholy': 'Sadness',
-            'Grief': 'Sadness',
-            'Despair': 'Sadness',
-            'Sorrow': 'Sadness',
-            
-            'Frustration': 'Anger',
-            'Rage': 'Anger', 
-            'Annoyance': 'Anger',
-            'Indignation': 'Anger',
-            
-            'Anxiety': 'Fear',
-            'Terror': 'Fear',
-            'Panic': 'Fear',
-            'Apprehension': 'Fear',
-            
-            'Affection': 'Love',
-            'Passion': 'Love',
-            'Tenderness': 'Love',
-            'Devotion': 'Love'
+            'Joy': 'Joy', 'Sadness': 'Sadness', 'Anger': 'Anger',
+            'Fear': 'Fear', 'Trust': 'Trust', 'Love': 'Love',
+            'Excitement': 'Joy', 'Melancholy': 'Sadness',
+            'Awe': 'Wonder', 'Nostalgia': 'Sadness'
         }
     
     def _create_emotion_states(self, parsed_emotions: Dict[str, float], text: str) -> List[EmotionState]:
@@ -210,19 +156,12 @@ class EmotionIntegrationLayer:
         return emotion_states
     
     def _map_to_database_emotions(self, parsed_emotions: Dict[str, float]) -> Dict[str, float]:
-        """Map enhanced parser emotions to database emotions with weight preservation"""
+        """Map enhanced parser emotions to database emotions"""
         database_emotions = {}
-        
         for emotion, weight in parsed_emotions.items():
             mapped_emotion = self.emotion_mapping.get(emotion, emotion)
-            
-            if mapped_emotion in database_emotions:
-                # Combine weights for emotions that map to the same database emotion
-                database_emotions[mapped_emotion] += weight
-            else:
-                database_emotions[mapped_emotion] = weight
+            database_emotions[mapped_emotion] = database_emotions.get(mapped_emotion, 0) + weight
         
-        # Normalize weights
         total = sum(database_emotions.values())
         if total > 0:
             database_emotions = {k: v/total for k, v in database_emotions.items()}

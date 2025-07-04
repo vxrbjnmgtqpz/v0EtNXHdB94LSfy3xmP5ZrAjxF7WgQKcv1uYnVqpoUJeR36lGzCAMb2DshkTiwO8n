@@ -14,13 +14,24 @@
 class ConnectionDiscovery : public juce::Component, public juce::Timer
 {
 public:
+    struct NetworkInterface {
+        std::string name;
+        std::string ipAddress;
+        std::string connectionType;
+        bool isDHCP;
+        bool isLinkLocal;
+    };
+    
     struct DiscoveredDevice {
         std::string name;
         std::string ipAddress;
         int port;
-        std::string connectionType; // "WiFi", "Ethernet", "USB4", etc.
+        std::string connectionType; // "WiFi-DHCP", "Ethernet-DHCP", "USB4-LinkLocal", "USB4-DHCP", "Static", etc.
+        std::string networkInterface; // "en0", "bridge100", "utun0", etc.
         bool isAvailable;
         uint64_t lastSeen;
+        bool isDHCP;
+        bool isLinkLocal;
     };
     
     class Listener {
@@ -52,6 +63,7 @@ public:
     
 private:
     void scanNetwork();
+    void scanNetworkInterface(const NetworkInterface& iface);
     void scanUSBConnections();
     void broadcastPresence();
     void updateDeviceList();

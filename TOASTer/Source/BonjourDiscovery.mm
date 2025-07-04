@@ -215,6 +215,23 @@ void BonjourDiscovery::onServiceFound(const std::string& name, const std::string
             device.hostname = hostname;
             device.port = port;
             device.isAvailable = true;
+            
+            // Classify connection type based on hostname/IP
+            if (hostname.find("169.254.") != std::string::npos) {
+                device.connectionType = "USB4/Thunderbolt-Bonjour";
+                device.isLinkLocal = true;
+                device.isDHCP = false;
+            } else if (hostname.find("192.168.") != std::string::npos || 
+                      hostname.find("10.") != std::string::npos) {
+                device.connectionType = "Network-DHCP-Bonjour";
+                device.isLinkLocal = false;
+                device.isDHCP = true;
+            } else {
+                device.connectionType = "Network-Bonjour";
+                device.isLinkLocal = false;
+                device.isDHCP = false;
+            }
+            
             updateDeviceDropdown();
             return;
         }
@@ -228,6 +245,22 @@ void BonjourDiscovery::onServiceFound(const std::string& name, const std::string
     device.serviceType = "_toast._tcp.";
     device.isAvailable = true;
     
+    // Classify connection type based on hostname/IP
+    if (hostname.find("169.254.") != std::string::npos) {
+        device.connectionType = "USB4/Thunderbolt-Bonjour";
+        device.isLinkLocal = true;
+        device.isDHCP = false;
+    } else if (hostname.find("192.168.") != std::string::npos || 
+              hostname.find("10.") != std::string::npos) {
+        device.connectionType = "Network-DHCP-Bonjour";
+        device.isLinkLocal = false;
+        device.isDHCP = true;
+    } else {
+        device.connectionType = "Network-Bonjour";
+        device.isLinkLocal = false;
+        device.isDHCP = false;
+    }
+    
     discoveredDevices.push_back(device);
     updateDeviceDropdown();
     
@@ -236,7 +269,14 @@ void BonjourDiscovery::onServiceFound(const std::string& name, const std::string
         listener->deviceDiscovered(device);
     }
     
-    statusLabel.setText("📱 Found device: " + name, juce::dontSendNotification);
+    // Show appropriate status based on connection type
+    if (device.isLinkLocal) {
+        statusLabel.setText("� Found USB4/Thunderbolt device: " + name, juce::dontSendNotification);
+    } else if (device.isDHCP) {
+        statusLabel.setText("📶 Found DHCP device: " + name, juce::dontSendNotification);
+    } else {
+        statusLabel.setText("�📱 Found device: " + name, juce::dontSendNotification);
+    }
     statusLabel.setColour(juce::Label::textColourId, juce::Colours::lightgreen);
 }
 
@@ -269,7 +309,18 @@ void BonjourDiscovery::updateDeviceDropdown()
         int id = 1;
         for (const auto& device : discoveredDevices) {
             if (device.isAvailable) {
-                std::string displayName = "📱 " + device.name + " (" + device.hostname + ":" + std::to_string(device.port) + ")";
+                std::string icon = "📱"; // Default
+                if (device.connectionType.find("USB4") != std::string::npos) {
+                    icon = "🔗"; // USB4/Thunderbolt
+                } else if (device.connectionType.find("DHCP") != std::string::npos) {
+                    icon = "📶"; // DHCP network
+                } else if (device.isLinkLocal) {
+                    icon = "🔗"; // Link-local
+                }
+                
+                std::string displayName = icon + " " + device.name + 
+                                        " (" + device.connectionType + 
+                                        " @ " + device.hostname + ":" + std::to_string(device.port) + ")";
                 deviceDropdown.addItem(displayName, id++);
             }
         }

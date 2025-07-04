@@ -6,6 +6,8 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <ifaddrs.h>
+#include <net/if.h>
+#include <fstream>
 
 // Helper function for emoji-compatible font setup
 static juce::Font getEmojiCompatibleFont(float size = 12.0f)
@@ -139,11 +141,11 @@ void ConnectionDiscovery::refreshDiscovery()
 
 void ConnectionDiscovery::scanNetwork()
 {
-    // Get local network interfaces
+    // Get all local network interfaces with detailed classification
     struct ifaddrs *ifaddrs_ptr;
     if (getifaddrs(&ifaddrs_ptr) == -1) return;
     
-    std::vector<std::string> localNetworks;
+    std::vector<NetworkInterface> interfaces;
     
     for (struct ifaddrs *ifa = ifaddrs_ptr; ifa != nullptr; ifa = ifa->ifa_next) {
         if (ifa->ifa_addr && ifa->ifa_addr->sa_family == AF_INET) {
@@ -152,71 +154,128 @@ void ConnectionDiscovery::scanNetwork()
             inet_ntop(AF_INET, &(addr_in->sin_addr), ip_str, INET_ADDRSTRLEN);
             
             std::string ip = ip_str;
-            if (ip.find("192.168.") == 0 || ip.find("10.") == 0 || ip.find("172.") == 0) {
-                // Extract network base (e.g., 192.168.1. from 192.168.1.188)
-                size_t lastDot = ip.find_last_of('.');
-                if (lastDot != std::string::npos) {
-                    localNetworks.push_back(ip.substr(0, lastDot + 1));
+            std::string interface_name = ifa->ifa_name;
+            
+            // Skip loopback
+            if (ip == "127.0.0.1" || interface_name == "lo0") continue;
+            
+            NetworkInterface iface;
+            iface.name = interface_name;
+            iface.ipAddress = ip;
+            
+            // Classify connection type based on IP and interface name
+            if (ip.find("169.254.") == 0) {
+                iface.isLinkLocal = true;
+                iface.isDHCP = false;
+                if (interface_name.find("bridge") != std::string::npos) {
+                    iface.connectionType = "USB4/Thunderbolt-LinkLocal";
+                } else {
+                    iface.connectionType = "Network-LinkLocal";
                 }
+            } else if (ip.find("192.168.") == 0 || ip.find("10.") == 0 || 
+                      (ip.find("172.") == 0 && std::stoi(ip.substr(4, ip.find('.', 4) - 4)) >= 16 && 
+                       std::stoi(ip.substr(4, ip.find('.', 4) - 4)) <= 31)) {
+                // Private IP ranges - likely DHCP
+                iface.isLinkLocal = false;
+                iface.isDHCP = true; // Assume DHCP for private ranges
+                
+                if (interface_name.find("bridge") != std::string::npos) {
+                    iface.connectionType = "USB4/Thunderbolt-DHCP";
+                } else if (interface_name.find("en") == 0) {
+                    iface.connectionType = interface_name == "en0" ? "WiFi-DHCP" : "Ethernet-DHCP";
+                } else {
+                    iface.connectionType = "Network-DHCP";
+                }
+            } else {
+                // Other IPs - could be static
+                iface.isLinkLocal = false;
+                iface.isDHCP = false;
+                iface.connectionType = "Network-Static";
             }
+            
+            interfaces.push_back(iface);
         }
     }
     freeifaddrs(ifaddrs_ptr);
     
-    // Scan common IP ranges for TOAST servers
-    for (const auto& networkBase : localNetworks) {
-        for (int i = 1; i < 255; ++i) {
-            if (!isDiscovering) break;
+    // Now scan each interface's network for TOAST devices
+    for (const auto& iface : interfaces) {
+        scanNetworkInterface(iface);
+    }
+}
+
+void ConnectionDiscovery::scanNetworkInterface(const NetworkInterface& iface)
+{
+    std::string networkBase;
+    
+    // Extract network base (e.g., 192.168.1. from 192.168.1.188)
+    size_t lastDot = iface.ipAddress.find_last_of('.');
+    if (lastDot != std::string::npos) {
+        networkBase = iface.ipAddress.substr(0, lastDot + 1);
+    } else {
+        return; // Invalid IP format
+    }
+    
+    // For link-local addresses, scan more carefully (smaller range)
+    int maxHosts = iface.isLinkLocal ? 50 : 254;
+    
+    // Scan IP range for TOAST servers on this interface
+    for (int i = 1; i <= maxHosts && isDiscovering; ++i) {
+        std::string targetIP = networkBase + std::to_string(i);
+        
+        // Skip our own IP
+        if (targetIP == iface.ipAddress) continue;
+        
+        // Quick TCP port check on 8080
+        int sock = socket(AF_INET, SOCK_STREAM, 0);
+        if (sock < 0) continue;
+        
+        struct timeval timeout;
+        timeout.tv_sec = 0;
+        timeout.tv_usec = iface.isLinkLocal ? 200000 : 500000; // Faster timeout for link-local
+        setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
+        setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout));
+        
+        struct sockaddr_in target_addr;
+        target_addr.sin_family = AF_INET;
+        target_addr.sin_port = htons(8080);
+        inet_pton(AF_INET, targetIP.c_str(), &target_addr.sin_addr);
+        
+        if (connect(sock, (struct sockaddr*)&target_addr, sizeof(target_addr)) == 0) {
+            // Found a TOAST server!
+            DiscoveredDevice device;
+            device.name = "TOAST Device @ " + targetIP;
+            device.ipAddress = targetIP;
+            device.port = 8080;
+            device.connectionType = iface.connectionType;
+            device.networkInterface = iface.name;
+            device.isAvailable = true;
+            device.isDHCP = iface.isDHCP;
+            device.isLinkLocal = iface.isLinkLocal;
+            device.lastSeen = std::chrono::duration_cast<std::chrono::milliseconds>(
+                std::chrono::system_clock::now().time_since_epoch()).count();
             
-            std::string targetIP = networkBase + std::to_string(i);
-            
-            // Quick TCP port check on 8080
-            int sock = socket(AF_INET, SOCK_STREAM, 0);
-            if (sock < 0) continue;
-            
-            struct timeval timeout;
-            timeout.tv_sec = 0;
-            timeout.tv_usec = 500000; // 500ms timeout
-            setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
-            setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout));
-            
-            struct sockaddr_in target_addr;
-            target_addr.sin_family = AF_INET;
-            target_addr.sin_port = htons(8080);
-            inet_pton(AF_INET, targetIP.c_str(), &target_addr.sin_addr);
-            
-            if (connect(sock, (struct sockaddr*)&target_addr, sizeof(target_addr)) == 0) {
-                // Found a TOAST server!
-                DiscoveredDevice device;
-                device.name = "TOAST Device @ " + targetIP;
-                device.ipAddress = targetIP;
-                device.port = 8080;
-                device.connectionType = "WiFi/Ethernet";
-                device.isAvailable = true;
-                device.lastSeen = std::chrono::duration_cast<std::chrono::milliseconds>(
-                    std::chrono::system_clock::now().time_since_epoch()).count();
-                
-                // Check if device already exists
-                bool found = false;
-                for (auto& existing : discoveredDevices) {
-                    if (existing.ipAddress == targetIP) {
-                        existing.lastSeen = device.lastSeen;
-                        found = true;
-                        break;
-                    }
-                }
-                
-                if (!found) {
-                    discoveredDevices.push_back(device);
-                    // Notify listeners
-                    for (auto* listener : listeners) {
-                        listener->deviceDiscovered(device);
-                    }
+            // Check if device already exists (update instead of duplicate)
+            bool found = false;
+            for (auto& existing : discoveredDevices) {
+                if (existing.ipAddress == device.ipAddress) {
+                    existing = device; // Update existing
+                    found = true;
+                    break;
                 }
             }
             
-            close(sock);
+            if (!found) {
+                discoveredDevices.push_back(device);
+                
+                // Notify listeners
+                for (auto* listener : listeners) {
+                    listener->deviceDiscovered(device);
+                }
+            }
         }
+        
+        close(sock);
     }
 }
 

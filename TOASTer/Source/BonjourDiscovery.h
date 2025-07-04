@@ -27,7 +27,10 @@ public:
         std::string hostname;
         int port;
         std::string serviceType;
+        std::string connectionType; // "WiFi-Bonjour", "USB4-Bonjour", "Ethernet-Bonjour"
         bool isAvailable;
+        bool isDHCP;
+        bool isLinkLocal;
     };
     
     class Listener {
