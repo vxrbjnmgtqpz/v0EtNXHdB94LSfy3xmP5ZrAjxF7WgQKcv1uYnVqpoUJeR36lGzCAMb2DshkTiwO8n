@@ -1,0 +1,224 @@
+#version 450
+
+// JELLIE GPU Decoder Compute Shader
+// Reconstructs original audio from 4 ADAT-inspired streams with redundancy recovery
+
+layout(local_size_x = 64) in;
+
+// Input stream buffers
+layout(binding = 0, std430) readonly buffer Stream0Buffer {
+    float stream0_samples[];  // Even samples
+};
+
+layout(binding = 1, std430) readonly buffer Stream1Buffer {
+    float stream1_samples[];  // Odd samples
+};
+
+layout(binding = 2, std430) readonly buffer Stream2Buffer {
+    float stream2_samples[];  // Redundancy A
+};
+
+layout(binding = 3, std430) readonly buffer Stream3Buffer {
+    float stream3_samples[];  // Redundancy B
+};
+
+// Stream availability flags
+layout(binding = 4, std430) readonly buffer StreamFlags {
+    uint stream_available[];  // 4 flags for each stream
+};
+
+// Output reconstructed audio
+layout(binding = 5, std430) writeonly buffer AudioOutputBuffer {
+    float reconstructed_audio[];
+};
+
+// PNBTR prediction buffer (for complete packet loss scenarios)
+layout(binding = 6, std430) readonly buffer PNBTRBuffer {
+    float pnbtr_predictions[];
+};
+
+// Decoding parameters
+layout(binding = 7, std140) uniform DecodingParams {
+    uint total_samples;
+    uint redundancy_level;
+    uint enable_pnbtr;
+    uint reconstruction_method;
+    float prediction_confidence;
+};
+
+void main() {
+    uint index = gl_GlobalInvocationID.x;
+    
+    // Bounds check
+    if (index >= total_samples) {
+        return;
+    }
+    
+    // Determine stream availability
+    bool has_stream0 = stream_available[0] > 0;  // Even samples
+    bool has_stream1 = stream_available[1] > 0;  // Odd samples
+    bool has_redundancy_a = stream_available[2] > 0;
+    bool has_redundancy_b = stream_available[3] > 0;
+    
+    uint stream_index = index / 2;
+    bool is_even_position = (index % 2 == 0);
+    
+    float reconstructed_sample = 0.0;
+    
+    // Reconstruction priority:
+    // 1. Use primary streams if available
+    // 2. Use redundancy reconstruction
+    // 3. Fall back to PNBTR prediction
+    
+    if (has_stream0 && has_stream1) {
+        // Best case: both primary streams available
+        if (is_even_position) {
+            reconstructed_sample = stream0_samples[stream_index];
+        } else {
+            reconstructed_sample = stream1_samples[stream_index];
+        }
+        
+    } else if (has_stream0 && has_redundancy_a) {
+        // Reconstruct odd samples from redundancy A
+        if (is_even_position) {
+            reconstructed_sample = stream0_samples[stream_index];
+        } else {
+            // Reverse redundancy A formula: odd = (redundancy_a - even * 0.8) / 0.2
+            float even_sample = stream0_samples[stream_index];
+            float redundancy_val = stream2_samples[stream_index];
+            reconstructed_sample = (redundancy_val - even_sample * 0.8) / 0.2;
+        }
+        
+    } else if (has_stream1 && has_redundancy_a) {
+        // Reconstruct even samples from redundancy A
+        if (!is_even_position) {
+            reconstructed_sample = stream1_samples[stream_index];
+        } else {
+            // Reverse redundancy A formula: even = (redundancy_a + odd * 0.2) / 0.8
+            float odd_sample = stream1_samples[stream_index];
+            float redundancy_val = stream2_samples[stream_index];
+            reconstructed_sample = (redundancy_val + odd_sample * 0.2) / 0.8;
+        }
+        
+    } else if (has_redundancy_a && has_redundancy_b) {
+        // Reconstruct from redundancy streams only
+        vec2 reconstructed = reconstruct_from_redundancy_only(
+            stream2_samples[stream_index], 
+            stream3_samples[stream_index]
+        );
+        
+        if (is_even_position) {
+            reconstructed_sample = reconstructed.x;  // Even
+        } else {
+            reconstructed_sample = reconstructed.y;  // Odd
+        }
+        
+    } else if (has_stream0) {
+        // Single stream fallback - use even stream for both positions
+        reconstructed_sample = stream0_samples[stream_index];
+        
+    } else if (has_stream1) {
+        // Single stream fallback - use odd stream for both positions
+        reconstructed_sample = stream1_samples[stream_index];
+        
+    } else if (enable_pnbtr > 0 && index < total_samples) {
+        // Complete packet loss - use PNBTR prediction
+        reconstructed_sample = pnbtr_predictions[index] * prediction_confidence;
+        
+    } else {
+        // Complete failure - output silence
+        reconstructed_sample = 0.0;
+    }
+    
+    // Clamp to audio range and apply any final processing
+    reconstructed_sample = clamp(reconstructed_sample, -1.0, 1.0);
+    
+    // Optional: Apply PNBTR dither replacement even for successfully received samples
+    if (enable_pnbtr > 0) {
+        reconstructed_sample = apply_pnbtr_enhancement(reconstructed_sample, index);
+    }
+    
+    // Store result
+    reconstructed_audio[index] = reconstructed_sample;
+}
+
+// Reconstruct both even and odd samples from dual redundancy streams
+vec2 reconstruct_from_redundancy_only(float redundancy_a, float redundancy_b) {
+    // Solve system of equations:
+    // redundancy_a = even * 0.8 + odd * 0.2
+    // redundancy_b = even * 0.8 - odd * 0.6
+    
+    // Subtracting: redundancy_a - redundancy_b = odd * 0.8
+    float odd = (redundancy_a - redundancy_b) / 0.8;
+    
+    // Substituting back: even = (redundancy_a - odd * 0.2) / 0.8
+    float even = (redundancy_a - odd * 0.2) / 0.8;
+    
+    // Clamp results
+    even = clamp(even, -1.0, 1.0);
+    odd = clamp(odd, -1.0, 1.0);
+    
+    return vec2(even, odd);
+}
+
+// Apply PNBTR-style enhancement to successfully received samples
+float apply_pnbtr_enhancement(float sample, uint index) {
+    // This would integrate with PNBTR neural processing for:
+    // - Zero-noise dither replacement
+    // - Waveform continuity enhancement
+    // - Artifact reduction
+    
+    // Placeholder for neural-based enhancement
+    // In real implementation, this would call PNBTR prediction algorithms
+    
+    // Simple noise shaping for demonstration
+    float enhanced = sample;
+    
+    // Apply sophisticated processing here
+    // (PNBTR waveform modeling, transient recovery, etc.)
+    
+    return enhanced;
+}
+
+// Advanced reconstruction methods
+float advanced_interpolation(float prev_sample, float next_sample, float position) {
+    // Hermite interpolation for smooth reconstruction
+    float t = position;
+    float t2 = t * t;
+    float t3 = t2 * t;
+    
+    // Hermite basis functions
+    float h00 = 2.0 * t3 - 3.0 * t2 + 1.0;
+    float h10 = t3 - 2.0 * t2 + t;
+    float h01 = -2.0 * t3 + 3.0 * t2;
+    float h11 = t3 - t2;
+    
+    // Simple tangent estimation
+    float m0 = 0.0;  // Would be computed from previous samples
+    float m1 = 0.0;  // Would be computed from next samples
+    
+    return h00 * prev_sample + h10 * m0 + h01 * next_sample + h11 * m1;
+}
+
+// Quality assessment for reconstruction confidence
+float assess_reconstruction_quality(vec4 stream_data, uvec4 availability) {
+    float quality = 0.0;
+    
+    if (availability.x > 0 && availability.y > 0) {
+        quality = 1.0;  // Perfect - both primary streams
+    } else if (availability.x > 0 && availability.z > 0) {
+        quality = 0.9;  // Very good - primary + redundancy
+    } else if (availability.y > 0 && availability.z > 0) {
+        quality = 0.9;  // Very good - primary + redundancy
+    } else if (availability.z > 0 && availability.w > 0) {
+        quality = 0.8;  // Good - dual redundancy
+    } else if (availability.x > 0 || availability.y > 0) {
+        quality = 0.6;  // Fair - single primary stream
+    } else if (availability.z > 0 || availability.w > 0) {
+        quality = 0.4;  // Poor - single redundancy stream
+    } else {
+        quality = 0.1;  // Very poor - PNBTR prediction only
+    }
+    
+    return quality;
+}

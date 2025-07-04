@@ -1,0 +1,129 @@
+#version 450
+
+// JELLIE GPU Encoder Compute Shader
+// Processes audio samples in parallel and splits them into 4 ADAT-inspired streams
+
+layout(local_size_x = 64) in;
+
+// Input audio buffer
+layout(binding = 0, std430) readonly buffer AudioInputBuffer {
+    float audio_samples[];
+};
+
+// Output stream buffers (ADAT-inspired 4-stream architecture)
+layout(binding = 1, std430) writeonly buffer Stream0Buffer {
+    float stream0_samples[];  // Even samples
+};
+
+layout(binding = 2, std430) writeonly buffer Stream1Buffer {
+    float stream1_samples[];  // Odd samples
+};
+
+layout(binding = 3, std430) writeonly buffer Stream2Buffer {
+    float stream2_samples[];  // Redundancy A (parity)
+};
+
+layout(binding = 4, std430) writeonly buffer Stream3Buffer {
+    float stream3_samples[];  // Redundancy B (alternative parity)
+};
+
+// Encoding parameters
+layout(binding = 5, std140) uniform EncodingParams {
+    uint total_samples;
+    uint redundancy_level;
+    float quality_factor;
+    uint frame_number;
+};
+
+void main() {
+    uint index = gl_GlobalInvocationID.x;
+    
+    // Bounds check
+    if (index >= total_samples) {
+        return;
+    }
+    
+    float current_sample = audio_samples[index];
+    
+    // Apply quality processing (optional)
+    if (quality_factor > 0.0) {
+        // Simple quality enhancement - could be more sophisticated
+        current_sample = clamp(current_sample * quality_factor, -1.0, 1.0);
+    }
+    
+    // ADAT-inspired stream distribution
+    uint stream_index = index / 2;  // Each stream gets half the samples
+    
+    if (index % 2 == 0) {
+        // Even samples go to Stream 0
+        stream0_samples[stream_index] = current_sample;
+    } else {
+        // Odd samples go to Stream 1
+        stream1_samples[stream_index] = current_sample;
+    }
+    
+    // Generate redundancy data if enabled
+    if (redundancy_level >= 1 && index < total_samples - 1) {
+        float next_sample = audio_samples[index + 1];
+        
+        // Redundancy A: Weighted combination for recovery
+        // This allows reconstruction of either stream if the other is available
+        float redundancy_a = (current_sample + next_sample) * 0.5 + 
+                            (current_sample - next_sample) * 0.3;
+        
+        if (index % 2 == 0) {
+            stream2_samples[stream_index] = redundancy_a;
+        }
+        
+        // Redundancy B: Alternative parity (if level 2 redundancy)
+        if (redundancy_level >= 2) {
+            float redundancy_b = (current_sample - next_sample) * 0.7 + 
+                                (current_sample + next_sample) * 0.1;
+            
+            if (index % 2 == 0) {
+                stream3_samples[stream_index] = redundancy_b;
+            }
+        }
+    }
+}
+
+// Additional helper functions for advanced processing
+float apply_dither_replacement(float sample, uint index, uint frame_number) {
+    // PNBTR-style dither replacement - placeholder for neural prediction
+    // This would integrate with the PNBTR Framework for zero-noise processing
+    
+    // Simple noise-shaped quantization for now
+    float quantized = floor(sample * 8388607.0) / 8388607.0;  // 24-bit quantization
+    
+    // Add sophisticated dither replacement here
+    // (This would call into PNBTR neural prediction in a real implementation)
+    
+    return quantized;
+}
+
+vec2 generate_parity_advanced(float even_sample, float odd_sample, uint method) {
+    vec2 parity_data;
+    
+    switch (method) {
+        case 0: // Simple XOR-like parity
+            parity_data.x = (even_sample + odd_sample) * 0.5;
+            parity_data.y = (even_sample - odd_sample) * 0.5;
+            break;
+            
+        case 1: // Weighted parity for better reconstruction
+            parity_data.x = even_sample * 0.8 + odd_sample * 0.2;
+            parity_data.y = even_sample * 0.2 + odd_sample * 0.8;
+            break;
+            
+        case 2: // Phase-based parity
+            parity_data.x = even_sample * 0.7071 + odd_sample * 0.7071;   // +45°
+            parity_data.y = even_sample * 0.7071 - odd_sample * 0.7071;   // -45°
+            break;
+            
+        default:
+            parity_data = vec2(0.0);
+            break;
+    }
+    
+    return parity_data;
+}

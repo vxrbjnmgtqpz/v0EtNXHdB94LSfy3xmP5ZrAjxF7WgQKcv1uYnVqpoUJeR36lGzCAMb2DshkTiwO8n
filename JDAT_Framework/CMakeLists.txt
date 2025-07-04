@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.20)
 
-project(JDATFramework 
+project(JELLIEFramework 
     VERSION 1.0.0
-    DESCRIPTION "JDAT Framework with TOAST Transport Layer for Audio Streaming"
+    DESCRIPTION "JELLIE: JAM Embedded Low-Latency Instrument Encoding Framework"
     LANGUAGES CXX
 )
 
@@ -11,10 +11,22 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# Find required packages
-find_package(PkgConfig REQUIRED)
+# Compiler-specific options
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    add_compile_options(-Wall -Wextra -O3 -march=native)
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    add_compile_options(/W4 /O2)
+endif()
 
-# Check for nlohmann/json (JSON library)
+# Options
+option(ENABLE_GPU "Enable GPU acceleration" OFF)
+option(ENABLE_TESTS "Enable testing" ON)
+option(ENABLE_BENCHMARKS "Enable benchmarks" ON)
+
+# Find required packages
+find_package(Threads REQUIRED)
+
+# JSON library
 find_package(nlohmann_json QUIET)
 if(NOT nlohmann_json_FOUND)
     message(STATUS "nlohmann/json not found, will use FetchContent")
@@ -27,27 +39,80 @@ if(NOT nlohmann_json_FOUND)
     FetchContent_MakeAvailable(nlohmann_json)
 endif()
 
-# Check for simdjson (high-performance JSON parser)
-find_package(simdjson QUIET)
-if(NOT simdjson_FOUND)
-    message(STATUS "simdjson not found, will use FetchContent")
-    include(FetchContent)
-    FetchContent_Declare(
-        simdjson
-        GIT_REPOSITORY https://github.com/simdjson/simdjson.git
-        GIT_TAG v3.7.0
-    )
-    FetchContent_MakeAvailable(simdjson)
+# GPU support
+if(ENABLE_GPU)
+    find_package(Vulkan QUIET)
+    if(Vulkan_FOUND)
+        add_compile_definitions(JELLIE_GPU_ENABLED)
+        message(STATUS "GPU acceleration enabled with Vulkan")
+    else()
+        message(WARNING "GPU acceleration requested but Vulkan not found")
+        set(ENABLE_GPU OFF)
+    endif()
 endif()
 
-# Check for nlohmann/json-schema (JSON schema validation)
-find_package(nlohmann_json_schema_validator QUIET)
-if(NOT nlohmann_json_schema_validator_FOUND)
-    message(STATUS "nlohmann_json_schema_validator not found, will use FetchContent")
-    include(FetchContent)
-    FetchContent_Declare(
-        nlohmann_json_schema_validator
-        GIT_REPOSITORY https://github.com/pboettch/json-schema-validator.git
+# Include directories
+include_directories(include)
+
+# Source files
+set(JELLIE_SOURCES
+    src/JELLIEEncoder.cpp
+    src/JELLIEDecoder.cpp
+    src/AudioBufferManager.cpp
+    src/ADATSimulator.cpp
+    src/WaveformPredictor.cpp
+)
+
+# Create main JELLIE library
+add_library(JELLIE STATIC ${JELLIE_SOURCES})
+target_link_libraries(JELLIE 
+    nlohmann_json::nlohmann_json
+    Threads::Threads
+)
+
+if(ENABLE_GPU AND Vulkan_FOUND)
+    target_link_libraries(JELLIE Vulkan::Vulkan)
+endif()
+
+# Examples
+add_subdirectory(examples)
+
+# Tests
+if(ENABLE_TESTS)
+    enable_testing()
+    add_subdirectory(tests)
+endif()
+
+# Benchmarks
+if(ENABLE_BENCHMARKS)
+    add_subdirectory(benchmarks)
+endif()
+
+# Install targets
+install(TARGETS JELLIE
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
+)
+
+install(DIRECTORY include/
+    DESTINATION include
+    FILES_MATCHING PATTERN "*.h"
+)
+
+install(DIRECTORY shaders/
+    DESTINATION share/jellie/shaders
+    FILES_MATCHING PATTERN "*.comp"
+)
+
+# Summary
+message(STATUS "")
+message(STATUS "JELLIE Framework Configuration Summary:")
+message(STATUS "  Version: ${PROJECT_VERSION}")
+message(STATUS "  Build type: ${CMAKE_BUILD_TYPE}")
+message(STATUS "  GPU acceleration: ${ENABLE_GPU}")
+message(STATUS "  Testing: ${ENABLE_TESTS}")
+message(STATUS "  Benchmarks: ${ENABLE_BENCHMARKS}")
+message(STATUS "")
         GIT_TAG 2.3.0
     )
     FetchContent_MakeAvailable(nlohmann_json_schema_validator)
