@@ -2,7 +2,7 @@
 
 **JAM Embedded Low Latency Instrument Encoding (JELLIE) for Audio Streaming**
 
-JDAT is the audio streaming counterpart to JMID, implementing a revolutionary approach to real-time audio transmission using JSON-based messaging over UDP with TOAST protocol and PNTBTR recovery.
+JDAT is the audio streaming counterpart to JMID, implementing a revolutionary approach to real-time audio transmission using JSON-based messaging over UDP with TOAST protocol and PNBTR neural reconstruction.
 
 ## 🎯 Overview
 
@@ -10,7 +10,7 @@ The JDAT Framework enables:
 
 - **Ultra-low latency audio streaming** (sub-20ms total latency)
 - **192kHz simulation** using innovative ADAT channel interleaving
-- **PNTBTR recovery** for intelligent gap filling during packet loss
+- **PNBTR neural reconstruction** for intelligent audio enhancement and gap filling during packet loss
 - **Pure JSON protocol** - human-readable and platform-agnostic
 - **TOAST transport** - optimized UDP-based delivery
 - **Real-time redundancy** for mission-critical audio applications
@@ -34,7 +34,7 @@ The JDAT Framework enables:
                                 ▼
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
 │  Audio Output   │◀───│ JELLIE Decoder  │◀───│ TOAST Transport │
-│   (Recovered)   │    │   + PNTBTR      │    │   (UDP/JSON)    │
+│   (Enhanced)    │    │   + PNBTR      │    │   (UDP/JSON)    │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
 
@@ -48,14 +48,14 @@ The JDAT Framework enables:
 - Streams 3-4: Redundancy and parity data
 - Reconstructs full 192kHz stream at receiver
 
-### PNTBTR Recovery
+### PNBTR Neural Reconstruction
 
-- **Predictive**: Analyzes audio patterns for intelligent gap filling
-- **Network**: Handles UDP packet loss gracefully
-- **Temporal**: Maintains timing synchronization
-- **Buffered**: Smart buffering strategies
-- **Transmission**: Fire-and-forget UDP with recovery
-- **Recovery**: Multiple prediction algorithms (LPC, harmonic synthesis, pattern matching)
+- **Predictive**: Neural models analyze musical context for intelligent audio enhancement
+- **Neural**: AI-driven reconstruction of original analog signal characteristics  
+- **Buffered**: Smart buffering with intelligent micro-amplitude generation
+- **Transient**: Preserves musical transients and analog warmth without added noise
+- **Recovery**: Contextual waveform extrapolation up to 50ms with harmonic/pitch awareness
+- **Enhancement**: Replaces traditional dither with meaningful curvature and microdynamics
 
 ### JSON Format
 

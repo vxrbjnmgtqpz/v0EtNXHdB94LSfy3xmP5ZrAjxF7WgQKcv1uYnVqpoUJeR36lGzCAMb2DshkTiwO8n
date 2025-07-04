@@ -23,7 +23,7 @@ JVID is the video counterpart to JDAT, designed for streaming compressed visual 
 - **GPU encoding support**: Hardware acceleration for compatible devices
 - **Predictive frame dropping**: Drop frames that would exceed latency budget
 
-### 🔧 PNTBTR Video Recovery
+### 🔧 PNBTR Video Recovery
 
 - **Frame prediction**: Motion-compensated frame reconstruction
 - **Temporal interpolation**: Smooth playback despite packet loss
@@ -188,7 +188,7 @@ config.max_frame_age_us = 33333;                  // Drop frames older than 30fp
 config.display_width = 256;                       // Target display width
 config.display_height = 144;                      // Target display height
 
-// PNTBTR recovery
+// PNBTR recovery
 config.enable_frame_prediction = true;            // Frame prediction recovery
 config.enable_interpolation = true;               // Frame interpolation
 config.prediction_confidence_threshold = 128;     // Min prediction confidence
@@ -214,7 +214,7 @@ config.sync_tolerance_us = 1000;                  // Sync tolerance window
 │                 │    │                  │    │                 │
 ├─────────────────┤    ├──────────────────┤    ├─────────────────┤
 │ • Video Capture │    │ • Frame Data     │    │ • Frame Decode  │
-│ • Face Detection│    │ • Motion Vectors │    │ • PNTBTR Predict│
+│ • Face Detection│    │ • Motion Vectors │    │ • PNBTR Predict │
 │ • Auto Framing  │    │ • Timing Info    │    │ • Display Render│
 │ • Compression   │    │ • JAMCam Features│    │ • A/V Sync      │
 └─────────────────┘    └──────────────────┘    └─────────────────┘

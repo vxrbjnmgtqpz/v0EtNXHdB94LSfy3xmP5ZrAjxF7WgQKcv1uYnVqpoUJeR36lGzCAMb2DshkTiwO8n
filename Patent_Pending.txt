@@ -4,7 +4,7 @@ Title:  JAMNet: A Real-Time JSONL-Based Multimedia Framework Using Multicast T
 Inventor(s):  Timothy Robert Dowler  5 Apple Ridge Road, Unit 3, Maynard, MA 01754  timothydowler@yahoo.com  Filed: July 3, 2025
 
 1. Field of the Invention
-This invention relates to minimal latency, digital multimedia transport systems over computer networks. Specifically, it discloses a complete distributed framework—JAMNet—for ultra-low, GPU accelerated latency transmission of audio, MIDI, and video data using a custom fork of Bassoon.js that uses a truly Universal JSONL format: JAM.js (the JSON Audio Multicast framework) -  This enables encoded formats to stream to, over, and through any device that can parse json, using the same unified, universal stream, over a multicast-capable UDP protocol known as TOAST. The system includes dedicated encoders (JELLIE), prediction and recovery systems (PNTBTR), and format architectures for synchronized routing and interoperability.
+This invention relates to minimal latency, digital multimedia transport systems over computer networks. Specifically, it discloses a complete distributed framework—JAMNet—for ultra-low, GPU accelerated latency transmission of audio, MIDI, and video data using a custom fork of Bassoon.js that uses a truly Universal JSONL format: JAM.js (the JSON Audio Multicast framework) -  This enables encoded formats to stream to, over, and through any device that can parse json, using the same unified, universal stream, over a multicast-capable UDP protocol known as TOAST. The system includes dedicated encoders (JELLIE), prediction and recovery systems (PNBTR), and format architectures for synchronized routing and interoperability.
 
 2. Background of the Invention
 Traditional network-based multimedia systems rely heavily on binary encoding, TCP retransmission protocols, platform-specific codecs, and heavyweight packet orchestration layers. These introduce latency bottlenecks, limit cross-platform portability, and complicate distributed real-time collaboration.
@@ -23,7 +23,7 @@ The JAMNet system comprises three core streaming frameworks developed by JAMNet:
 	•	JVID.js — a low resolution, low latency, frame-based video encoder.  
 Key components include:
 	•	JELLIE: JAM Embedded Low Latency Instrument Encoding — a stream encoder that divides mono audio into 4 simultaneous PCM JSONL streams over JDAT (even/odd sample interleaving plus redundancy) modeled after ADAT protocol behavior.  
-	•	PNTBTR: Predictive Network Temporal Buffered Transmission Recovery — an adaptive audio, MIDI, and video prediction layer that prioritizes throttling while continuously predicting the next 50ms of packets based on waveform physics, constantly running but used only when all redundancy fails to smooth out the signal.
+	•	PNBTR: Predictive Neural Buffered Transient Recovery — an adaptive audio, MIDI, and video prediction layer that prioritizes throttling while continuously predicting the next 50ms of packets based on neural reconstruction of analog waveform characteristics, constantly running but used only when all redundancy fails to smooth out the signal.
 
 JAMNet parsing speeds (GPU-Accelerated):
 	•	MIDI latency <10μs (GPU-accelerated, 66% improvement over CPU)
@@ -85,7 +85,7 @@ Figure 1: TOAST Multicast Core Architecture - Detailed System Block Diagram
 │  │  │ │<10μs     │ │  │ │<30μs     │ │  │ │<50μs     │ │  │ │<5μs      │ │          │ │
 │  │  │ └──────────┘ │  │ └──────────┘ │  │ └──────────┘ │  │ └──────────┘ │          │ │
 │  │  │ ┌──────────┐ │  │ ┌──────────┐ │  │ ┌──────────┐ │  │ ┌──────────┐ │          │ │
-│  │  │ │PNTBTR    │ │  │ │JELLIE    │ │  │ │JAMCam    │ │  │ │Session   │ │          │ │
+│  │  │ │PNBTR    │ │  │ │JELLIE    │ │  │ │JAMCam    │ │  │ │Session   │ │          │ │
 │  │  │ │Recovery  │ │  │ │Codec     │ │  │ │Processor │ │  │ │Commands  │ │          │ │
 │  │  │ └──────────┘ │  │ └──────────┘ │  │ └──────────┘ │  │ └──────────┘ │          │ │
 │  │  │              │  │              │  │              │  │              │          │ │
@@ -119,7 +119,7 @@ CLIENT NODE A (SENDER)           TOAST CORE SYSTEM            CLIENT NODE B (REC
 │ │ │ (Note/CC/Pitch) │ │ │     │ │ MIDI Stream     │     │     │ │ │ (Note/CC/Pitch) │ │ │
 │ │ └─────────────────┘ │ │     │ │ Queue Manager   │     │     │ │ └─────────────────┘ │ │
 │ │ ┌─────────────────┐ │ │     │ │                 │     │.    │ │ ┌─────────────────┐ │ │
-│ │ │ PNTBTR Encoder  │ │ │     │ │ - Priority Q    │     │     │ │ │ PNTBTR Decoder  │ │ │
+│ │ │ PNBTR Encoder  │ │ │     │ │ - Priority Q    │     │     │ │ │ PNBTR Decoder  │ │ │
 │ │ │ (Event Predict) │ │ │     │ │ - Redundancy    │     │     │ │ │ (Event Predict) │ │ │
 │ │ └─────────────────┘ │ │     │ │ - Sequence IDs  │     │     │ │ └─────────────────┘ │ │
 │ │                     │ │     │ └─────────────────┘     │     │ │                     │ │
@@ -137,7 +137,7 @@ CLIENT NODE A (SENDER)           TOAST CORE SYSTEM            CLIENT NODE B (REC
 │ │ │ Rate Manager    │ │ │     │ │ - Redundant     │     │     │ │ │ Rate Manager    │ │ │
 │ │ └─────────────────┘ │ │     │ │   Streams       │     │     │ │ └─────────────────┘ │ │
 │ │ ┌─────────────────┐ │ │     │ │ - Dynamic       │     │     │ │ ┌─────────────────┐ │ │
-│ │ │ PNTBTR Audio    │ │ │     │ │   Throttling    │     │     │ │ │ PNTBTR Audio    │ │ │
+│ │ │ PNBTR Audio    │ │ │     │ │   Throttling    │     │     │ │ │ PNBTR Audio    │ │ │
 │ │ │ (LPC Predict)   │ │ │     │ └─────────────────┘     │     │ │ │ (LPC Predict)   │ │ │
 │ │ └─────────────────┘ │ │     │                         │     │ │ └─────────────────┘ │ │
 │ └─────────────────────┘ │     │                         │     │ └─────────────────────┘ │
