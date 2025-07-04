@@ -1,5 +1,8 @@
 #include "TransportController.h"
 
+// Forward declaration
+class NetworkConnectionPanel;
+
 // Helper function for emoji-compatible font setup
 static juce::Font getEmojiCompatibleFont(float size = 12.0f, bool bold = false)
 {
@@ -218,6 +221,9 @@ void TransportController::playButtonClicked()
         stopTimer(); // Pause the transport
     }
     
+    // Send transport sync to network if connected
+    syncTransportStateToNetwork();
+    
     updateDisplay();
 }
 
@@ -228,6 +234,10 @@ void TransportController::stopButtonClicked()
     playButton.setToggleState(false, juce::dontSendNotification);
     recordButton.setToggleState(false, juce::dontSendNotification);
     stopTransport();
+    
+    // Send transport sync to network if connected
+    syncTransportStateToNetwork();
+    
     updateDisplay();
 }
 
@@ -284,4 +294,48 @@ void TransportController::updateDisplay()
     
     auto barsBeatsString = juce::String::formatted("BARS: %d.%d.%03d", bars, beats, ticks);
     barsBeatsLabel.setText(barsBeatsString, juce::dontSendNotification);
+}
+
+void TransportController::syncTransportStateToNetwork()
+{
+    if (!networkPanel) return;
+    
+    // Create transport sync message
+    std::string command = isPlaying ? "PLAY" : "STOP";
+    uint64_t currentTime = std::chrono::duration_cast<std::chrono::microseconds>(
+        std::chrono::high_resolution_clock::now().time_since_epoch()).count();
+    
+    // Send transport command to all connected clients
+    std::string message = "{\"type\":\"transport\",\"command\":\"" + command + 
+                         "\",\"timestamp\":" + std::to_string(currentTime) + 
+                         ",\"position\":" + std::to_string(currentPosition.count()) + 
+                         ",\"bpm\":" + std::to_string(bpm) + "}";
+    
+    // TODO: Send via network connection manager
+    // networkPanel->sendMessageToAll(message);
+}
+
+void TransportController::handleNetworkTransportCommand(const std::string& command, uint64_t timestamp)
+{
+    if (isMaster) return; // Master doesn't accept transport commands
+    
+    if (command == "PLAY" && !isPlaying) {
+        isPlaying = true;
+        playButton.setToggleState(true, juce::dontSendNotification);
+        
+        // Sync to network timestamp
+        auto networkTime = std::chrono::microseconds{timestamp};
+        auto now = std::chrono::duration_cast<std::chrono::microseconds>(
+            std::chrono::high_resolution_clock::now().time_since_epoch());
+        transportStartTime = std::chrono::high_resolution_clock::now() - (now - networkTime);
+        
+        startTimer(16);
+    }
+    else if (command == "STOP" && isPlaying) {
+        isPlaying = false;
+        playButton.setToggleState(false, juce::dontSendNotification);
+        stopTimer();
+    }
+    
+    updateDisplay();
 }

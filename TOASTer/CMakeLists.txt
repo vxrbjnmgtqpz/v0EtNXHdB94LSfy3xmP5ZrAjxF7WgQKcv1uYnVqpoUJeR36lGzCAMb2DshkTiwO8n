@@ -33,6 +33,7 @@ target_sources(TOASTer PRIVATE
     Source/MainComponent.cpp
     Source/TransportController.cpp
     Source/NetworkConnectionPanel.cpp
+    Source/ConnectionDiscovery.cpp
     Source/MIDITestingPanel.cpp
     Source/MIDIManager.cpp
     Source/PerformanceMonitorPanel.cpp

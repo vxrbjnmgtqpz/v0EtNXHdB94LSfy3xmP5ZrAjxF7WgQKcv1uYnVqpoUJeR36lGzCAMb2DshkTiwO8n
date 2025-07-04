@@ -15,23 +15,23 @@ MainComponent::MainComponent()
     
     // Create and add child components
     transportController = std::make_unique<TransportController>();
-    addAndMakeVisible(*transportController);
+    addAndMakeVisible(transportController.get());
     
     networkPanel = std::make_unique<NetworkConnectionPanel>();
-    addAndMakeVisible(*networkPanel);
+    addAndMakeVisible(networkPanel.get());
     
     midiPanel = std::make_unique<MIDITestingPanel>();
     midiPanel->setMIDIManager(midiManager.get()); // Connect MIDI manager
-    addAndMakeVisible(*midiPanel);
+    addAndMakeVisible(midiPanel.get());
     
     performancePanel = std::make_unique<PerformanceMonitorPanel>();
-    addAndMakeVisible(*performancePanel);
+    addAndMakeVisible(performancePanel.get());
     
     clockSyncPanel = std::make_unique<ClockSyncPanel>();
-    addAndMakeVisible(*clockSyncPanel);
+    addAndMakeVisible(clockSyncPanel.get());
     
     jmidPanel = std::make_unique<JMIDIntegrationPanel>();
-    addAndMakeVisible(*jmidPanel);
+    addAndMakeVisible(jmidPanel.get());
     
     // Start timer to coordinate state updates between panels
     startTimer(250); // Update 4 times per second
@@ -55,7 +55,7 @@ void MainComponent::resized()
     auto bounds = getLocalBounds();
     
     // Transport bar at the top (fixed height)
-    transportController->setBounds(bounds.removeFromTop(50));
+    transportController.get()->setBounds(bounds.removeFromTop(50));
     
     // Divide remaining space into panels
     auto remainingBounds = bounds.reduced(10);
@@ -64,14 +64,14 @@ void MainComponent::resized()
     
     // Top row - three panels
     auto topRow = remainingBounds.removeFromTop(panelHeight);
-    networkPanel->setBounds(topRow.removeFromLeft(panelWidth).reduced(5));
-    midiPanel->setBounds(topRow.removeFromLeft(panelWidth).reduced(5));
-    jmidPanel->setBounds(topRow.reduced(5)); // JMID panel gets remaining space
+    networkPanel.get()->setBounds(topRow.removeFromLeft(panelWidth).reduced(5));
+    midiPanel.get()->setBounds(topRow.removeFromLeft(panelWidth).reduced(5));
+    jmidPanel.get()->setBounds(topRow.reduced(5)); // JMID panel gets remaining space
     
     // Bottom row - two panels  
     auto bottomRow = remainingBounds;
-    performancePanel->setBounds(bottomRow.removeFromLeft(panelWidth * 1.5).reduced(5));
-    clockSyncPanel->setBounds(bottomRow.reduced(5));
+    performancePanel.get()->setBounds(bottomRow.removeFromLeft(panelWidth * 1.5).reduced(5));
+    clockSyncPanel.get()->setBounds(bottomRow.reduced(5));
 }
 
 void MainComponent::timerCallback()
@@ -80,9 +80,9 @@ void MainComponent::timerCallback()
     appState.lastUpdate = std::chrono::high_resolution_clock::now();
     
     // Push current state to all panels
-    performancePanel->setConnectionState(appState.isNetworkConnected, appState.activeConnections);
-    performancePanel->setNetworkLatency(appState.networkLatency);
-    performancePanel->setClockAccuracy(appState.clockAccuracy);
+    performancePanel.get()->setConnectionState(appState.isNetworkConnected, appState.activeConnections);
+    performancePanel.get()->setNetworkLatency(appState.networkLatency);
+    performancePanel.get()->setClockAccuracy(appState.clockAccuracy);
     performancePanel->setMessageProcessingRate(appState.messageProcessingRate);
     performancePanel->setMIDIThroughput(appState.midiThroughput);
 }
