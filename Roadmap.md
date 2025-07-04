@@ -413,6 +413,23 @@ public:
 
 **Status: 22 specialized GPU compute kernels implemented for cross-platform acceleration**
 
+**PNBTR-JVID Video Prediction Shaders:**
+- [x] **`frame_motion_predict`**: Optical flow analysis and motion vector extrapolation
+- [x] **`pixel_temporal_track`**: Per-pixel temporal evolution prediction  
+- [x] **`frame_confidence_assess`**: Per-frame prediction quality scoring
+- [ ] **`scene_depth_model`**: 3D scene understanding and depth estimation
+- [ ] **`texture_synthesis`**: Background pattern and texture continuation
+- [ ] **`face_gesture_predict`**: Facial expression and human gesture interpolation
+- [ ] **`compression_artifact_heal`**: Codec artifact removal during prediction
+- [ ] **`visual_rhythm_cycle`**: Periodic motion detection and cyclic prediction
+- [ ] **`spatial_lpc_model`**: Linear predictive coding adapted for pixel values
+- [ ] **`neural_frame_residual`**: CNN/RNN-based frame prediction refinement
+- [ ] **`analog_video_smooth`**: Video signal analog modeling and scan line continuity
+- [ ] **`microdetail_enhance`**: Sub-pixel detail reconstruction and edge enhancement
+- [ ] **`video_master_blend`**: Multi-algorithm frame prediction blending
+
+**Status: PNBTR-JVID video prediction system initiated - 3/13 video shaders implemented**
+
 ### 4.2.1 PNBTR Waveform Modeling Methodologies
 
 **Status: Hybrid Prediction System with Multiple Advanced Techniques**

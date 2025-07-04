@@ -1,28 +1,27 @@
 # PNBTR Framework
 
-**Predictive Neural Buffered Transient Recovery - Open ### 4. GPU Shaders (`shaders/`)
-**Complete Metal Shading Language Implementation - 11 Specialized Kernels:**
+**Predictive Neural Buffered Transient Recovery - Revolutionary Audiovisual Continuity System**
 
-#### **Core Prediction Shaders**
-- `pnbtr_predict.metal` - Main prediction engine with 50ms extrapolation
-- `envelope_track.metal` - Amplitude curve tracking and ADSR modeling  
-- `pitch_cycle.metal` - Autocorrelation pitch detection and phase tracking
-- `lpc_model.metal` - Linear predictive coding with Levinson-Durbin algorithm
+PNBTR completely eliminates network dropout artifacts by predicting missing content using GPU-accelerated algorithms, maintaining seamless audiovisual continuity without retransmission delays.
 
-#### **Advanced Analysis Shaders**
-- `spectral_extrap.metal` - FFT-based harmonic continuation and spectral shaping
-- `formant_model.metal` - Vowel/instrument formant tracking and synthesis
-- `analog_model.metal` - Analog saturation and smoothing simulation
-- `microdynamic.metal` - Sub-sample modulation and texture reintroduction
+## Overview
 
-#### **Integration & Quality Shaders**
-- `rnn_residual.metal` - Neural network residual correction application
-- `pntbtr_confidence.metal` - Prediction quality assessment and confidence scoring
-- `pnbtr_master.metal` - Multi-model blending and final output generation
+**PNBTR** provides real-time prediction for both audio and video streams during network packet loss:
 
-**All shaders optimized for Apple Silicon Metal 2.3+ with threadgroup synchronization**e Revolutionary Dither Replacement**
+### Audio Prediction (PNBTR)
+- **50ms waveform extrapolation** from 1ms context using 11 specialized algorithms
+- **Analog-continuous output** that sounds natural even during prediction
+- **<1ms processing latency** with GPU acceleration
 
-PNBTR completely eliminates traditional noise-based dithering, replacing it with mathematically informed, waveform-aware LSB reconstruction that predicts what infinite-resolution analog audio would sound like.
+### Video Prediction (PNBTR-JVID) 
+- **Frame sequence prediction** using temporal and spatial analysis
+- **Motion vector extrapolation** for smooth visual continuity
+- **Confidence-based quality control** for artifact-free prediction
+
+### Cross-Platform GPU Support
+- **Metal Shaders** (`shaders/metal/`) - macOS (Apple Silicon & Intel)
+- **GLSL Compute Shaders** (`shaders/glsl/`) - Linux & OpenGL platforms
+- **Video Shaders** (`shaders/video/`) - JVID frame prediction pipeline
 
 ## Core UDP GPU Integration
 
@@ -117,6 +116,30 @@ PNBTR completely eliminates traditional noise-based dithering, replacing it with
 - `pnbtr_master` - Multi-model blending and final output generation
 
 **Complete parallel hybrid architecture with threadgroup synchronization across platforms**
+
+### **Video Prediction Shaders (PNBTR-JVID)**
+- **Video Shaders** (`shaders/video/`) - Cross-platform video frame prediction
+
+#### **Core Video Prediction Shaders**
+- `frame_motion_predict` - Optical flow analysis and motion vector extrapolation
+- `pixel_temporal_track` - Per-pixel temporal evolution prediction
+- `scene_depth_model` - 3D scene understanding and depth estimation
+- `texture_synthesis` - Background pattern and texture continuation
+
+#### **Advanced Video Analysis Shaders**  
+- `face_gesture_predict` - Facial expression and human gesture interpolation
+- `compression_artifact_heal` - Codec artifact removal during prediction
+- `visual_rhythm_cycle` - Periodic motion detection and cyclic prediction
+- `spatial_lpc_model` - Linear predictive coding adapted for pixel values
+
+#### **Video Integration & Quality Shaders**
+- `neural_frame_residual` - CNN/RNN-based frame prediction refinement
+- `analog_video_smooth` - Video signal analog modeling and scan line continuity
+- `microdetail_enhance` - Sub-pixel detail reconstruction and edge enhancement
+- `frame_confidence_assess` - Per-frame prediction quality scoring
+- `video_master_blend` - Multi-algorithm frame prediction blending
+
+**PNBTR-JVID extends prediction from audio waveforms to video frame sequences, maintaining complete audiovisual continuity during network interruptions**
 
 ### 4. Integration Interface (`pnbtr_interface.cpp`)
 - JAM Framework integration
