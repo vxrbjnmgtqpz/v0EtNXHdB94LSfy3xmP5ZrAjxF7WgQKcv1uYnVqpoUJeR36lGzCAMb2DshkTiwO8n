@@ -327,21 +327,28 @@ public:
 
 **Status: Revolutionary PNBTR - Predictive Neural Buffered Transient Recovery on GPU**
 
-- [ ] Move **intelligent micro-amplitude movement generation** entirely to GPU
-- [ ] Implement **predictive LSB modeling** replacing traditional dither via compute shaders
+- [ ] Move **waveform-aware LSB reconstruction** entirely to GPU, completely replacing traditional dithering
+- [ ] Implement **mathematically informed micro-amplitude generation** via compute shaders (zero-noise approach)
 - [ ] Add **neural analog extrapolation** for contextual waveform reconstruction on GPU
 - [ ] Create **musical context-aware prediction** (harmonic/pitch/dynamic analysis via GPU)
 - [ ] Build **adaptive reconstruction windows** with nonlinear, phase-aware processing
+
+**PNBTR Dither Replacement Philosophy:**
+- **Zero-Noise Audio**: Eliminates all noise-based dithering with mathematical waveform reconstruction
+- **Analog-Continuous Reconstruction**: Predicts infinite-resolution analog characteristics at any bit depth
+- **Waveform-Aware Processing**: LSB values determined by musical context, not random noise
+- **24-bit and Lower Optimization**: Enables pristine audio quality without traditional dithering artifacts
 
 ### 4.2 PNBTR Neural Prediction Shaders
 
 **Status: Revolutionary Audio Completion via Predictive Neural Processing**
 
 - [ ] **`pnbtr_predict.glsl`**: Core neural prediction with contextual extrapolation up to 50ms
-- [ ] **`lsb_modeling.glsl`**: Intelligent micro-amplitude generation replacing traditional dither
+- [ ] **`lsb_reconstruction.glsl`**: Waveform-aware LSB reconstruction completely replacing traditional dither
 - [ ] **`analog_extrapolation.glsl`**: Neural waveform reconstruction with harmonic/pitch awareness
 - [ ] **`transient_recovery.glsl`**: Nonlinear, phase-aware transient completion
 - [ ] **`context_analysis.glsl`**: Musical intelligence extraction for prediction guidance
+- [ ] **`zero_noise_modeling.glsl`**: Mathematically informed micro-amplitude generation (no random noise)
 
 ### 4.3 GPU-Based Neural Audio Intelligence
 
@@ -377,7 +384,8 @@ public:
 
 **Goals:**
 - [ ] System reconstructs **original analog characteristics** that would have existed with infinite resolution
-- [ ] **Intelligent micro-amplitude generation** replaces all traditional dither completely
+- [ ] **PNBTR completely replaces traditional dithering** with waveform-aware LSB reconstruction, enabling zero-noise, analog-continuous audio at 24-bit depth or lower
+- [ ] **Mathematically informed processing** eliminates noise-based approaches entirely
 - [ ] **Neural extrapolation** provides contextual waveform prediction up to 50ms ahead
 - [ ] **Musical context awareness** (key, tempo, harmonic content) guides reconstruction
 - [ ] **Seamless audio enhancement** with zero audible artifacts or added noise
@@ -387,6 +395,7 @@ public:
 - Predictive neural models run inference <1ms per audio segment on GPU  
 - Musical intelligence maintains **original analog warmth** and **microdynamics**
 - Contextual prediction adapts to **musical content** and **performance style**
+- **Zero-noise dither replacement**: LSB values determined by waveform analysis, not random noise
 - **"Here's the sound that would have happened if your DAC had infinite resolution"**
 
 ---
@@ -515,9 +524,9 @@ public:
 
 ### Milestone 4: GPU-Native PNBTR (Week 13)
 - **Criteria**: System reconstructs original analog characteristics via GPU neural processing
-- **Test**: Audio quality enhancement with intelligent micro-amplitude generation vs traditional dither
-- **Verification**: Musical warmth and microdynamics preserved, neural inference <1ms on GPU
-- **Success**: Revolutionary audio completion via contextual prediction and neural intelligence
+- **Test**: Audio quality enhancement with PNBTR dither replacement vs traditional noise-based dither
+- **Verification**: Zero-noise, analog-continuous audio at 24-bit depth, waveform-aware LSB reconstruction
+- **Success**: Revolutionary audio completion via mathematical prediction and neural intelligence
 
 ### Milestone 5: Complete GPU+UDP Ecosystem (Week 16)
 - **Criteria**: Unified GPU pipeline processes audio, predicts, AND renders visuals
