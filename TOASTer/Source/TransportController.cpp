@@ -1,7 +1,5 @@
 #include "TransportController.h"
-
-// Forward declaration
-class NetworkConnectionPanel;
+#include "JAMNetworkPanel.h"  // Updated for JAM Framework v2
 
 // Helper function for emoji-compatible font setup
 static juce::Font getEmojiCompatibleFont(float size = 12.0f, bool bold = false)
@@ -298,21 +296,24 @@ void TransportController::updateDisplay()
 
 void TransportController::syncTransportStateToNetwork()
 {
-    if (!networkPanel) return;
+    if (!jamNetworkPanel || !jamNetworkPanel->isConnected()) return;
     
-    // Automatically sync transport state - no manual enable needed
+    // Create transport sync message using JAM Framework v2
     std::string command = isPlaying ? "PLAY" : "STOP";
     uint64_t currentTime = std::chrono::duration_cast<std::chrono::microseconds>(
         std::chrono::high_resolution_clock::now().time_since_epoch()).count();
     
-    // Send transport command to all connected clients automatically
+    // Create JSON transport message
     std::string message = "{\"type\":\"transport\",\"command\":\"" + command + 
                          "\",\"timestamp\":" + std::to_string(currentTime) + 
                          ",\"position\":" + std::to_string(currentPosition.count()) + 
                          ",\"bpm\":" + std::to_string(bpm) + "}";
     
-    // Auto-send to all connected devices immediately
-    // networkPanel->sendMessageToAll(message);
+    // Send via JAM Framework v2 as MIDI data (transport commands)
+    std::vector<uint8_t> messageData(message.begin(), message.end());
+    jamNetworkPanel->sendMIDIData(messageData.data(), messageData.size());
+    
+    juce::Logger::writeToLog("Transport sync sent via JAM Framework v2: " + juce::String(command));
 }
 
 void TransportController::handleNetworkTransportCommand(const std::string& command, uint64_t timestamp)

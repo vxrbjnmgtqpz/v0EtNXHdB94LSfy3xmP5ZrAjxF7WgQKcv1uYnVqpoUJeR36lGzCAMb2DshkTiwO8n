@@ -1,0 +1,220 @@
+#pragma once
+
+/**
+ * JAM Framework v2 Integration for TOASTer
+ * 
+ * This module provides the bridge between JUCE-based TOASTer application
+ * and the JAM Framework v2 UDP-native TOAST protocol implementation.
+ */
+
+#include <juce_core/juce_core.h>
+#include <memory>
+#include <functional>
+#include <vector>
+#include <string>
+
+// Forward declarations for JAM Framework v2
+namespace jam {
+    class TOASTv2Protocol;
+    struct TOASTFrame;
+    struct BurstConfig;
+    class GPUBackend;
+}
+
+/**
+ * JAM Framework v2 Integration Manager
+ * 
+ * Provides high-level interface for TOASTer to use JAM Framework v2
+ * features including UDP multicast, GPU acceleration, and PNBTR prediction.
+ */
+class JAMFrameworkIntegration : public juce::Timer {
+public:
+    
+    // Callback function types
+    using MIDICallback = std::function<void(uint8_t status, uint8_t data1, uint8_t data2, uint32_t timestamp)>;
+    using AudioCallback = std::function<void(const float* samples, int numSamples, uint32_t timestamp)>;
+    using VideoCallback = std::function<void(const uint8_t* frameData, int width, int height, uint32_t timestamp)>;
+    using StatusCallback = std::function<void(const std::string& status, bool isConnected)>;
+    using PerformanceCallback = std::function<void(double latency_us, double throughput_mbps, int active_peers)>;
+    
+    JAMFrameworkIntegration();
+    ~JAMFrameworkIntegration();
+    
+    // === Network Management ===
+    
+    /**
+     * Initialize JAM Framework v2 with UDP multicast
+     * 
+     * @param multicast_addr Multicast address (default: "239.255.77.77")
+     * @param port UDP port (default: 7777)
+     * @param session_name Session identifier
+     * @return true if initialization successful
+     */
+    bool initialize(const std::string& multicast_addr = "239.255.77.77", 
+                   int port = 7777, 
+                   const std::string& session_name = "TOASTer_Session");
+    
+    /**
+     * Start UDP multicast networking
+     */
+    bool startNetwork();
+    
+    /**
+     * Stop networking and cleanup
+     */
+    void stopNetwork();
+    
+    /**
+     * Get connection status
+     */
+    bool isConnected() const { return networkActive; }
+    
+    /**
+     * Get number of active peers
+     */
+    int getActivePeerCount() const { return activePeers; }
+    
+    // === GPU Backend Management ===
+    
+    /**
+     * Initialize GPU backend (Metal on macOS)
+     */
+    bool initializeGPU();
+    
+    /**
+     * Check if GPU backend is available
+     */
+    bool isGPUAvailable() const { return gpuInitialized; }
+    
+    // === MIDI Transmission ===
+    
+    /**
+     * Send MIDI event with burst transmission
+     * 
+     * @param status MIDI status byte
+     * @param data1 MIDI data byte 1
+     * @param data2 MIDI data byte 2
+     * @param use_burst Enable burst transmission (3-5 packets)
+     */
+    void sendMIDIEvent(uint8_t status, uint8_t data1, uint8_t data2, bool use_burst = true);
+    
+    /**
+     * Send raw MIDI data buffer
+     */
+    void sendMIDIData(const uint8_t* data, size_t size, bool use_burst = true);
+    
+    // === Audio Streaming ===
+    
+    /**
+     * Send audio data with PNBTR prediction
+     * 
+     * @param samples PCM audio samples (32-bit float)
+     * @param numSamples Number of samples
+     * @param sampleRate Sample rate (e.g., 44100)
+     * @param enablePrediction Use PNBTR audio prediction
+     */
+    void sendAudioData(const float* samples, int numSamples, int sampleRate, bool enablePrediction = true);
+    
+    // === Video Streaming ===
+    
+    /**
+     * Send video frame with PNBTR-JVID prediction
+     * 
+     * @param frameData Raw video frame data
+     * @param width Frame width
+     * @param height Frame height
+     * @param format Pixel format (RGB, RGBA, etc.)
+     * @param enablePrediction Use PNBTR-JVID video prediction
+     */
+    void sendVideoFrame(const uint8_t* frameData, int width, int height, 
+                       const std::string& format = "RGB24", bool enablePrediction = true);
+    
+    // === PNBTR Prediction ===
+    
+    /**
+     * Enable/disable PNBTR audio prediction
+     */
+    void setPNBTRAudioPrediction(bool enabled) { pnbtrAudioEnabled = enabled; }
+    
+    /**
+     * Enable/disable PNBTR-JVID video prediction  
+     */
+    void setPNBTRVideoPrediction(bool enabled) { pnbtrVideoEnabled = enabled; }
+    
+    /**
+     * Get PNBTR prediction confidence (0.0 - 1.0)
+     */
+    double getPredictionConfidence() const { return predictionConfidence; }
+    
+    // === Callback Registration ===
+    
+    void setMIDICallback(MIDICallback callback) { midiCallback = callback; }
+    void setAudioCallback(AudioCallback callback) { audioCallback = callback; }
+    void setVideoCallback(VideoCallback callback) { videoCallback = callback; }
+    void setStatusCallback(StatusCallback callback) { statusCallback = callback; }
+    void setPerformanceCallback(PerformanceCallback callback) { performanceCallback = callback; }
+    
+    // === Configuration ===
+    
+    /**
+     * Configure burst transmission settings
+     */
+    void setBurstConfig(int burstSize, int jitterWindow_us, bool enableRedundancy);
+    
+    /**
+     * Set prediction buffer size (affects latency vs accuracy)
+     */
+    void setPredictionBufferSize(int samples) { predictionBufferSize = samples; }
+    
+    /**
+     * Get current network performance metrics
+     */
+    struct PerformanceMetrics {
+        double latency_us = 0.0;
+        double throughput_mbps = 0.0;
+        double packet_loss_rate = 0.0;
+        int active_peers = 0;
+        double prediction_accuracy = 0.0;
+    };
+    
+    PerformanceMetrics getPerformanceMetrics() const { return currentMetrics; }
+    
+private:
+    // JAM Framework v2 components
+    std::unique_ptr<jam::TOASTv2Protocol> toastProtocol;
+    std::unique_ptr<jam::GPUBackend> gpuBackend;
+    
+    // State management
+    bool networkActive = false;
+    bool gpuInitialized = false;
+    bool pnbtrAudioEnabled = true;
+    bool pnbtrVideoEnabled = true;
+    int activePeers = 0;
+    int predictionBufferSize = 256;
+    double predictionConfidence = 0.0;
+    
+    // Performance tracking
+    PerformanceMetrics currentMetrics;
+    
+    // Session info
+    std::string sessionName;
+    std::string multicastAddress;
+    int udpPort = 7777;
+    
+    // Callbacks
+    MIDICallback midiCallback;
+    AudioCallback audioCallback;
+    VideoCallback videoCallback;
+    StatusCallback statusCallback;
+    PerformanceCallback performanceCallback;
+    
+    // Internal methods
+    void handleIncomingFrame(const jam::TOASTFrame& frame);
+    void updatePerformanceMetrics();
+    void notifyStatusChange(const std::string& status, bool connected);
+    
+    // Timer callback for periodic updates
+    void timerCallback() override;
+    
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(JAMFrameworkIntegration)
+};

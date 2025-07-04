@@ -4,7 +4,7 @@
 #include <chrono>
 
 // Forward declaration
-class NetworkConnectionPanel;
+class JAMNetworkPanel;
 
 //==============================================================================
 class TransportButton : public juce::Button
@@ -33,7 +33,7 @@ public:
     void timerCallback() override;
     
     // Network integration
-    void setNetworkPanel(NetworkConnectionPanel* panel) { networkPanel = panel; }
+    void setNetworkPanel(JAMNetworkPanel* panel) { jamNetworkPanel = panel; }
     void syncTransportStateToNetwork();
     void handleNetworkTransportCommand(const std::string& command, uint64_t timestamp);
 
@@ -62,7 +62,7 @@ private:
     int subdivisions = 4; // quarter notes
     
     // Network integration
-    NetworkConnectionPanel* networkPanel = nullptr;
+    JAMNetworkPanel* jamNetworkPanel = nullptr;
     bool isMaster = false; // Master controls transport for all connected clients
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (TransportController)

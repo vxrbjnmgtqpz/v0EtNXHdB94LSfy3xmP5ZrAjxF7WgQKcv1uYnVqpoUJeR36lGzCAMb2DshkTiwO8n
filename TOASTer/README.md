@@ -4,49 +4,65 @@
 
 TOASTer is the testing and development application for the TOAST (Transport Oriented Audio Sync Tunnel) protocol. Currently in **Phase 2 baseline state** using TCP transport, awaiting Phase 3 UDP GPU acceleration integration.
 
-## ⚠️ Current Status: Phase 2 Baseline (TCP)
+## 🚀 Current Status: JAM Framework v2 Integration in Progress
 
-**TOASTer is currently operational but not yet using the revolutionary UDP architecture:**
+**TOASTer is being upgraded to use the revolutionary JAM Framework v2 UDP-native architecture:**
 
-### **What Works Now (Phase 2)**
+### **JAM Framework v2 Integration (In Progress)**
+- 🔄 **UDP multicast transport** - Replacing TCP with JAM Framework v2 TOAST v2 protocol
+- 🔄 **GPU-accelerated processing** - Metal GPU backend for message handling
+- 🔄 **PNBTR audio prediction** - Real-time audio prediction with 11 Metal/GLSL shaders
+- 🔄 **PNBTR-JVID video prediction** - Video frame prediction and continuity
+- 🔄 **Burst-deduplication MIDI** - 3-5 packet bursts with GPU deduplication
+- 🔄 **Memory-mapped streaming** - Zero-copy multimedia with JAM Framework
+- 🔄 **Sub-50μs MIDI latency** - Approaching physical limits of networking
+
+### **What Works Now (Phase 2 Baseline)**
 - ✅ **TCP-based TOAST implementation** - Reliable baseline for testing
-- ✅ **Basic MIDI transmission** - Note events over TCP sockets
+- ✅ **Basic MIDI transmission** - Note events over TCP sockets  
 - ✅ **Transport synchronization** - Start/stop commands between instances
 - ✅ **Connection management** - Real handshake verification and proper server/client roles
 - ✅ **Cross-platform build system** - CMake with JUCE framework
 - ✅ **Message handling pipeline** - Complete TOAST message routing
 
-### **What's Coming in Phase 3**
-- 🔄 **UDP multicast transport** - Replace TCP with stateless UDP
-- 🔄 **GPU-accelerated processing** - Move message handling to GPU compute shaders
-- 🔄 **JAM Framework integration** - UDP GPU JSONL native TOAST optimized Bassoon.js fork
-- 🔄 **Burst-deduplication MIDI** - 3-5 packet bursts with GPU deduplication
-- 🔄 **Memory-mapped audio/video** - Zero-copy multimedia streaming
-- 🔄 **Sub-50μs MIDI latency** - Approach physical limits of networking
+### **JAM Framework v2 Features**
+- ✅ **TOAST v2 Protocol** - Pure UDP implementation with 32-byte headers
+- ✅ **Metal GPU Backend** - GPU-accelerated message processing on macOS
+- ✅ **PNBTR Audio Shaders** - 11 Metal + 11 GLSL audio prediction shaders
+- ✅ **PNBTR-JVID Video** - 3 Metal + 1 GLSL video prediction shaders (10 more coming)
+- ✅ **UDP Multicast** - Automatic discovery and burst transmission
+- ✅ **Working Examples** - TOAST test, PNBTR demo, multicast examples
 
-## 🏗️ Current Architecture (Phase 2)
+## 🏗️ New Architecture (JAM Framework v2)
 
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│ TOASTer GUI     │───▶│ Network Panel   │───▶│ TCP Connection  │
-│ (JUCE)          │    │                 │    │ Manager         │
+│ TOASTer GUI     │───▶│ JAM Framework   │───▶│ UDP Multicast   │
+│ (JUCE)          │    │ v2 Integration  │    │ TOAST v2        │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
                                 ▼
                        ┌─────────────────┐
-                       │ TOAST Messages  │
-                       │ (TCP Transport) │
+                       │ Metal GPU       │
+                       │ Backend         │
                        └─────────────────┘
                                 ▼
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│ Remote TOASTer  │◀───│ Message Handler │◀───│ TCP Receiver    │
-│ Instance        │    │                 │    │                 │
+│ PNBTR Audio     │◀───│ GPU Burst       │◀───│ UDP Receiver    │
+│ Prediction      │    │ Deduplication   │    │ (Multicast)     │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
+         ▼                       ▼
+┌─────────────────┐    ┌─────────────────┐
+│ PNBTR-JVID      │    │ Zero-copy       │
+│ Video Predict   │    │ Memory Mapping  │
+└─────────────────┘    └─────────────────┘
 ```
 
-### **Transition Timeline**
-- **Phase 2 (Current)**: TCP baseline for protocol validation ✅
-- **Phase 3 (Q2 2025)**: UDP GPU acceleration implementation 🔄
-- **Phase 4 (Q3 2025)**: JAM Framework integration and optimization ⏳
+### **Implementation Timeline**
+- **Phase 2 (Completed)**: TCP baseline for protocol validation ✅
+- **Phase 3 Week 1 (Completed)**: JAM Framework v2 core UDP + GPU backend ✅  
+- **Phase 3 Week 2 (Current)**: TOASTer integration with JAM Framework v2 🔄
+- **Phase 3 Week 3 (Next)**: PNBTR audio/video prediction integration ⏳
+- **Phase 4 (Q1 2025)**: Cross-framework UDP migration and optimization ⏳
 
 ## 🛠️ Building and Running
 

@@ -3,8 +3,10 @@
 #include <chrono>
 
 #ifdef __APPLE__
-#include <Metal/Metal.hpp>
-#include <Foundation/Foundation.hpp>
+#include <Metal/Metal.h>
+#include <Foundation/Foundation.h>
+#define MTL_PRIVATE_IMPLEMENTATION
+#define CA_PRIVATE_IMPLEMENTATION
 
 namespace jam {
 

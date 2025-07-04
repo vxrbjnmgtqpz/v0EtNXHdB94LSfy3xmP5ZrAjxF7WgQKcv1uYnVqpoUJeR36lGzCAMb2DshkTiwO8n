@@ -7,7 +7,7 @@
 
 // Forward declarations
 class TransportController;
-class NetworkConnectionPanel;
+class JAMNetworkPanel;  // Updated to use JAM Framework v2
 class MIDITestingPanel;
 class PerformanceMonitorPanel;
 class ClockSyncPanel;
@@ -59,6 +59,10 @@ public:
     void updateNetworkLatency(double latencyMs);
     void updateClockSync(bool enabled, double accuracy, double offset, uint64_t rtt);
     void updatePerformanceMetrics(int msgRate, int midiRate);
+    
+    // JAM Framework v2 integration
+    void sendMIDIEventViaJAM(uint8_t status, uint8_t data1, uint8_t data2);
+    bool isJAMFrameworkConnected() const;
 
 private:
     // Shared application state
@@ -69,7 +73,7 @@ private:
     
     // UI Components
     std::unique_ptr<TransportController> transportController;
-    std::unique_ptr<NetworkConnectionPanel> networkPanel;
+    std::unique_ptr<JAMNetworkPanel> jamNetworkPanel;  // Updated to JAM Framework v2
     std::unique_ptr<MIDITestingPanel> midiPanel;
     std::unique_ptr<PerformanceMonitorPanel> performancePanel;
     std::unique_ptr<ClockSyncPanel> clockSyncPanel;

@@ -1,6 +1,6 @@
 #include "MainComponent.h"
 #include "TransportController.h"
-#include "NetworkConnectionPanel.h"
+#include "JAMNetworkPanel.h"  // Updated to JAM Framework v2
 #include "MIDITestingPanel.h"
 #include "PerformanceMonitorPanel.h"
 #include "ClockSyncPanel.h"
@@ -17,8 +17,8 @@ MainComponent::MainComponent()
     transportController = std::make_unique<TransportController>();
     addAndMakeVisible(transportController.get());
     
-    networkPanel = std::make_unique<NetworkConnectionPanel>();
-    addAndMakeVisible(networkPanel.get());
+    jamNetworkPanel = std::make_unique<JAMNetworkPanel>();  // Updated to JAM Framework v2
+    addAndMakeVisible(jamNetworkPanel.get());
     
     midiPanel = std::make_unique<MIDITestingPanel>();
     midiPanel->setMIDIManager(midiManager.get()); // Connect MIDI manager
@@ -33,8 +33,8 @@ MainComponent::MainComponent()
     jmidPanel = std::make_unique<JMIDIntegrationPanel>();
     addAndMakeVisible(jmidPanel.get());
     
-    // Connect TransportController to NetworkPanel for automatic sync
-    transportController->setNetworkPanel(networkPanel.get());
+    // Connect TransportController to JAM Network Panel for automatic sync
+    transportController->setNetworkPanel(jamNetworkPanel.get());
     
     // Start timer to coordinate state updates between panels
     startTimer(250); // Update 4 times per second
@@ -67,7 +67,7 @@ void MainComponent::resized()
     
     // Top row - three panels
     auto topRow = remainingBounds.removeFromTop(panelHeight);
-    networkPanel.get()->setBounds(topRow.removeFromLeft(panelWidth).reduced(5));
+    jamNetworkPanel.get()->setBounds(topRow.removeFromLeft(panelWidth).reduced(5));  // JAM Framework v2 panel
     midiPanel.get()->setBounds(topRow.removeFromLeft(panelWidth).reduced(5));
     jmidPanel.get()->setBounds(topRow.reduced(5)); // JMID panel gets remaining space
     
@@ -97,6 +97,11 @@ void MainComponent::updateNetworkState(bool connected, int connections, const st
     appState.connectedIP = ip;
     appState.connectedPort = port;
     appState.lastUpdate = std::chrono::high_resolution_clock::now();
+    
+    // Update JAM Network Panel performance metrics
+    if (jamNetworkPanel) {
+        appState.networkLatency = jamNetworkPanel->getCurrentLatency();
+    }
 }
 
 void MainComponent::updateNetworkLatency(double latencyMs)
@@ -119,4 +124,20 @@ void MainComponent::updatePerformanceMetrics(int msgRate, int midiRate)
     appState.messageProcessingRate = msgRate;
     appState.midiThroughput = midiRate;
     appState.lastUpdate = std::chrono::high_resolution_clock::now();
+}
+
+void MainComponent::sendMIDIEventViaJAM(uint8_t status, uint8_t data1, uint8_t data2)
+{
+    if (jamNetworkPanel && jamNetworkPanel->isConnected()) {
+        jamNetworkPanel->sendMIDIEvent(status, data1, data2);
+        
+        // Update performance metrics
+        appState.midiThroughput++;
+        appState.lastUpdate = std::chrono::high_resolution_clock::now();
+    }
+}
+
+bool MainComponent::isJAMFrameworkConnected() const
+{
+    return jamNetworkPanel && jamNetworkPanel->isConnected();
 }

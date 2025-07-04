@@ -4,8 +4,9 @@ project(TOASTer VERSION 1.0.0)
 
 set(CMAKE_CXX_STANDARD 17)
 
-# Add our JMID Framework
+# Add our frameworks
 add_subdirectory(../JMID_Framework jmid_framework)
+add_subdirectory(../JAM_Framework_v2 jam_framework_v2)
 
 # Add JUCE
 include(FetchContent)
@@ -32,7 +33,9 @@ target_sources(TOASTer PRIVATE
     Source/Main.cpp
     Source/MainComponent.cpp
     Source/TransportController.cpp
-    Source/NetworkConnectionPanel.cpp
+    Source/JAMNetworkPanel.cpp          # New JAM Framework v2 network panel
+    Source/JAMFrameworkIntegration.cpp  # JAM Framework v2 integration layer
+    Source/NetworkConnectionPanel.cpp   # Legacy TCP panel (for fallback)
     Source/ConnectionDiscovery.cpp
     Source/BonjourDiscovery.mm
     Source/MIDITestingPanel.cpp
@@ -46,6 +49,8 @@ target_sources(TOASTer PRIVATE
 target_include_directories(TOASTer PRIVATE 
     Source
     ../JMID_Framework/include
+    ../JAM_Framework_v2/include        # JAM Framework v2 headers
+    ../PNBTR_Framework/include         # PNBTR prediction headers
 )
 
 # Link JUCE modules and our framework
@@ -62,13 +67,16 @@ target_link_libraries(TOASTer PRIVATE
     juce::juce_events
     juce::juce_graphics
     jmid_framework
+    jam_framework_v2                   # JAM Framework v2 library
     nlohmann_json::nlohmann_json
 )
 
-# Add macOS-specific frameworks for Bonjour/mDNS
+# Add macOS-specific frameworks for Bonjour/mDNS and Metal GPU
 if(APPLE)
     target_link_libraries(TOASTer PRIVATE
         "-framework Foundation"
+        "-framework Metal"             # Metal GPU framework for PNBTR
+        "-framework MetalKit"          # Metal utilities
     )
 endif()
 
