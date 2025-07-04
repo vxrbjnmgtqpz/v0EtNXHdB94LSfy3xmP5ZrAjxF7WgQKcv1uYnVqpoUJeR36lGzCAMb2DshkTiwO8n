@@ -35,6 +35,7 @@ target_sources(TOASTer PRIVATE
     Source/TransportController.cpp
     Source/JAMNetworkPanel.cpp          # Re-enabled JAM Framework v2 panel
     Source/JAMFrameworkIntegration.cpp  # Re-enabled JAM Framework v2 integration
+    Source/PNBTRManager.cpp             # PNBTR GPU-accelerated prediction system
     Source/NetworkConnectionPanel.cpp   # Legacy TCP panel (for fallback)
     Source/ConnectionDiscovery.cpp
     Source/BonjourDiscovery.mm

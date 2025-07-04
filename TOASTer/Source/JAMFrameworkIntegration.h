@@ -14,12 +14,16 @@
 #include <vector>
 #include <string>
 
+// JAM Framework v2 and PNBTR integration
+#include "PNBTRManager.h"
+
 // Forward declarations for JAM Framework v2
 namespace jam {
     class TOASTv2Protocol;
     struct TOASTFrame;
     struct BurstConfig;
     class ComputePipeline;
+    class GPUManager;
 }
 
 /**
@@ -135,17 +139,33 @@ public:
     /**
      * Enable/disable PNBTR audio prediction
      */
-    void setPNBTRAudioPrediction(bool enabled) { pnbtrAudioEnabled = enabled; }
+    void setPNBTRAudioPrediction(bool enabled) { 
+        pnbtrAudioEnabled = enabled; 
+        if (pnbtrManager) {
+            pnbtrManager->setAudioPredictionEnabled(enabled);
+        }
+    }
     
     /**
      * Enable/disable PNBTR-JVID video prediction  
      */
-    void setPNBTRVideoPrediction(bool enabled) { pnbtrVideoEnabled = enabled; }
+    void setPNBTRVideoPrediction(bool enabled) { 
+        pnbtrVideoEnabled = enabled; 
+        if (pnbtrManager) {
+            pnbtrManager->setVideoPredictionEnabled(enabled);
+        }
+    }
     
     /**
      * Get PNBTR prediction confidence (0.0 - 1.0)
      */
-    double getPredictionConfidence() const { return predictionConfidence; }
+    double getPredictionConfidence() const { 
+        if (pnbtrManager) {
+            auto stats = pnbtrManager->getStatistics();
+            return (stats.averageAudioConfidence + stats.averageVideoConfidence) / 2.0;
+        }
+        return predictionConfidence; 
+    }
     
     // === Callback Registration ===
     
@@ -184,6 +204,10 @@ private:
     // JAM Framework v2 components
     std::unique_ptr<jam::TOASTv2Protocol> toastProtocol;
     std::unique_ptr<jam::ComputePipeline> gpuPipeline;
+    std::unique_ptr<jam::GPUManager> gpuManager;
+    
+    // PNBTR Prediction Manager
+    std::unique_ptr<PNBTRManager> pnbtrManager;
     
     // State management
     bool networkActive = false;

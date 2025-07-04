@@ -4,16 +4,25 @@
 #include "jam_toast.h"
 #include "jam_core.h" 
 #include "compute_pipeline.h"
+#include "gpu_manager.h"
 
 #include <juce_core/juce_core.h>
 
 JAMFrameworkIntegration::JAMFrameworkIntegration() {
+    // Initialize PNBTR manager
+    pnbtrManager = std::make_unique<PNBTRManager>();
+    
     // Initialize with 100ms update timer for performance monitoring
     startTimer(100);
 }
 
 JAMFrameworkIntegration::~JAMFrameworkIntegration() {
     stopNetwork();
+    
+    // Shutdown PNBTR manager
+    if (pnbtrManager) {
+        pnbtrManager->shutdown();
+    }
 }
 
 bool JAMFrameworkIntegration::initialize(const std::string& multicast_addr, 
@@ -59,6 +68,13 @@ bool JAMFrameworkIntegration::initialize(const std::string& multicast_addr,
 
 bool JAMFrameworkIntegration::initializeGPU() {
     try {
+        // Initialize GPU Manager first
+        gpuManager = std::make_unique<jam::GPUManager>();
+        if (!gpuManager->initialize()) {
+            juce::Logger::writeToLog("JAM Framework GPU Manager initialization failed");
+            return false;
+        }
+        
         // Initialize Metal GPU backend on macOS
         gpuPipeline = std::make_unique<jam::ComputePipeline>();
         
@@ -66,6 +82,13 @@ bool JAMFrameworkIntegration::initializeGPU() {
         gpuInitialized = success;
         
         if (success) {
+            // Initialize PNBTR prediction system with GPU backend
+            if (pnbtrManager && !pnbtrManager->initialize(gpuManager.get())) {
+                juce::Logger::writeToLog("PNBTR initialization failed - continuing without prediction");
+            } else {
+                juce::Logger::writeToLog("PNBTR GPU-accelerated prediction system initialized");
+            }
+            
             juce::Logger::writeToLog("JAM Framework GPU backend initialized (Metal)");
             notifyStatusChange("GPU acceleration enabled", networkActive);
         } else {
@@ -198,19 +221,36 @@ void JAMFrameworkIntegration::sendAudioData(const float* samples, int numSamples
         std::vector<uint8_t> audioData(numSamples * sizeof(float));
         std::memcpy(audioData.data(), samples, audioData.size());
         
+        // Apply PNBTR audio prediction if enabled
+        if (enablePrediction && pnbtrAudioEnabled && pnbtrManager) {
+            try {
+                // Use last few samples as context for prediction
+                std::vector<float> context(samples, samples + std::min(numSamples, 128));
+                
+                // Predict missing samples (simulating packet loss prediction)
+                auto prediction = pnbtrManager->predictAudio(context, numSamples / 4, sampleRate);
+                
+                if (prediction.success) {
+                    juce::Logger::writeToLog(juce::String::formatted(
+                        "PNBTR: Audio prediction ready (%.1f%% confidence)", 
+                        prediction.confidence * 100.0f));
+                    
+                    // Store prediction for potential use in packet loss recovery
+                    predictionConfidence = prediction.confidence;
+                } else {
+                    juce::Logger::writeToLog("PNBTR: Audio prediction failed");
+                }
+            } catch (const std::exception& e) {
+                juce::Logger::writeToLog("PNBTR: Audio prediction exception: " + juce::String(e.what()));
+            }
+        }
+        
         // Create TOAST frame
         jam::TOASTFrame frame;
         frame.header.frame_type = static_cast<uint8_t>(jam::TOASTFrameType::AUDIO);
         frame.header.timestamp_us = static_cast<uint32_t>(
             juce::Time::getHighResolutionTicks() / 1000);
         frame.payload = audioData;
-        
-        // TODO: Integrate PNBTR audio prediction when enablePrediction is true
-        if (enablePrediction && pnbtrAudioEnabled && gpuPipeline) {
-            // PNBTR prediction will be implemented here
-            // For now, just log that prediction is requested
-            juce::Logger::writeToLog("PNBTR audio prediction requested (implementation pending)");
-        }
         
         // Send frame
         toastProtocol->send_frame(frame);
@@ -241,18 +281,43 @@ void JAMFrameworkIntegration::sendVideoFrame(const uint8_t* frameData, int width
         // Create payload with frame data
         std::vector<uint8_t> videoData(frameData, frameData + frameSize);
         
+        // Apply PNBTR-JVID video prediction if enabled
+        if (enablePrediction && pnbtrVideoEnabled && pnbtrManager) {
+            try {
+                // Maintain frame history for prediction context (simple implementation)
+                static std::vector<std::vector<uint8_t>> frameHistory;
+                frameHistory.push_back(videoData);
+                
+                // Keep only last 5 frames for prediction context
+                if (frameHistory.size() > 5) {
+                    frameHistory.erase(frameHistory.begin());
+                }
+                
+                // Only predict if we have enough history
+                if (frameHistory.size() >= 3) {
+                    auto prediction = pnbtrManager->predictVideoFrame(frameHistory, frameSize);
+                    
+                    if (prediction.success) {
+                        juce::Logger::writeToLog(juce::String::formatted(
+                            "PNBTR-JVID: Video prediction ready (%.1f%% confidence)", 
+                            prediction.confidence * 100.0f));
+                        
+                        predictionConfidence = std::max(predictionConfidence, (double)prediction.confidence);
+                    } else {
+                        juce::Logger::writeToLog("PNBTR-JVID: Video prediction failed");
+                    }
+                }
+            } catch (const std::exception& e) {
+                juce::Logger::writeToLog("PNBTR-JVID: Video prediction exception: " + juce::String(e.what()));
+            }
+        }
+        
         // Create TOAST frame
         jam::TOASTFrame frame;
         frame.header.frame_type = static_cast<uint8_t>(jam::TOASTFrameType::VIDEO);
         frame.header.timestamp_us = static_cast<uint32_t>(
             juce::Time::getHighResolutionTicks() / 1000);
         frame.payload = videoData;
-        
-        // TODO: Integrate PNBTR-JVID video prediction when enablePrediction is true
-        if (enablePrediction && pnbtrVideoEnabled && gpuPipeline) {
-            // PNBTR-JVID prediction will be implemented here
-            juce::Logger::writeToLog("PNBTR-JVID video prediction requested (implementation pending)");
-        }
         
         // Send frame (video frames are typically large, consider compression)
         toastProtocol->send_frame(frame);
