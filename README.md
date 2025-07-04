@@ -149,6 +149,34 @@ We have formats that:
 - **Memory-Mapped Performance**: Direct GPU memory access for maximum throughput
 - **Cross-Platform GPU Acceleration**: Metal (macOS), Vulkan (Linux), optimized VM (Windows)
 
+### Core UDP GPU Clock Sync Technology
+
+**JAMNet's revolutionary foundation: Stateless, optimized, fire-and-forget streaming with GPU-accelerated clock synchronization.**
+
+#### **Stateless Message Architecture**
+- **Self-Contained Messages**: Every JSONL message carries complete context - no dependencies on previous messages
+- **Sequence-Based Ordering**: Messages contain sequence numbers and timestamps for perfect reconstruction
+- **Independent Processing**: Lost messages don't break the stream - next message can be processed immediately
+- **Zero-State Requirements**: No connection state, session state, or acknowledgment tracking
+
+#### **Fire-and-Forget UDP Multicast**
+- **No Handshakes**: Eliminates TCP connection establishment overhead (~3ms round-trip)
+- **No Acknowledgments**: Zero waiting for delivery confirmation or retransmission requests
+- **No Backpressure**: Sender continues at optimal rate regardless of individual receiver status
+- **Multicast Efficiency**: Single transmission reaches unlimited receivers simultaneously
+
+#### **GPU-Accelerated Clock Synchronization**
+- **Parallel Timestamp Processing**: Thousands of GPU threads process timing data simultaneously
+- **Sub-Microsecond Precision**: Hardware-level timestamp generation and comparison
+- **Predictive Clock Drift Correction**: Neural networks predict and compensate for network jitter
+- **Real-Time Timeline Reconstruction**: GPU shaders rebuild perfect timeline from unordered packets
+
+#### **Optimized Performance Fundamentals**
+- **Memory-Mapped GPU Buffers**: Zero-copy from network to GPU memory
+- **Compute Shader Pipeline**: JSON parsing, clock sync, and audio processing in GPU pipeline
+- **Lock-Free Ring Buffers**: Lockless producer-consumer patterns for maximum throughput
+- **SIMD JSON Processing**: Vectorized parsing of multiple messages simultaneously
+
 ### JAM vs Traditional Approaches
 
 | **Traditional Parser**        | **JAM Framework**                    |
