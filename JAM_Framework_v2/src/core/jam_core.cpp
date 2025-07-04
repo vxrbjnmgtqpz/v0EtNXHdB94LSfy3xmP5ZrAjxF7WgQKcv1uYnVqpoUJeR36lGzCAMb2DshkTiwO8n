@@ -32,7 +32,7 @@ public:
         // For now, just log the message
     }
     
-    void send_binary(std::span<const uint8_t> data, const std::string& format_type, uint8_t burst_count = 1) override {
+    void send_binary(const std::vector<uint8_t>& data, const std::string& format_type, uint8_t burst_count = 1) override {
         if (!running_) return;
         
         // TODO: Implement binary data sending via UDP
@@ -42,7 +42,7 @@ public:
         message_callback_ = callback;
     }
     
-    void set_binary_callback(std::function<void(std::span<const uint8_t> data, const std::string& format_type)> callback) override {
+    void set_binary_callback(std::function<void(const std::vector<uint8_t>& data, const std::string& format_type)> callback) override {
         binary_callback_ = callback;
     }
     
@@ -66,8 +66,9 @@ public:
         stats.messages_received = 0;
         stats.bytes_sent = 0;
         stats.bytes_received = 0;
-        stats.average_latency_us = 0;
-        stats.packets_dropped = 0;
+        stats.gpu_process_time_us = 0;
+        stats.udp_send_time_us = 0;
+        stats.packet_loss_percent = 0;
         stats.duplicate_packets = 0;
         // TODO: Implement actual statistics collection
         return stats;
@@ -84,7 +85,7 @@ private:
     bool running_;
     
     std::function<void(const std::string& jsonl)> message_callback_;
-    std::function<void(std::span<const uint8_t> data, const std::string& format_type)> binary_callback_;
+    std::function<void(const std::vector<uint8_t>& data, const std::string& format_type)> binary_callback_;
 };
 
 // Static factory method implementation

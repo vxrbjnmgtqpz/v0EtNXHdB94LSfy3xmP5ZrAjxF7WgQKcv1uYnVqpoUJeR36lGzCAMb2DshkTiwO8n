@@ -64,6 +64,9 @@ set(JAM_SOURCES
     src/jsonl/jsonl_parser.cpp
     src/jsonl/jsonl_generator.cpp
     src/jsonl/compact_format.cpp
+    src/gpu/compute_pipeline.cpp
+    src/gpu/gpu_manager.cpp
+    src/gpu/memory_mapper.cpp
 )
 
 # GPU and UDP transport disabled for initial build
@@ -81,9 +84,9 @@ elseif(JAM_GPU_BACKEND STREQUAL "opengl")
 endif()
 
 # Create JAM Framework library
-add_library(jamframework ${JAM_SOURCES})
+add_library(jam_framework_v2 ${JAM_SOURCES})
 
-target_include_directories(jamframework 
+target_include_directories(jam_framework_v2 
     PUBLIC 
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
@@ -91,14 +94,14 @@ target_include_directories(jamframework
         src
 )
 
-target_link_libraries(jamframework 
+target_link_libraries(jam_framework_v2 
     PUBLIC 
         Threads::Threads
         ${GPU_LIBRARIES}
 )
 
 # Compile definitions
-target_compile_definitions(jamframework 
+target_compile_definitions(jam_framework_v2 
     PUBLIC
         JAM_VERSION_MAJOR=${PROJECT_VERSION_MAJOR}
         JAM_VERSION_MINOR=${PROJECT_VERSION_MINOR}
@@ -147,7 +150,7 @@ if(SHADER_COMPILE_COMMAND)
     endforeach()
     
     add_custom_target(jam_shaders ALL DEPENDS ${COMPILED_SHADERS})
-    add_dependencies(jamframework jam_shaders)
+    add_dependencies(jam_framework_v2 jam_shaders)
 endif()
 
 # Examples
@@ -162,7 +165,7 @@ if(JAM_BUILD_TESTS)
 endif()
 
 # Installation
-install(TARGETS jamframework
+install(TARGETS jam_framework_v2
     EXPORT JAMFrameworkTargets
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib

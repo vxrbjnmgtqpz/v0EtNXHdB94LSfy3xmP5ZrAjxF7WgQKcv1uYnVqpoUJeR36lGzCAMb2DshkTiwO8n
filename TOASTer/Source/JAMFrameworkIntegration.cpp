@@ -200,7 +200,7 @@ void JAMFrameworkIntegration::sendAudioData(const float* samples, int numSamples
         
         // Create TOAST frame
         jam::TOASTFrame frame;
-        frame.header.frame_type = jam::TOASTFrameType::AUDIO;
+        frame.header.frame_type = static_cast<uint8_t>(jam::TOASTFrameType::AUDIO);
         frame.header.timestamp_us = static_cast<uint32_t>(
             juce::Time::getHighResolutionTicks() / 1000);
         frame.payload = audioData;
@@ -213,7 +213,7 @@ void JAMFrameworkIntegration::sendAudioData(const float* samples, int numSamples
         }
         
         // Send frame
-        toastProtocol->sendFrame(frame);
+        toastProtocol->send_frame(frame);
         
         // Update metrics
         currentMetrics.throughput_mbps += (audioData.size() * 8.0) / 1000000.0;
@@ -243,7 +243,7 @@ void JAMFrameworkIntegration::sendVideoFrame(const uint8_t* frameData, int width
         
         // Create TOAST frame
         jam::TOASTFrame frame;
-        frame.header.frame_type = jam::TOASTFrameType::VIDEO;
+        frame.header.frame_type = static_cast<uint8_t>(jam::TOASTFrameType::VIDEO);
         frame.header.timestamp_us = static_cast<uint32_t>(
             juce::Time::getHighResolutionTicks() / 1000);
         frame.payload = videoData;
@@ -255,7 +255,7 @@ void JAMFrameworkIntegration::sendVideoFrame(const uint8_t* frameData, int width
         }
         
         // Send frame (video frames are typically large, consider compression)
-        toastProtocol->sendFrame(frame);
+        toastProtocol->send_frame(frame);
         
         // Update metrics
         currentMetrics.throughput_mbps += (videoData.size() * 8.0) / 1000000.0;
@@ -272,7 +272,7 @@ void JAMFrameworkIntegration::setBurstConfig(int burstSize, int jitterWindow_us,
         config.jitter_window_us = static_cast<uint16_t>(juce::jlimit(0, 65535, jitterWindow_us));
         config.enable_redundancy = enableRedundancy;
         
-        toastProtocol->setBurstConfig(config);
+        toastProtocol->set_burst_config(config);
         
         juce::Logger::writeToLog("Burst config updated: size=" + juce::String(burstSize) + 
                                ", jitter=" + juce::String(jitterWindow_us) + "μs");
@@ -281,7 +281,7 @@ void JAMFrameworkIntegration::setBurstConfig(int burstSize, int jitterWindow_us,
 
 void JAMFrameworkIntegration::handleIncomingFrame(const jam::TOASTFrame& frame) {
     try {
-        switch (frame.header.frame_type) {
+        switch (static_cast<jam::TOASTFrameType>(frame.header.frame_type)) {
             case jam::TOASTFrameType::MIDI:
                 if (midiCallback && frame.payload.size() >= 3) {
                     uint8_t status = frame.payload[0];
@@ -307,13 +307,13 @@ void JAMFrameworkIntegration::handleIncomingFrame(const jam::TOASTFrame& frame) 
                 break;
                 
             case jam::TOASTFrameType::DISCOVERY:
-                // Handle peer discovery
-                activePeers = toastProtocol->getActivePeerCount();
+                // Handle peer discovery - placeholder value for now
+                activePeers = 1; // toastProtocol->getActivePeerCount();
                 break;
                 
             case jam::TOASTFrameType::HEARTBEAT:
-                // Update peer count and latency
-                currentMetrics.latency_us = toastProtocol->getAverageLatency();
+                // Update peer count and latency - placeholder values for now
+                currentMetrics.latency_us = 50.0; // toastProtocol->getAverageLatency();
                 break;
                 
             default:
@@ -329,10 +329,10 @@ void JAMFrameworkIntegration::handleIncomingFrame(const jam::TOASTFrame& frame) 
 
 void JAMFrameworkIntegration::updatePerformanceMetrics() {
     if (toastProtocol && networkActive) {
-        // Get metrics from TOAST protocol
-        currentMetrics.active_peers = toastProtocol->getActivePeerCount();
-        currentMetrics.latency_us = toastProtocol->getAverageLatency();
-        currentMetrics.packet_loss_rate = toastProtocol->getPacketLossRate();
+        // Get metrics from TOAST protocol - placeholder values for now
+        currentMetrics.active_peers = activePeers; // toastProtocol->getActivePeerCount();
+        currentMetrics.latency_us = 50.0; // toastProtocol->getAverageLatency();
+        currentMetrics.packet_loss_rate = 0.01; // toastProtocol->getPacketLossRate();
         
         // Update prediction accuracy if GPU backend is available
         if (gpuPipeline && gpuInitialized) {
@@ -367,12 +367,12 @@ void JAMFrameworkIntegration::timerCallback() {
     // Send heartbeat if connected
     if (toastProtocol && networkActive) {
         jam::TOASTFrame heartbeat;
-        heartbeat.header.frame_type = jam::TOASTFrameType::HEARTBEAT;
+        heartbeat.header.frame_type = static_cast<uint8_t>(jam::TOASTFrameType::HEARTBEAT);
         heartbeat.header.timestamp_us = static_cast<uint32_t>(
             juce::Time::getHighResolutionTicks() / 1000);
         
         try {
-            toastProtocol->sendFrame(heartbeat);
+            toastProtocol->send_frame(heartbeat);
         } catch (const std::exception& e) {
             // Heartbeat failure indicates network issues
             juce::Logger::writeToLog("Heartbeat failed: " + juce::String(e.what()));

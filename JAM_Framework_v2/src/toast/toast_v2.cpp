@@ -243,7 +243,7 @@ bool TOASTv2Protocol::send_frame(const TOASTFrame& frame, bool use_burst) {
 
 bool TOASTv2Protocol::send_midi(const std::vector<uint8_t>& midi_data, uint64_t timestamp_us, bool use_burst) {
     TOASTFrame frame;
-    frame.header.frame_type = TOASTFrameType::MIDI;
+    frame.header.frame_type = static_cast<uint8_t>(TOASTFrameType::MIDI);
     frame.header.sequence_number = next_sequence_++;
     frame.header.timestamp_us = static_cast<uint32_t>(timestamp_us);
     frame.header.session_id = session_id_;
@@ -258,7 +258,7 @@ bool TOASTv2Protocol::send_midi(const std::vector<uint8_t>& midi_data, uint64_t 
 bool TOASTv2Protocol::send_audio(const std::vector<float>& audio_data, uint64_t timestamp_us,
                                 uint32_t sample_rate, uint8_t channels) {
     TOASTFrame frame;
-    frame.header.frame_type = TOASTFrameType::AUDIO;
+    frame.header.frame_type = static_cast<uint8_t>(TOASTFrameType::AUDIO);
     frame.header.sequence_number = next_sequence_++;
     frame.header.timestamp_us = static_cast<uint32_t>(timestamp_us);
     frame.header.session_id = session_id_;
@@ -283,7 +283,7 @@ bool TOASTv2Protocol::send_audio(const std::vector<float>& audio_data, uint64_t 
 bool TOASTv2Protocol::send_video(const std::vector<uint8_t>& frame_data, uint64_t timestamp_us,
                                 uint16_t width, uint16_t height, uint8_t format) {
     TOASTFrame frame;
-    frame.header.frame_type = TOASTFrameType::VIDEO;
+    frame.header.frame_type = static_cast<uint8_t>(TOASTFrameType::VIDEO);
     frame.header.sequence_number = next_sequence_++;
     frame.header.timestamp_us = static_cast<uint32_t>(timestamp_us);
     frame.header.session_id = session_id_;
@@ -306,7 +306,7 @@ bool TOASTv2Protocol::send_video(const std::vector<uint8_t>& frame_data, uint64_
 
 bool TOASTv2Protocol::send_sync(uint64_t sync_timestamp) {
     TOASTFrame frame;
-    frame.header.frame_type = TOASTFrameType::SYNC;
+    frame.header.frame_type = static_cast<uint8_t>(TOASTFrameType::SYNC);
     frame.header.sequence_number = next_sequence_++;
     frame.header.timestamp_us = static_cast<uint32_t>(sync_timestamp);
     frame.header.session_id = session_id_;
@@ -404,7 +404,7 @@ void TOASTv2Protocol::handle_received_frame(const TOASTFrame& frame) {
     update_stats_received(frame);
     
     // Route to appropriate callback
-    switch (frame.header.frame_type) {
+    switch (static_cast<TOASTFrameType>(frame.header.frame_type)) {
         case TOASTFrameType::MIDI:
             if (midi_callback_) midi_callback_(frame);
             break;
