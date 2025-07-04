@@ -155,11 +155,12 @@ The JAM Framework represents a fundamental paradigm shift: **treating JSON as st
 
 ### PNBTR Core Principles
 
+- **24-bit Default Operation**: PNBTR operates at 24-bit depth by default, with predictive LSB modeling extending perceived resolution without increasing bandwidth
 - **Zero-Noise Audio**: No random noise added - ever
 - **Waveform-Aware Processing**: LSB values determined by musical analysis
 - **Mathematical Precision**: Reconstruction based on harmonic, pitch, and dynamic context
 - **Analog-Continuous Results**: Predicts what infinite-resolution analog would sound like
-- **24-bit Optimization**: Enables pristine quality without dithering artifacts
+- **Bandwidth Efficiency**: Higher perceived resolution achieved through intelligent prediction, not data expansion
 - **Continuous Learning**: Self-improving through global JAMNet session training data
 - **Physics-Based Extrapolation**: Infers higher bit-depth content from 24-bit patterns
 
@@ -181,6 +182,43 @@ The JAM Framework represents a fundamental paradigm shift: **treating JSON as st
 - Global training diversity improves reconstruction across all musical styles and contexts
 
 **Revolutionary Claim**: PNBTR reconstructs the original analog characteristics that would have existed with infinite resolution, providing zero-noise, analog-continuous audio at 24-bit depth or lower through mathematically informed processing that continuously improves through global distributed learning.
+
+### PNBTR Waveform Modeling Methodologies
+
+**PNBTR's prediction model is a hybrid system combining multiple advanced techniques:**
+
+#### **Core Prediction Strategies:**
+
+1. **Autoregressive (LPC-like) Modeling**
+   - Short-term waveform continuity prediction
+   - Linear predictive coding for smooth signal transitions
+   - Real-time coefficient adaptation based on musical context
+
+2. **Pitch-Synchronized Cycle Reconstruction**
+   - Harmonic content analysis and extrapolation
+   - Fundamental frequency tracking for tonal instruments
+   - Cycle-aware reconstruction maintaining musical pitch accuracy
+
+3. **Envelope Tracking for Decay/Ambience Realism**
+   - Attack, decay, sustain, release (ADSR) modeling
+   - Natural reverb and room tone reconstruction
+   - Amplitude envelope prediction for realistic instrument behavior
+
+4. **Neural Inference Modules**
+   - Lightweight RNNs for temporal pattern recognition
+   - Compact CNNs for spectral feature extraction
+   - GPU-optimized inference for <1ms processing time
+
+5. **Phase Alignment and Spectral Shaping**
+   - Windowed FFT analysis for frequency domain reconstruction
+   - Phase coherence maintenance across frequency bands
+   - Spectral shaping based on musical instrument characteristics
+
+**Hybrid Intelligence Architecture:**
+- **Mathematical Foundation**: LPC and FFT provide deterministic baseline prediction
+- **Musical Intelligence**: Pitch and envelope tracking ensure musically coherent reconstruction
+- **Neural Enhancement**: ML modules handle non-linear patterns and complex timbres
+- **Real-Time Optimization**: All techniques operate within GPU compute shaders for ultra-low latency
 
 ## The Complete JAMNet Ecosystem
 

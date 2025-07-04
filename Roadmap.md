@@ -334,10 +334,11 @@ public:
 - [ ] Build **adaptive reconstruction windows** with nonlinear, phase-aware processing
 
 **PNBTR Dither Replacement Philosophy:**
+- **24-bit Default Operation**: PNBTR operates at 24-bit depth by default, with predictive LSB modeling extending perceived resolution without increasing bandwidth
 - **Zero-Noise Audio**: Eliminates all noise-based dithering with mathematical waveform reconstruction
 - **Analog-Continuous Reconstruction**: Predicts infinite-resolution analog characteristics at any bit depth
 - **Waveform-Aware Processing**: LSB values determined by musical context, not random noise
-- **24-bit and Lower Optimization**: Enables pristine audio quality without traditional dithering artifacts
+- **Bandwidth Efficiency**: Higher perceived resolution achieved through intelligent prediction, not data expansion
 
 ### 4.2 PNBTR Neural Prediction Shaders
 
@@ -345,10 +346,48 @@ public:
 
 - [ ] **`pnbtr_predict.glsl`**: Core neural prediction with contextual extrapolation up to 50ms
 - [ ] **`lsb_reconstruction.glsl`**: Waveform-aware LSB reconstruction completely replacing traditional dither
+- [ ] **`lpc_modeling.glsl`**: Autoregressive (LPC-like) modeling for short-term waveform continuity
+- [ ] **`pitch_cycle_reconstruction.glsl`**: Pitch-synchronized cycle reconstruction for tonal data
+- [ ] **`envelope_tracking.glsl`**: ADSR envelope tracking for decay/ambience realism
+- [ ] **`neural_inference.glsl`**: Lightweight RNN/CNN modules for non-linear prediction
+- [ ] **`spectral_shaping.glsl`**: Phase alignment and spectral shaping based on windowed FFTs
 - [ ] **`analog_extrapolation.glsl`**: Neural waveform reconstruction with harmonic/pitch awareness
 - [ ] **`transient_recovery.glsl`**: Nonlinear, phase-aware transient completion
 - [ ] **`context_analysis.glsl`**: Musical intelligence extraction for prediction guidance
 - [ ] **`zero_noise_modeling.glsl`**: Mathematically informed micro-amplitude generation (no random noise)
+
+### 4.2.1 PNBTR Waveform Modeling Methodologies
+
+**Status: Hybrid Prediction System with Multiple Advanced Techniques**
+
+**PNBTR's prediction model combines:**
+
+- [ ] **Autoregressive (LPC-like) Modeling**: Short-term continuity prediction with real-time coefficient adaptation
+- [ ] **Pitch-Synchronized Cycle Reconstruction**: Harmonic analysis and fundamental frequency tracking for tonal instruments
+- [ ] **Envelope Tracking**: ADSR modeling with natural reverb and room tone reconstruction
+- [ ] **Neural Inference Modules**: Lightweight RNNs/CNNs for temporal patterns and spectral features
+- [ ] **Phase Alignment and Spectral Shaping**: Windowed FFT analysis with phase coherence maintenance
+
+**Hybrid Intelligence Architecture:**
+```cpp
+class PNBTRHybridPredictor {
+public:
+    // Mathematical foundation
+    void runLPCPrediction(const AudioBuffer& history);
+    void performFFTAnalysis(const SpectralWindow& window);
+    
+    // Musical intelligence
+    void trackPitchCycles(const HarmonicContent& harmonics);
+    void modelEnvelopeDecay(const ADSRProfile& envelope);
+    
+    // Neural enhancement
+    void runRNNInference(const TemporalPattern& pattern);
+    void applyCNNSpectralAnalysis(const FrequencyBands& bands);
+    
+    // Real-time optimization
+    void optimizeForGPULatency(const ComputeShaderLimits& limits);
+};
+```
 
 ### 4.3 GPU-Based Neural Audio Intelligence
 
@@ -430,7 +469,9 @@ public:
 
 **Goals:**
 - [ ] System reconstructs **original analog characteristics** that would have existed with infinite resolution
-- [ ] **PNBTR completely replaces traditional dithering** with waveform-aware LSB reconstruction, enabling zero-noise, analog-continuous audio at 24-bit depth or lower
+- [ ] **PNBTR operates at 24-bit depth by default**, with predictive LSB modeling extending perceived resolution without increasing bandwidth
+- [ ] **PNBTR completely replaces traditional dithering** with waveform-aware LSB reconstruction, enabling zero-noise, analog-continuous audio
+- [ ] **Hybrid prediction methodologies** combine LPC modeling, pitch-cycle reconstruction, envelope tracking, neural inference, and spectral shaping
 - [ ] **Mathematically informed processing** eliminates noise-based approaches entirely
 - [ ] **Neural extrapolation** provides contextual waveform prediction up to 50ms ahead
 - [ ] **Musical context awareness** (key, tempo, harmonic content) guides reconstruction
@@ -439,6 +480,8 @@ public:
 
 **Revolutionary Capabilities:**
 - GPU processes thousands of neural reconstruction streams simultaneously
+- **24-bit default operation** with higher perceived resolution through intelligent prediction
+- Hybrid prediction system combines mathematical, musical, and neural intelligence
 - Predictive neural models run inference <1ms per audio segment on GPU  
 - Musical intelligence maintains **original analog warmth** and **microdynamics**
 - Contextual prediction adapts to **musical content** and **performance style**
