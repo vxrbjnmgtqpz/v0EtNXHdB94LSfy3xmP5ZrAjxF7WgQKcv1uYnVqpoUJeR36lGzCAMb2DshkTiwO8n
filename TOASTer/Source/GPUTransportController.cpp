@@ -450,6 +450,7 @@ void GPUTransportController::updateBarsBeatsDisplay()
     }
     
     // Get GPU-native bars/beats calculation 
+    transportManager.update();  // Ensure GPU buffers are synchronized
     GPUBarsBeatsBuffer barsBeatsInfo = transportManager.getBarsBeatsInfo();
     
     // Format as "BAR.BEAT.TICKS" like a DAW (e.g., "001.01.000")

@@ -70,6 +70,11 @@ public:
     bool startNetwork();
     
     /**
+     * Start network with bypassed connectivity tests (for direct connections)
+     */
+    bool startNetworkDirect();
+    
+    /**
      * Stop networking and cleanup
      */
     void stopNetwork();

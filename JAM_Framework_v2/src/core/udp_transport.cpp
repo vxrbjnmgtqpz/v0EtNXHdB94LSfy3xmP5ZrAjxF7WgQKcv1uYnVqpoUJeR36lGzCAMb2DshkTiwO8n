@@ -29,7 +29,7 @@ private:
     std::atomic<bool> receiving_{false};
     std::thread recv_thread_;
     
-    std::function<void(std::span<const uint8_t>)> receive_callback_;
+    std::function<void(const uint8_t* data, size_t size)> receive_callback_;
     
     // Statistics
     mutable std::mutex stats_mutex_;
@@ -182,7 +182,7 @@ public:
         return total_send_time;
     }
     
-    void set_receive_callback(std::function<void(std::span<const uint8_t>)> callback) override {
+    void set_receive_callback(std::function<void(const uint8_t* data, size_t size)> callback) override {
         receive_callback_ = callback;
     }
     
@@ -299,7 +299,7 @@ private:
                         
                         // Call callback if set
                         if (receive_callback_) {
-                            receive_callback_(std::span<const uint8_t>(payload, payload_size));
+                            receive_callback_(payload, payload_size);
                         }
                     }
                 }

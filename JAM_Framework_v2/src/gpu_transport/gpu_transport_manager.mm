@@ -184,6 +184,16 @@ kernel void gpu_transport_bars_beats_update(
 ) {
     if (thread_position_in_grid != 0) return;
     
+    // Reset bars/beats to initial values when stopped
+    if (transport_buffer.current_state == GPUTransportState::Stopped) {
+        bars_beats_buffer.bars = 1;              // Reset to bar 1
+        bars_beats_buffer.beats = 1;             // Reset to beat 1  
+        bars_beats_buffer.subdivisions = 0;      // Reset to subdivision 0
+        bars_beats_buffer.total_beats = 0.0f;    // Reset total beats
+        bars_beats_buffer.fractional_beat = 0.0f; // Reset fractional beat
+        return;
+    }
+    
     // Only calculate when playing or recording
     if (transport_buffer.current_state != GPUTransportState::Playing && 
         transport_buffer.current_state != GPUTransportState::Recording) {

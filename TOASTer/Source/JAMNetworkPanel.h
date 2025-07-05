@@ -3,6 +3,7 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 #include "JAMFrameworkIntegration.h"
 #include "BonjourDiscovery.h"
+#include "ThunderboltNetworkDiscovery.h"
 
 // Forward declarations
 class GPUTransportController;
@@ -15,7 +16,8 @@ class GPUTransportController;
  */
 class JAMNetworkPanel : public juce::Component, 
                        public juce::Timer,
-                       public BonjourDiscovery::Listener {
+                       public BonjourDiscovery::Listener,
+                       public ThunderboltNetworkDiscovery::Listener {
 public:
     JAMNetworkPanel();
     ~JAMNetworkPanel() override;
@@ -48,12 +50,19 @@ public:
     // Transport controller integration  
     void setTransportController(GPUTransportController* controller) { transportController = controller; }
     
+    // Network status callback
+    using NetworkStatusCallback = std::function<void(bool connected, int peers, const std::string& address, int port)>;
+    void setNetworkStatusCallback(NetworkStatusCallback callback) { networkStatusCallback = callback; }
+
 private:
     // JAM Framework v2 integration
     std::unique_ptr<JAMFrameworkIntegration> jamFramework;
     
     // Transport controller for bidirectional sync
     GPUTransportController* transportController = nullptr;
+    
+    // Network status callback
+    NetworkStatusCallback networkStatusCallback;
 
     // UI Components
     juce::Label titleLabel;
@@ -81,6 +90,7 @@ private:
     
     // Discovery
     std::unique_ptr<BonjourDiscovery> bonjourDiscovery;
+    std::unique_ptr<ThunderboltNetworkDiscovery> thunderboltDiscovery;
     
     // Performance metrics display
     juce::Label latencyLabel;
@@ -115,6 +125,11 @@ private:
     void deviceDiscovered(const BonjourDiscovery::DiscoveredDevice& device) override;
     void deviceLost(const std::string& deviceName) override;
     void deviceConnected(const BonjourDiscovery::DiscoveredDevice& device) override;
+    
+    // ThunderboltNetworkDiscovery::Listener implementation
+    void peerDiscovered(const ThunderboltNetworkDiscovery::PeerDevice& device) override;
+    void peerLost(const std::string& device_name) override;
+    void connectionEstablished(const ThunderboltNetworkDiscovery::PeerDevice& device) override;
     
     // Timer callback
     void timerCallback() override;

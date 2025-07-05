@@ -40,6 +40,7 @@ target_sources(TOASTer PRIVATE
     Source/NetworkConnectionPanel.cpp       # Legacy TCP panel (for fallback)
     Source/ConnectionDiscovery.cpp
     Source/BonjourDiscovery.mm
+    Source/ThunderboltNetworkDiscovery.cpp  # New Thunderbolt discovery
     Source/MIDITestingPanel.cpp
     Source/PerformanceMonitorPanel.cpp
     Source/ClockSyncPanel.cpp

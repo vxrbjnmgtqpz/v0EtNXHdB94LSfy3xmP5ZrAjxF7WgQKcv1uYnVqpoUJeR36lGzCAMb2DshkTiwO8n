@@ -90,7 +90,7 @@ public:
      * 
      * @param callback Function to handle received data
      */
-    virtual void set_receive_callback(std::function<void(std::span<const uint8_t>)> callback) = 0;
+    virtual void set_receive_callback(std::function<void(const uint8_t* data, size_t size)> callback) = 0;
 
     /**
      * Start UDP receive processing

@@ -80,6 +80,14 @@ MainComponent::MainComponent()
     transportController->setNetworkPanel(jamNetworkPanel.get());
     jamNetworkPanel->setTransportController(transportController.get());
     
+    // Connect JAMNetworkPanel to notify MainComponent of network changes
+    jamNetworkPanel->setNetworkStatusCallback([this](bool connected, int peers, const std::string& address, int port) {
+        updateNetworkState(connected, peers, address, port);
+    });
+    
+    // Connect ClockSyncPanel to get network status updates
+    // Note: Will need to add callback in JAMNetworkPanel to notify ClockSyncPanel of connection changes
+    
     // Start timer synchronized with GPU timebase
     if (jam::gpu_native::GPUTimebase::is_initialized()) {
         // Update at ~60 FPS synchronized with GPU timeline
@@ -143,6 +151,9 @@ void MainComponent::timerCallback()
     performancePanel.get()->setClockAccuracy(gpuAppState.clockAccuracy);
     performancePanel->setMessageProcessingRate(gpuAppState.messageProcessingRate);
     performancePanel->setMIDIThroughput(gpuAppState.midiThroughput);
+    
+    // Update ClockSyncPanel with current network status
+    clockSyncPanel->setNetworkConnected(gpuAppState.isNetworkConnected, gpuAppState.activeConnections);
 }
 
 void MainComponent::updateGPUPerformance()

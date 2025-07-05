@@ -161,6 +161,11 @@ JAMNetworkPanel::JAMNetworkPanel()
     bonjourDiscovery->addListener(this);
     addAndMakeVisible(*bonjourDiscovery);
     
+    // Thunderbolt discovery for direct connections
+    thunderboltDiscovery = std::make_unique<ThunderboltNetworkDiscovery>();
+    thunderboltDiscovery->addListener(this);
+    addAndMakeVisible(*thunderboltDiscovery);
+    
     // Start 250ms update timer
     startTimer(250);
 }
@@ -168,6 +173,10 @@ JAMNetworkPanel::JAMNetworkPanel()
 JAMNetworkPanel::~JAMNetworkPanel() {
     if (bonjourDiscovery) {
         bonjourDiscovery->removeListener(this);
+    }
+    
+    if (thunderboltDiscovery) {
+        thunderboltDiscovery->removeListener(this);
     }
     
     if (jamFramework && networkConnected) {
@@ -251,9 +260,16 @@ void JAMNetworkPanel::resized() {
     
     bounds.removeFromTop(5);
     
-    // Bonjour discovery (remaining space)
-    if (bounds.getHeight() > 50) {
-        bonjourDiscovery->setBounds(bounds.removeFromTop(60));
+    // Discovery sections (split remaining space)
+    if (bounds.getHeight() > 100) {
+        // Thunderbolt discovery gets top priority
+        thunderboltDiscovery->setBounds(bounds.removeFromTop(80));
+        bounds.removeFromTop(5);
+        
+        // Bonjour discovery gets remaining space
+        if (bounds.getHeight() > 50) {
+            bonjourDiscovery->setBounds(bounds.removeFromTop(60));
+        }
     }
 }
 
@@ -423,6 +439,13 @@ void JAMNetworkPanel::onJAMStatusChanged(const std::string& status, bool connect
         connectButton.setEnabled(true);
         disconnectButton.setEnabled(false);
     }
+    
+    // Notify MainComponent of network status change
+    if (networkStatusCallback) {
+        std::string address = multicastAddressEditor.getText().toStdString();
+        int port = portEditor.getText().getIntValue();
+        networkStatusCallback(connected, activePeers, address, port);
+    }
 }
 
 void JAMNetworkPanel::onJAMPerformanceUpdate(double latency_us, double throughput_mbps, int active_peers) {
@@ -456,6 +479,76 @@ void JAMNetworkPanel::deviceLost(const std::string& name) {
 
 void JAMNetworkPanel::deviceConnected(const BonjourDiscovery::DiscoveredDevice& device) {
     juce::Logger::writeToLog("Bonjour connected to device: " + juce::String(device.name));
+}
+
+// ThunderboltNetworkDiscovery::Listener implementation
+void JAMNetworkPanel::peerDiscovered(const ThunderboltNetworkDiscovery::PeerDevice& device) {
+    juce::Logger::writeToLog("Thunderbolt discovered peer: " + juce::String(device.name) + " at " + juce::String(device.ip_address));
+    
+    // Auto-suggest this device for connection since it's on Thunderbolt
+    if (device.is_thunderbolt) {
+        statusLabel.setText("🔗 Found Thunderbolt device: " + juce::String(device.name), juce::dontSendNotification);
+        statusLabel.setColour(juce::Label::textColourId, juce::Colours::lightgreen);
+    }
+}
+
+void JAMNetworkPanel::peerLost(const std::string& device_name) {
+    juce::Logger::writeToLog("Thunderbolt lost peer: " + juce::String(device_name));
+}
+
+void JAMNetworkPanel::connectionEstablished(const ThunderboltNetworkDiscovery::PeerDevice& device) {
+    juce::Logger::writeToLog("Thunderbolt connected to peer: " + juce::String(device.name));
+    
+    // Configure the JAM Framework to use this direct connection
+    // Bypass the multicast tests for direct Thunderbolt connections
+    if (jamFramework && device.is_thunderbolt) {
+        // Use the discovered IP for a direct connection
+        multicastAddressEditor.setText(device.ip_address);
+        portEditor.setText("7777"); // Standard port
+        
+        statusLabel.setText("🚀 Connecting via Thunderbolt to " + juce::String(device.ip_address) + "...", juce::dontSendNotification);
+        statusLabel.setColour(juce::Label::textColourId, juce::Colours::yellow);
+        
+        // Initialize with the direct IP
+        bool initSuccess = jamFramework->initialize(
+            device.ip_address,
+            7777,
+            currentSessionName.toStdString()
+        );
+        
+        if (initSuccess) {
+            // Use direct connection method that bypasses network tests
+            bool networkSuccess = jamFramework->startNetworkDirect();
+            
+            if (networkSuccess) {
+                networkConnected = true;
+                connectButton.setEnabled(false);
+                disconnectButton.setEnabled(true);
+                
+                statusLabel.setText("✅ Connected via Thunderbolt to " + juce::String(device.ip_address), juce::dontSendNotification);
+                statusLabel.setColour(juce::Label::textColourId, juce::Colours::green);
+                
+                // AUTO-ENABLE all optimal settings
+                jamFramework->setPNBTRAudioPrediction(true);
+                jamFramework->setPNBTRVideoPrediction(true);
+                jamFramework->setBurstConfig(3, 500, true);
+                
+                juce::Logger::writeToLog("🚀 Thunderbolt connection established with auto-config");
+                
+                // Notify network status callback if set
+                if (networkStatusCallback) {
+                    networkStatusCallback(true, 1, device.ip_address, 7777);
+                }
+                
+            } else {
+                statusLabel.setText("❌ Failed to start direct connection to " + juce::String(device.ip_address), juce::dontSendNotification);
+                statusLabel.setColour(juce::Label::textColourId, juce::Colours::red);
+            }
+        } else {
+            statusLabel.setText("❌ Failed to initialize for " + juce::String(device.ip_address), juce::dontSendNotification);
+            statusLabel.setColour(juce::Label::textColourId, juce::Colours::red);
+        }
+    }
 }
 
 void JAMNetworkPanel::timerCallback() {

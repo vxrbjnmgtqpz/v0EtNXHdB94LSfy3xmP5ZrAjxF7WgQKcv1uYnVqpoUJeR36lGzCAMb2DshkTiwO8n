@@ -4,6 +4,7 @@
 #include "TOASTTransport.h"
 #include "ClockDriftArbiter.h"
 #include "BonjourDiscovery.h"
+#include "../../JAM_Framework_v2/include/jam_transport.h"
 #include <memory>
 
 //==============================================================================
@@ -33,6 +34,16 @@ public:
     void deviceLost(const std::string& deviceName) override;
     void deviceConnected(const BonjourDiscovery::DiscoveredDevice& device) override;
 
+    // Transport state provider interface for getting current position and BPM
+    struct TransportStateProvider {
+        virtual ~TransportStateProvider() = default;
+        virtual uint64_t getCurrentPosition() const = 0;
+        virtual double getCurrentBPM() const = 0;
+        virtual bool isPlaying() const = 0;
+    };
+    
+    void setTransportStateProvider(TransportStateProvider* provider) { transportStateProvider = provider; }
+
 private:
     void connectButtonClicked();
     void disconnectButtonClicked();
@@ -42,6 +53,10 @@ private:
     void autoConnectToDHCPDevice();
     void startSimulationMode();
     void establishConnection(const std::string& ip, const std::string& port, const std::string& connectionType);
+    void connectViaUDP(const std::string& multicastGroup, int port);
+    
+    // UDP message handling
+    void handleUDPMessage(const uint8_t* data, size_t size);
     
     // Message handling
     void handleIncomingMessage(std::unique_ptr<TOAST::TransportMessage> message);
@@ -72,6 +87,12 @@ private:
     std::unique_ptr<TOAST::ConnectionManager> connectionManager;
     std::unique_ptr<TOAST::ProtocolHandler> toastHandler;
     std::unique_ptr<TOAST::SessionManager> sessionManager;
+    
+    // UDP Transport for multicast
+    std::unique_ptr<jam::UDPTransport> udpTransport;
+    
+    // Transport state provider for getting current position/BPM
+    TransportStateProvider* transportStateProvider = nullptr;
     
     // Connection state
     bool isConnected = false;

@@ -1,11 +1,13 @@
-# JAMNet Developmen### Current Scope: GPU+UDP Native Architecture
+# JAMNet Developmen### Current Scope: GPU-Native Architecture with TCP→UDP Transition
 
 - ✅ JSON-based MIDI protocol specification (JMID) **ready for GPU processing**
 - ✅ JSON-based audio protocol specification (JDAT) **optimized for parallel processing**
 - ✅ **Memory mapping infrastructure** established for GPU data sharing
-- 🔄 **UDP-first transport architecture** (Enhanced TOAST)
-- 🔄 **GPU compute shader framework** for JSONL processing
-- 🔄 **GPU-native PNBTR prediction system** with ML inference ✅ **11 Metal + 11 GLSL shaders complete**
+- ✅ **UDP transport architecture implemented** in JAM_Framework_v2 (not yet connected to TOASTer)
+- ✅ **GPU compute shader framework** for JSONL processing
+- ✅ **GPU-native PNBTR prediction system** with ML inference ✅ **11 Metal + 11 GLSL shaders complete**
+- ⚠️ **TOASTer currently uses TCP** - UDP infrastructure exists but not connected
+- 🔄 **Phase 4: CPU-GPU sync API** for DAW integration
 - ⏳ **JAM.js (GPU-enabled Bassoon.js fork)** for client-side processing### Revolutionary Development Team
 
 - **GPU Architect**: Compute shader development and GPU optimization (1 FTE)
@@ -61,17 +63,24 @@ All systems use **GPU-NATIVE compute shaders** for parsing, prediction, and proc
 - ✅ Metal/Vulkan compute pipelines established
 - ⚠️ CPU still controls master timing and transport coordination
 
-#### **Phase 2: GPU-Native Timing (Next Major Release)**
-- 🔄 GPU compute pipeline becomes master timebase
-- 🔄 Transport sync (play/stop/position/BPM) driven by GPU timeline
-- 🔄 Peer discovery and heartbeat coordinated by GPU clocks
-- 🔄 CPU relegated to DAW interface layer (VST3, M4L, JSFX, AU)
+#### **Phase 2: GPU-Native Timing (CURRENT - COMPLETED)** ✅
+- ✅ GPU compute pipeline becomes master timebase
+- ✅ Transport sync (play/stop/position/BPM) driven by GPU timeline
+- ✅ Professional bars/beats display with GPU-native calculation
+- ⚠️ Peer discovery and heartbeat still using TCP (UDP exists but not connected)
+- ✅ CPU relegated to UI interface layer (JUCE, display, user input)
 
-#### **Phase 3: True GPU Conductor (Revolutionary Target)**
-- 🎯 GPU provides all timing - CPU only handles legacy compatibility
-- 🎯 Sub-microsecond precision impossible with CPU threads
-- 🎯 Game engine-level deterministic frame timing for audio
-- 🎯 Complete paradigm shift: GPU as musical conductor
+#### **Phase 3: True GPU Conductor (COMPLETED)** ✅
+- ✅ GPU provides all timing - CPU only handles UI and legacy compatibility
+- ✅ Sub-microsecond precision achieved with GPU Metal shaders
+- ✅ Game engine-level deterministic frame timing for audio
+- ✅ Complete paradigm shift: GPU as musical conductor implemented
+
+#### **Phase 4: CPU-GPU Bridge & DAW Integration (NEXT - CRITICAL)** 🚨
+- 🔄 **CPU-GPU sync API** for legacy DAW integration
+- 🔄 **UDP multicast activation** in TOASTer (infrastructure exists)
+- 🔄 **DAW plugin framework** (VST3, AU, JSFX bridge)
+- 🔄 **Standardized JSON transport** for external system compatibility
 
 ### Core Technology: GPU-Native UDP Clock Sync Fundamentals
 
@@ -382,491 +391,193 @@ public:
 
 ---
 
-## Phase 4: GPU-Native PNBTR Neural Reconstruction System
+## Phase 4: CPU-GPU Bridge & DAW Integration
 
-**Timeline: Weeks 11-13**
+---
 
-### 4.1 GPU-Accelerated Neural Transient Recovery
+## 🚨 Phase 4: CPU-GPU Bridge & DAW Integration (CRITICAL CURRENT FOCUS)
 
-**Status: Revolutionary PNBTR - Predictive Neural Buffered Transient Recovery on GPU**
+**Timeline: Immediate Priority**
 
-- [ ] Move **waveform-aware LSB reconstruction** entirely to GPU, completely replacing traditional dithering
-- [ ] Implement **mathematically informed micro-amplitude generation** via compute shaders (zero-noise approach)
-- [ ] Add **neural analog extrapolation** for contextual waveform reconstruction on GPU
-- [ ] Create **musical context-aware prediction** (harmonic/pitch/dynamic analysis via GPU)
-- [ ] Build **adaptive reconstruction windows** with nonlinear, phase-aware processing
+**Status: REQUIRED BEFORE CONTINUING - Architecture Alignment Phase**
 
-**PNBTR Dither Replacement Philosophy:**
-- **24-bit Default Operation**: PNBTR operates at 24-bit depth by default, with predictive LSB modeling extending perceived resolution without increasing bandwidth
-- **Zero-Noise Audio**: Eliminates all noise-based dithering with mathematical waveform reconstruction
-- **Analog-Continuous Reconstruction**: Predicts infinite-resolution analog characteristics at any bit depth
-- **Waveform-Aware Processing**: LSB values determined by musical context, not random noise
-- **Bandwidth Efficiency**: Higher perceived resolution achieved through intelligent prediction, not data expansion
+### 4.0 Architecture Bridge & UDP Activation
 
-### 4.2 PNBTR Neural Prediction Shaders
+**Critical Foundation Work - Week 1**
 
-**✅ COMPLETE: Full Metal Shading Language Implementation**
+#### 4.0.1 Enable UDP Infrastructure in TOASTer
+- [ ] **Connect existing UDP transport** to TOASTer NetworkConnectionPanel
+- [ ] **Remove "UDP not implemented" warning** and enable UDP mode
+- [ ] **Validate UDP multicast** with ClockDriftArbiter integration
+- [ ] **Test fire-and-forget reliability** vs current TCP implementation
+- [ ] **Measure UDP performance** vs TCP baseline
 
-**Cross-Platform GPU Shader Implementation:**
+#### 4.0.2 Standardize Transport Command Format  
+- [ ] **Implement JSON transport schema** compatible with DAW integration:
+  ```json
+  {
+    "type": "transport", 
+    "command": "PLAY|STOP|PAUSE|RECORD",
+    "timestamp": <gpu_nanoseconds>,
+    "position": <musical_position_ms>,
+    "bpm": <current_tempo>,
+    "time_signature": [4, 4],
+    "master_peer": "<peer_id>"
+  }
+  ```
+- [ ] **Update GPUTransportController** to generate JSON format
+- [ ] **Maintain backward compatibility** with current string commands
+- [ ] **Add musical position tracking** in transport messages
 
-**Metal Shaders (macOS):**
-- [x] **`pnbtr_predict.metal`**: Core neural prediction with contextual extrapolation up to 50ms
-- [x] **`envelope_track.metal`**: Amplitude curve tracking and ADSR modeling  
-- [x] **`pitch_cycle.metal`**: Autocorrelation pitch detection and phase tracking
-- [x] **`lpc_model.metal`**: Linear predictive coding with Levinson-Durbin algorithm
-- [x] **`spectral_extrap.metal`**: FFT-based harmonic continuation and spectral shaping
-- [x] **`formant_model.metal`**: Vowel/instrument formant tracking and synthesis
-- [x] **`analog_model.metal`**: Analog saturation and smoothing simulation
-- [x] **`microdynamic.metal`**: Sub-sample modulation and texture reintroduction
-- [x] **`rnn_residual.metal`**: Neural network residual correction application
-- [x] **`pntbtr_confidence.metal`**: Prediction quality assessment and confidence scoring
-- [x] **`pnbtr_master.metal`**: Multi-model blending and final output generation
+#### 4.0.3 Create CPU-GPU Time Domain Bridge
+- [ ] **Implement GPUCPUSyncBridge class** for time domain translation
+- [ ] **Add GPU→CPU timestamp conversion** using ClockDriftArbiter
+- [ ] **Create configurable sync intervals** (10-50ms, default 20Hz)
+- [ ] **Design clock master mode selection** (GPU/CPU/Hybrid)
 
-**GLSL Compute Shaders (Linux):**
-- [x] **`pnbtr_predict.glsl`**: Core neural prediction with contextual extrapolation up to 50ms
-- [x] **`envelope_track.glsl`**: Amplitude curve tracking and ADSR modeling  
-- [x] **`pitch_cycle.glsl`**: Autocorrelation pitch detection and phase tracking
-- [x] **`lpc_model.glsl`**: Linear predictive coding with Levinson-Durbin algorithm
-- [x] **`spectral_extrap.glsl`**: FFT-based harmonic continuation and spectral shaping
-- [x] **`formant_model.glsl`**: Vowel/instrument formant tracking and synthesis
-- [x] **`analog_model.glsl`**: Analog saturation and smoothing simulation
-- [x] **`microdynamic.glsl`**: Sub-sample modulation and texture reintroduction
-- [x] **`rnn_residual.glsl`**: Neural network residual correction application
-- [x] **`pntbtr_confidence.glsl`**: Prediction quality assessment and confidence scoring
-- [x] **`pnbtr_master.glsl`**: Multi-model blending and final output generation
+### 4.1 CPU-GPU Sync API Implementation
 
-**Status: 22 specialized GPU compute kernels implemented for cross-platform acceleration**
+**Core Sync Layer - Weeks 2-3**
 
-**PNBTR-JVID Video Prediction Shaders:**
-- [x] **`frame_motion_predict`**: Optical flow analysis and motion vector extrapolation
-- [x] **`pixel_temporal_track`**: Per-pixel temporal evolution prediction  
-- [x] **`frame_confidence_assess`**: Per-frame prediction quality scoring
-- [ ] **`scene_depth_model`**: 3D scene understanding and depth estimation
-- [ ] **`texture_synthesis`**: Background pattern and texture continuation
-- [ ] **`face_gesture_predict`**: Facial expression and human gesture interpolation
-- [ ] **`compression_artifact_heal`**: Codec artifact removal during prediction
-- [ ] **`visual_rhythm_cycle`**: Periodic motion detection and cyclic prediction
-- [ ] **`spatial_lpc_model`**: Linear predictive coding adapted for pixel values
-- [ ] **`neural_frame_residual`**: CNN/RNN-based frame prediction refinement
-- [ ] **`analog_video_smooth`**: Video signal analog modeling and scan line continuity
-- [ ] **`microdetail_enhance`**: Sub-pixel detail reconstruction and edge enhancement
-- [ ] **`video_master_blend`**: Multi-algorithm frame prediction blending
-
-**Status: PNBTR-JVID video prediction system initiated - 3/13 video shaders implemented**
-
-### 4.2.1 PNBTR Waveform Modeling Methodologies
-
-**Status: Hybrid Prediction System with Multiple Advanced Techniques**
-
-**PNBTR's prediction model combines:**
-
-- [ ] **Autoregressive (LPC-like) Modeling**: Short-term continuity prediction with real-time coefficient adaptation
-- [ ] **Pitch-Synchronized Cycle Reconstruction**: Harmonic analysis and fundamental frequency tracking for tonal instruments
-- [ ] **Envelope Tracking**: ADSR modeling with natural reverb and room tone reconstruction
-- [ ] **Neural Inference Modules**: Lightweight RNNs/CNNs for temporal patterns and spectral features
-- [ ] **Phase Alignment and Spectral Shaping**: Windowed FFT analysis with phase coherence maintenance
-
-**Hybrid Intelligence Architecture:**
+#### 4.1.1 Time Domain Translation
 ```cpp
-class PNBTRHybridPredictor {
+class GPUCPUSyncBridge {
 public:
-    // Mathematical foundation
-    void runLPCPrediction(const AudioBuffer& history);
-    void performFFTAnalysis(const SpectralWindow& window);
+    // Core time conversion
+    uint64_t gpuTimeToCPU(uint64_t gpuTime) const;
+    uint64_t cpuTimeToGPU(uint64_t cpuTime) const;
     
-    // Musical intelligence
-    void trackPitchCycles(const HarmonicContent& harmonics);
-    void modelEnvelopeDecay(const ADSRProfile& envelope);
+    // Sync configuration
+    void setSyncInterval(double intervalMs);      // 10-50ms recommended
+    void setClockMaster(ClockMaster master);      // GPU, CPU, HYBRID
+    void enableDriftCorrection(bool enable);
     
-    // Neural enhancement
-    void runRNNInference(const TemporalPattern& pattern);
-    void applyCNNSpectralAnalysis(const FrequencyBands& bands);
+    // Real-time sync status
+    double getCurrentOffset() const;              // μs difference GPU-CPU
+    double getCurrentDrift() const;               // ppm clock drift rate
+    double getSyncQuality() const;                // 0.0-1.0 quality metric
     
-    // Real-time optimization
-    void optimizeForGPULatency(const ComputeShaderLimits& limits);
+    // Callbacks for sync events
+    void onSyncStateChanged(SyncStateCallback callback);
+    void onClockDriftDetected(DriftCallback callback);
 };
 ```
 
-### 4.3 GPU-Based Neural Audio Intelligence
-
-**Status: Revolutionary Audio Reconstruction via Contextual Prediction**
-
-- [ ] Integrate **TensorRT (NVIDIA) / Metal Performance Shaders (Apple)** for neural inference
-- [ ] Deploy **contextual waveform prediction models** for intelligent audio reconstruction
-- [ ] Implement **per-stream neural processing** (thousands of concurrent prediction models)
-- [ ] Add **musical context switching** based on harmonic, pitch, and dynamic analysis
-- [ ] Create **intelligent resolution enhancement** that predicts original analog signal characteristics
-
-**PNBTR GPU Architecture:**
-
+#### 4.1.2 Shared Buffer Architecture for DAW Integration
 ```cpp
-class GPUPNBTRRecovery {
-public:
-    // Revolutionary predictive neural reconstruction
-    void predictOriginalAnalogSignal(const AudioContext& context);
-    void generateIntelligentMicroAmplitudes(const QuantizationContext& qc);
-    void extrapolateContextualWaveform(const HarmonicPitchDynamicProfile& hpd);
-    
-    // ML inference on GPU
-    void loadMLModelToGPU(const std::string& modelPath);
-    void runInferenceGPU(const GPUTensorBuffer& input);
-    
-    // Adaptive GPU management
-    void adjustPredictionWindowGPU(const NetworkConditions& conditions);
-    void balanceQualityVsLatencyGPU(const PerformanceProfile& profile);
+// Audio buffer exchange between GPU and CPU/DAW
+struct GPUCPUAudioBuffer {
+    uint64_t gpuTimestamp;        // GPU time when generated
+    uint64_t cpuTimestamp;        // Converted CPU time for DAW
+    uint32_t sampleRate;          // 44100, 48000, etc.
+    uint32_t numFrames;           // Buffer size in samples
+    uint32_t channelCount;        // Mono, stereo, surround
+    float* audioData;             // Interleaved audio samples
+    uint32_t musicalPosition;     // Bars.beats.ticks position
+};
+
+// MIDI event exchange with precise timing
+struct GPUCPUMIDIEvent {
+    uint64_t gpuTimestamp;        // GPU-native timing
+    uint64_t cpuTimestamp;        // DAW-compatible timing
+    uint8_t midiData[4];          // Standard MIDI message
+    uint32_t musicalPosition;     // Musical position when event occurs
+    uint8_t channel;              // MIDI channel (0-15)
+    uint8_t eventType;            // Note, CC, Program Change, etc.
 };
 ```
 
-### 4.4 PNBTR Continuous Learning Infrastructure
+#### 4.1.3 Clock Master Mode Implementation
+- [ ] **GPU Master Mode** (Default): CPU adapts to GPU timeline using minor timing adjustments
+- [ ] **CPU Master Mode**: GPU adapts to DAW/audio interface clock via controlled clock skew
+- [ ] **Hybrid Mode**: Both sides make small adjustments to converge (Ableton Link style)
+- [ ] **Automatic Master Election**: ClockDriftArbiter determines best clock source
+- [ ] **Seamless Master Handoff**: Switch masters without audio dropout
 
-**Status: Self-Improving Neural System with Global Training Loop**
+### 4.2 DAW Plugin Framework
 
-- [ ] Implement **automated reference recording** system for lossless signal archival on sender
-- [ ] Build **reconstruction vs. reference pairing** infrastructure for training data accumulation
-- [ ] Create **distributed training dataset** aggregation across all JAMNet sessions globally
-- [ ] Design **versioned inference model** deployment system with continuous updates
-- [ ] Add **physics-based modeling integration** for higher bit-depth inference from 24-bit streams
+**External Integration Layer - Weeks 4-6**
 
-**Continuous Learning Architecture:**
+#### 4.2.1 JAMNet Bridge Plugin Development
+- [ ] **VST3 Plugin Framework** for major DAWs (Logic Pro, Pro Tools, Cubase)
+- [ ] **Audio Unit (AU) Support** for Logic Pro and GarageBand integration
+- [ ] **Ableton Live Integration** via Max for Live device
+- [ ] **JSFX Plugin** for REAPER compatibility
+- [ ] **Cross-platform plugin builds** (macOS, Windows via Linux VM, Linux native)
 
-```cpp
-class PNBTRLearningSystem {
-public:
-    // Reference signal archival
-    void archiveReferenceSignal(const AudioBuffer& originalSignal, 
-                               const SessionMetadata& context);
-    void compressAndStoreOriginal(const HighResolutionAudio& source);
-    
-    // Training data collection
-    void collectReconstructionPair(const AudioBuffer& pnbtrOutput,
-                                  const AudioBuffer& reference,
-                                  const NetworkLossProfile& conditions);
-    void aggregateGlobalTrainingData(const DistributedDataset& sessions);
-    
-    // Model evolution
-    void retrainInferenceModel(const TrainingDataset& newSamples);
-    void deployUpdatedModel(const std::string& modelVersion,
-                           const StreamType& targetStreams);
-    void optimizePerUserProfile(const UserID& user, 
-                               const AudioPreferences& prefs);
-    
-    // Continuous deployment
-    void validateModelPerformance(const InferenceMetrics& metrics);
-    void rollbackIfDegraded(const std::string& previousVersion);
-};
-```
+#### 4.2.2 Plugin Transport Integration
+- [ ] **Host transport synchronization** using VST3 IHostApplication interface
+- [ ] **MIDI Clock/MTC fallback** for DAWs without plugin transport control
+- [ ] **Sample-accurate positioning** for precise DAW timeline sync
+- [ ] **Automatic tempo detection** from DAW and bidirectional BPM sync
+- [ ] **Time signature synchronization** with DAW project settings
 
-**Global Learning Philosophy:**
-- **Reference Archive**: Original signals stored lossless for training ground truth
-- **Real-World Training**: Every PNBTR reconstruction becomes training data when paired with reference
-- **Distributed Intelligence**: Global JAMNet sessions contribute to shared model improvement
-- **Physics Integration**: Higher bit-depth inference learned from 24-bit stream patterns
-- **Continuous Evolution**: Models automatically improve through accumulated real-world usage
+#### 4.2.3 Real-Time Audio/MIDI Exchange
+- [ ] **Lock-free ring buffers** for sub-millisecond audio streaming
+- [ ] **Configurable latency compensation** (1-10ms buffer, user adjustable)
+- [ ] **Automatic sample rate conversion** between DAW and JAMNet session
+- [ ] **PNBTR integration** for seamless gap filling during sync adjustments
+- [ ] **Zero-copy audio paths** where possible for minimal CPU overhead
 
-### 4.5 Revolutionary Audio Intelligence Integration
+### 4.3 Enhanced Network Synchronization
 
-**Goals:**
-- [ ] System reconstructs **original analog characteristics** that would have existed with infinite resolution
-- [ ] **PNBTR operates at 24-bit depth by default**, with predictive LSB modeling extending perceived resolution without increasing bandwidth
-- [ ] **PNBTR completely replaces traditional dithering** with waveform-aware LSB reconstruction, enabling zero-noise, analog-continuous audio
-- [ ] **Hybrid prediction methodologies** combine LPC modeling, pitch-cycle reconstruction, envelope tracking, neural inference, and spectral shaping
-- [ ] **Mathematically informed processing** eliminates noise-based approaches entirely
-- [ ] **Neural extrapolation** provides contextual waveform prediction up to 50ms ahead
-- [ ] **Musical context awareness** (key, tempo, harmonic content) guides reconstruction
-- [ ] **Seamless audio enhancement** with zero audible artifacts or added noise
-- [ ] **Continuous learning** from global JAMNet sessions improves prediction accuracy over time
+**Network Layer Improvements - Weeks 7-8**
 
-**Revolutionary Capabilities:**
-- GPU processes thousands of neural reconstruction streams simultaneously
-- **24-bit default operation** with higher perceived resolution through intelligent prediction
-- Hybrid prediction system combines mathematical, musical, and neural intelligence
-- Predictive neural models run inference <1ms per audio segment on GPU  
-- Musical intelligence maintains **original analog warmth** and **microdynamics**
-- Contextual prediction adapts to **musical content** and **performance style**
-- **Zero-noise dither replacement**: LSB values determined by waveform analysis, not random noise
-- **Self-improving system**: Accuracy increases through continuous real-world training
-- **"Here's the sound that would have happened if your DAC had infinite resolution"**
+#### 4.3.1 Advanced ClockDriftArbiter
+- [ ] **GPU timebase integration** - use GPU as ultimate precision time source
+- [ ] **Configurable sync intervals** with 20Hz default (50ms), 1-100Hz range
+- [ ] **Sub-microsecond timestamp exchange** for maximum precision
+- [ ] **Adaptive PLL-based drift correction** with intelligent convergence
+- [ ] **Network jitter compensation** using statistical analysis
 
----
+#### 4.3.2 Professional Transport Synchronization  
+- [ ] **Sample-accurate seek positioning** across all network peers
+- [ ] **Predictive transport scheduling** (schedule play/stop events in future)
+- [ ] **Automatic peer consensus** for tempo and time signature changes
+- [ ] **Transport collision resolution** when multiple peers send commands
+- [ ] **Graceful degradation** when network sync quality drops
 
-## Phase 4.5: PNBTR Continuous Learning Deployment
+### 4.4 Testing & Validation
 
-**Timeline: Weeks 14-15**
+**Quality Assurance - Week 9**
 
-### 4.5.1 Global Training Infrastructure
+#### 4.4.1 Comprehensive Testing Suite
+- [ ] **DAW integration test suite** for major platforms
+- [ ] **Network sync stress testing** with various latency/jitter conditions
+- [ ] **Clock drift simulation** and recovery validation
+- [ ] **Multi-peer transport sync** accuracy measurement
+- [ ] **Audio quality validation** during sync operations
 
-**Status: Self-Improving Neural Network Ecosystem**
+#### 4.4.2 Performance Benchmarking
+- [ ] **CPU overhead measurement** for sync operations
+- [ ] **Latency analysis** of CPU-GPU time domain conversion
+- [ ] **Memory usage profiling** of shared buffer system
+- [ ] **Network bandwidth optimization** for transport commands
+- [ ] **Real-world studio environment testing**
 
-- [ ] Deploy **distributed training data collection** across all JAMNet sessions
-- [ ] Implement **automated model retraining pipeline** with version control
-- [ ] Create **physics-based modeling framework** for bit-depth extrapolation
-- [ ] Build **continuous integration/deployment** for inference model updates
-- [ ] Add **A/B testing framework** for model performance validation
+## 🎯 Phase 4 Success Criteria
 
-### 4.5.2 Real-World Learning Loop
+### **Technical Requirements:**
+- [ ] **<1ms transport sync accuracy** between DAW and JAMNet peers
+- [ ] **<100μs sustained clock drift** between GPU and CPU domains  
+- [ ] **<5ms total latency** for audio round-trip through DAW integration
+- [ ] **>99% sync reliability** under normal network conditions
+- [ ] **Zero audio dropouts** during transport or master clock changes
 
-**Status: Production ML Pipeline for Audio Reconstruction**
+### **Integration Requirements:**
+- [ ] **Working plugins** for Logic Pro, Pro Tools, Ableton Live, REAPER
+- [ ] **Bidirectional transport control** (DAW→JAMNet and JAMNet→DAW)
+- [ ] **Automatic tempo/time signature sync** between DAW and network
+- [ ] **Sample-accurate positioning** for professional recording workflows
+- [ ] **Graceful fallback** to MIDI Clock/MTC for unsupported DAWs
 
-- [ ] **Reference recording system**: Lossless archival of original signals at sender
-- [ ] **Reconstruction pairing**: Automatic collection of PNBTR output vs. reference
-- [ ] **Global dataset aggregation**: Distributed training across worldwide JAMNet sessions
-- [ ] **Versioned model deployment**: Seamless updates without service interruption
-- [ ] **User-specific optimization**: Personalized models based on individual audio preferences
-
-**Continuous Learning Pipeline:**
-
-```cpp
-class PNBTREvolutionEngine {
-public:
-    // Data collection
-    void startReferenceRecording(const SessionID& session);
-    void collectTrainingPair(const PNBTROutput& reconstruction,
-                            const ReferenceAudio& original,
-                            const NetworkConditions& context);
-    
-    // Model evolution
-    void triggerRetraining(const DatasetThreshold& threshold);
-    void validateModelImprovement(const PerformanceMetrics& newVsOld);
-    void deployToProduction(const ModelVersion& validated);
-    
-    // Personalization
-    void createUserProfile(const UserID& user, 
-                          const AudioAnalytics& preferences);
-    void optimizeForStreamType(const StreamCharacteristics& type);
-    
-    // Quality assurance
-    void monitorReconstructionQuality(const QualityMetrics& metrics);
-    void rollbackDegradedModel(const ModelVersion& previous);
-};
-```
-
-### 4.5.3 Physics-Based Bit-Depth Extrapolation
-
-**Status: Higher Resolution Inference from 24-bit Streams**
-
-- [ ] Implement **waveform physics modeling** for bit-depth expansion
-- [ ] Create **harmonic extrapolation algorithms** predicting higher resolution content
-- [ ] Build **temporal correlation analysis** for improved reconstruction accuracy
-- [ ] Add **musical context learning** from global JAMNet session patterns
-- [ ] Design **adaptive resolution targeting** based on stream characteristics
-
-**Revolutionary Learning Capabilities:**
-- Models improve continuously from every global JAMNet session
-- Physics-based extrapolation infers higher bit-depths from 24-bit patterns
-- User-specific optimization creates personalized audio reconstruction
-- Distributed training leverages worldwide musical content diversity
-- Zero-downtime model updates maintain service continuity
+### **User Experience Requirements:**
+- [ ] **Plug-and-play setup** with minimal configuration required
+- [ ] **Visual sync status** showing connection quality and timing accuracy
+- [ ] **Intelligent error recovery** from network or sync issues
+- [ ] **Performance monitoring** with real-time metrics display
+- [ ] **Studio-grade reliability** suitable for professional music production
 
 ---
 
-## Phase 5: JVID & GPU Visual Integration
-
-**Timeline: Weeks 14-16**
-
-### 5.1 GPU-Rendered Visual Layer
-
-**Status: Natural Extension of GPU Processing Pipeline**
-
-- [ ] Use **existing GPU processing pipeline** for visual rendering
-- [ ] Implement **real-time waveform visualization** from GPU audio buffers
-- [ ] Create **MIDI note trails + controller visualizations** via shaders
-
-### 5.2 JVID Compute + Render Pipeline
-
-**Status: Unified GPU Architecture for Audio+Visual**
-
-- [ ] **Shared GPU memory** between audio processing and visual rendering
-- [ ] **Real-time shader parameter modulation** from MIDI CC data
-- [ ] **Direct pixel array processing** eliminating base64 encoding overhead
-- [ ] **Session-aware visual themes** per multicast group
-- [ ] **GPU-rendered video streaming** back to JAMCam clients without base64 conversion
-
-**Visual GPU Integration:**
-
-```cpp
-class JVIDGPURenderer {
-public:
-    // Shared audio→visual pipeline
-    void renderFromAudioGPUBuffer(const AudioGPUBuffer& samples);
-    void visualizeMIDIFromGPUEvents(const MIDIGPUBuffer& events);
-    
-    // Direct pixel processing (no base64)
-    void processDirectPixelArray(const PixelArray& pixels);
-    void renderPixelsToGPUTexture(const DirectPixelData& data);
-    
-    // Session integration
-    void renderSessionOverlay(const SessionUUID& sessionId);
-    void streamVisualToClients(const JVIDFrame& frame);
-};
-```
-
-### 5.3 Complete GPU Ecosystem
-
-**Goals:**
-- [ ] GPU handles audio processing, prediction, AND visualization in unified pipeline
-- [ ] Visual feedback enhances musical experience and debugging
-- [ ] JVID streams back to clients as natural extension of architecture
-
-**Revolutionary Integration:**
-- Single GPU processes audio, predicts losses, AND renders visuals
-- Visual feedback shows prediction quality and network health
-- Collaborative visual experience shared across all session participants
-- GPU becomes complete multimedia co-processor for JAMNet
-
----
-
-## Phase 6: Production Integration & Optimization
-
-**Timeline: Weeks 17-20**
-
-### 6.1 End-to-End GPU+UDP System Integration
-
-**Status: Complete Revolutionary Architecture Validation**
-
-- [ ] Connect **JUCE plugin to GPU+UDP pipeline**
-- [ ] Implement **bidirectional GPU-accelerated MIDI+Audio flow**
-- [ ] Create **multi-client GPU session management**
-- [ ] Build **automatic GPU capability discovery** and optimization
-- [ ] Test with **real hardware under GPU+network stress**
-
-### 6.2 Revolutionary Performance Validation
-
-**Status: Prove 10x+ Performance Gains**
-
-- [ ] **GPU vs CPU parsing benchmarks**: Target 10x improvement
-- [ ] **UDP vs TCP latency measurements**: Target 50% latency reduction  
-- [ ] **GPU prediction vs CPU recovery**: Target 90% packet loss tolerance
-- [ ] **End-to-end latency measurements**: Target <3ms total system latency
-- [ ] **Scalability testing**: Target 1000+ concurrent GPU streams
-
-### 6.3 Production Hardening & Cross-Platform Distribution
-
-**Status: Revolutionary Architecture Made Robust**
-
-- [ ] **GPU fallback strategies** for systems without compute shader support
-- [ ] **Adaptive quality scaling** based on GPU performance capabilities
-- [ ] **Memory management optimization** for extended GPU operation
-- [ ] **Cross-platform GPU abstraction** (Metal/Vulkan/CUDA/OpenCL)
-- [ ] **Production deployment tools** for GPU+UDP configuration
-- [ ] **Ready-made Linux VM** distribution for Windows users with JAMNet pre-installed
-- [ ] **VM optimization** for audio latency and GPU acceleration within virtualized environment
-
----
-
-## Revolutionary Technical Milestones & Success Criteria
-
-### Milestone 1: UDP Foundation with JMID Burst Logic (Week 3)
-- **Criteria**: TCP completely replaced with UDP multicast across all streams
-- **Test**: Multi-client session with 5% simulated packet loss using JMID burst redundancy
-- **Verification**: Musical continuity maintained with burst deduplication, latency reduced 50% vs TCP
-- **Success**: Session-based routing operational, JMID burst logic handles 66% packet loss gracefully
-
-### Milestone 2: GPU Processing with JMID Burst Deduplication (Week 7)  
-- **Criteria**: GPU parses 10,000+ JSONL lines simultaneously with <10μs per line
-- **Test**: Memory-mapped JSONL stream with JMID burst packets fed directly to GPU compute shaders
-- **Verification**: 10x performance improvement vs CPU baseline, <50μs burst deduplication on GPU
-- **Success**: Foundation ready for JAM Framework with GPU-first design and burst processing
-
-### Milestone 3: JAM Framework GPU-Native Parser (Week 10)
-- **Criteria**: GPU-native parser achieves 80-90% latency reduction vs CPU
-- **Test**: Real-time MIDI streaming with GPU acceleration vs legacy baseline
-- **Verification**: Sub-10μs MIDI parsing, sub-50μs audio processing, sub-200μs video without base64
-- **Success**: JAM Framework replaces all CPU-only parsing with GPU acceleration
-
-### Milestone 4: GPU-Native PNBTR (Week 13)
-- **Criteria**: System reconstructs original analog characteristics via GPU neural processing
-- **Test**: Audio quality enhancement with PNBTR dither replacement vs traditional noise-based dither
-- **Verification**: Zero-noise, analog-continuous audio at 24-bit depth, waveform-aware LSB reconstruction
-- **Success**: Revolutionary audio completion via mathematical prediction and neural intelligence
-
-### Milestone 4.5: PNBTR Continuous Learning System (Week 15)
-- **Criteria**: Automated training loop collects reconstruction vs. reference pairs for model improvement
-- **Test**: Multi-session data collection with automated retraining and model deployment
-- **Verification**: Model accuracy improves over time, physics-based bit-depth extrapolation operational
-- **Success**: Self-improving PNBTR system with global distributed training and versioned updates
-
-### Milestone 5: Complete GPU+UDP Ecosystem (Week 16)
-- **Criteria**: Unified GPU pipeline processes audio, predicts, AND renders visuals
-- **Test**: Full collaborative session with visual feedback
-- **Verification**: Single GPU handles complete multimedia pipeline
-- **Success**: Revolutionary architecture proven in real-world scenarios
-
-### Milestone 6: Production Validation (Week 20)
-- **Criteria**: 8-hour continuous operation with 32+ concurrent GPU clients
-- **Test**: Extended collaborative session with comprehensive stress testing
-- **Verification**: <3ms end-to-end latency, 1000+ GPU streams supported
-- **Success**: Revolutionary architecture ready for production deployment
-
-## Revolutionary Success Metrics & Validation
-
-### GPU Performance Revolution
-
-- **Parsing Speed**: 10x improvement via GPU parallel processing (<10μs vs 100μs CPU)
-- **Scalability**: 1000+ concurrent streams processed simultaneously on single GPU
-- **Prediction Quality**: >98% musical continuity under 15% packet loss via GPU ML
-- **Memory Efficiency**: Direct memory mapping to GPU eliminates CPU bottlenecks
-- **Power Efficiency**: GPU processes more data with lower power vs equivalent CPU processing
-
-### UDP Transport Excellence
-
-- **Latency**: <3ms end-to-end (50% reduction vs TCP baseline)
-- **Reliability**: Musical continuity maintained under 15% packet loss
-- **Scalability**: Unlimited local subscribers via multicast with <5μs additional latency
-- **Bandwidth Efficiency**: 67% reduction via compact JSONL + multicast distribution
-- **Session Management**: Seamless join/leave with automatic discovery and failover
-
-### Revolutionary Architecture Impact
-
-- **Unified Processing**: Single GPU handles audio processing, prediction, AND visualization
-- **Musical Intelligence**: ML-based prediction adapts to musical context and style
-- **Visual Integration**: JVID rendering shares GPU resources with audio processing
-- **Developer Experience**: GPU acceleration transparent to application developers
-- **Platform Foundation**: Scalable base for unlimited multimedia collaboration
-
-### Innovation Validation
-
-- **JSON-GPU Synergy**: Proof that JSON structure maps perfectly to GPU processing
-- **Predictive Audio**: Musical-aware networking that anticipates and recovers from loss
-- **Unified Architecture**: Revolutionary single-GPU multimedia pipeline proven
-- **Cross-Platform**: Native GPU acceleration across Metal/Vulkan/CUDA platforms
-- **Ecosystem Ready**: Foundation for next-generation collaborative multimedia tools
-
----
-
-## Revolutionary Architecture Summary
-
-| **Traditional Approach**                | **JAMNet GPU+UDP Revolution**                                    |
-|----------------------------------------|------------------------------------------------------------------|
-| CPU-only JSON parsing                  | GPU parallel processing of 1000+ JSONL streams                  |
-| TCP with acknowledgment overhead       | UDP multicast with GPU-native prediction recovery               |
-| Binary protocols for performance      | JSON protocols outperforming binary via GPU acceleration        |
-| Separate audio/video/prediction systems| Unified GPU pipeline for all multimedia processing              |
-| Post-hoc packet loss recovery         | Predictive ML anticipates and prevents loss impact              |
-| Platform-specific optimization        | Universal GPU acceleration across macOS/Linux + Windows VM      |
-
-This roadmap represents a fundamental paradigm shift: **using GPUs as structured data co-processors to make JSON-based protocols faster than traditional binary approaches**, while providing unprecedented musical intelligence and visual integration in a unified architecture.
-
-The result is not just better performance, but a completely new category of collaborative multimedia platform that scales infinitely while maintaining musical quality and creative expression. **Windows support via optimized Linux VM ensures universal accessibility without platform-specific development complexity.**
-
----
-
-## Resource Requirements
-
-### Revolutionary Development Team
-
-- **GPU Architect**: Compute shader development and GPU optimization (1 FTE)
-- **Audio Systems Engineer**: JDAT + PNBTR + ML prediction integration (1 FTE) 
-- **Network Engineer**: UDP multicast + session management (1 FTE)
-- **Performance Engineer**: JAM.js fork + memory mapping optimization (1 FTE)
-- **Integration Engineer**: JUCE + production deployment + cross-platform (0.5 FTE)
-
-### Revolutionary Infrastructure
-
-- **Development Machines**: GPU-accelerated workstations with compute shader support
-- **Test Network**: Multicast simulation with controlled packet loss and latency
-- **GPU Test Farm**: Multiple GPU architectures (NVIDIA/AMD/Apple Silicon/Intel)
-- **Audio Hardware**: Professional interfaces with JDAT capability testing
-
----
-
-_JAMNet represents the future of collaborative multimedia: where GPUs become musical co-processors, where the **JAM Framework** (our revolutionary UDP GPU JSONL native TOAST optimized fork of Bassoon.js) makes JSON outperform binary protocols, and where prediction prevents problems before they occur. JVID achieves unprecedented performance through direct pixel arrays in JSONL, eliminating base64 overhead completely. This is not just evolution – this is revolution._
+**CRITICAL PATH: Phase 4.0 must be completed before proceeding with other development**

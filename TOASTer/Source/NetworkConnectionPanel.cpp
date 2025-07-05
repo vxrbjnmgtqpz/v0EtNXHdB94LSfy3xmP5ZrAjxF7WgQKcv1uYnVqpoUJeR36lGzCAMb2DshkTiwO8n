@@ -213,10 +213,8 @@ void NetworkConnectionPanel::connectButtonClicked()
         statusLabel.setColour(juce::Label::textColourId, juce::Colours::yellow);
         
         if (isUDP) {
-            // For now, UDP is not fully implemented - show warning
-            statusLabel.setText("⚠️ UDP mode not yet implemented (use TCP)", juce::dontSendNotification);
-            statusLabel.setColour(juce::Label::textColourId, juce::Colours::orange);
-            return;
+            // UDP multicast implementation
+            connectViaUDP(ip, port);
         } else {
             // TCP connection - check if we should be server or client
             if (ip == "0.0.0.0" || ip == "localhost" || ip == "127.0.0.1") {
@@ -760,7 +758,7 @@ void NetworkConnectionPanel::handleIncomingMessage(std::unique_ptr<TOAST::Transp
 
 void NetworkConnectionPanel::sendTransportCommand(const std::string& command)
 {
-    if (!isConnected || !connectionManager) {
+    if (!isConnected) {
         DBG("Cannot send transport command - not connected");
         return;
     }
@@ -770,16 +768,57 @@ void NetworkConnectionPanel::sendTransportCommand(const std::string& command)
         uint64_t timestamp = std::chrono::duration_cast<std::chrono::microseconds>(
             std::chrono::system_clock::now().time_since_epoch()).count();
         
-        auto message = std::make_unique<TOAST::TransportMessage>(
-            TOAST::MessageType::SESSION_CONTROL, command, timestamp);
+        bool isUDP = (protocolSelector.getSelectedId() == 2);
         
-        // Send the message
-        if (connectionManager->sendMessage(std::move(message))) {
-            performanceLabel.setText("📤 Sent: " + command, juce::dontSendNotification);
-            DBG("Successfully sent transport command: " << command);
+        if (isUDP && udpTransport) {
+            // Send via UDP multicast
+            juce::DynamicObject::Ptr messageObj = new juce::DynamicObject();
+            messageObj->setProperty("type", "transport");
+            messageObj->setProperty("command", juce::String(command));
+            messageObj->setProperty("timestamp", static_cast<juce::int64>(timestamp));
+            
+            // Get current transport state if provider is available
+            uint64_t position = 0;
+            double bpm = 120.0;
+            if (transportStateProvider) {
+                position = transportStateProvider->getCurrentPosition();
+                bpm = transportStateProvider->getCurrentBPM();
+            }
+            
+            messageObj->setProperty("position", static_cast<juce::int64>(position));
+            messageObj->setProperty("bpm", bpm);
+            messageObj->setProperty("peer_id", juce::String(clientId));
+            
+            juce::DynamicObject::Ptr wrapperObj = new juce::DynamicObject();
+            wrapperObj->setProperty("message", messageObj.get());
+            
+            juce::var jsonVar(wrapperObj.get());
+            std::string jsonStr = juce::JSON::toString(jsonVar).toStdString();
+            
+            uint64_t sendTime = udpTransport->send_immediate(jsonStr.c_str(), jsonStr.length());
+            if (sendTime > 0) {
+                performanceLabel.setText("📤 UDP: " + command + " (" + std::to_string(sendTime) + "μs)", juce::dontSendNotification);
+                DBG("Successfully sent UDP transport command: " << command << " in " << sendTime << "μs");
+            } else {
+                performanceLabel.setText("❌ UDP Failed: " + command, juce::dontSendNotification);
+                DBG("Failed to send UDP transport command: " << command);
+            }
+            
+        } else if (connectionManager) {
+            // Send via TCP (existing logic)
+            auto message = std::make_unique<TOAST::TransportMessage>(
+                TOAST::MessageType::SESSION_CONTROL, command, timestamp);
+            
+            if (connectionManager->sendMessage(std::move(message))) {
+                performanceLabel.setText("📤 TCP: " + command, juce::dontSendNotification);
+                DBG("Successfully sent TCP transport command: " << command);
+            } else {
+                performanceLabel.setText("❌ TCP Failed: " + command, juce::dontSendNotification);
+                DBG("Failed to send TCP transport command: " << command);
+            }
         } else {
-            performanceLabel.setText("❌ Failed to send: " + command, juce::dontSendNotification);
-            DBG("Failed to send transport command: " << command);
+            DBG("No transport available - neither UDP nor TCP");
+            performanceLabel.setText("❌ No transport available", juce::dontSendNotification);
         }
         
     } catch (const std::exception& e) {
@@ -881,5 +920,132 @@ void NetworkConnectionPanel::confirmConnectionEstablished()
                                juce::dontSendNotification);
         
         DBG("Connection fully established and verified");
+    }
+}
+
+//==============================================================================
+// UDP MULTICAST CONNECTION
+//==============================================================================
+
+void NetworkConnectionPanel::connectViaUDP(const std::string& multicastGroup, int port) {
+    statusLabel.setText("🔄 Initializing UDP multicast...", juce::dontSendNotification);
+    statusLabel.setColour(juce::Label::textColourId, juce::Colours::yellow);
+    
+    // Use default multicast group if IP looks like localhost
+    std::string actualGroup = multicastGroup;
+    if (multicastGroup == "0.0.0.0" || multicastGroup == "localhost" || multicastGroup == "127.0.0.1") {
+        actualGroup = "239.254.0.1"; // JAMNet default multicast group
+    }
+    
+    try {
+        // Create UDP transport
+        udpTransport = jam::UDPTransport::create(actualGroup, static_cast<uint16_t>(port));
+        
+        if (!udpTransport) {
+            statusLabel.setText("❌ Failed to create UDP transport", juce::dontSendNotification);
+            statusLabel.setColour(juce::Label::textColourId, juce::Colours::lightcoral);
+            return;
+        }
+        
+        // Set up receive callback for incoming messages
+        udpTransport->set_receive_callback([this](const uint8_t* data, size_t size) {
+            handleUDPMessage(data, size);
+        });
+        
+        // Join multicast group
+        if (!udpTransport->join_multicast()) {
+            statusLabel.setText("❌ Failed to join multicast group " + actualGroup, juce::dontSendNotification);
+            statusLabel.setColour(juce::Label::textColourId, juce::Colours::lightcoral);
+            return;
+        }
+        
+        // Start receiving
+        if (!udpTransport->start_receiving()) {
+            statusLabel.setText("❌ Failed to start UDP receiving", juce::dontSendNotification);
+            statusLabel.setColour(juce::Label::textColourId, juce::Colours::lightcoral);
+            return;
+        }
+        
+        // Success! Mark as connected
+        isConnected = true;
+        handshakeVerified = true; // UDP is connectionless, consider immediately verified
+        isServer = false; // UDP multicast has no server/client concept
+        
+        statusLabel.setText("✅ Connected via UDP multicast " + actualGroup + ":" + std::to_string(port), juce::dontSendNotification);
+        statusLabel.setColour(juce::Label::textColourId, juce::Colours::lightgreen);
+        
+        // Update session info
+        sessionInfoLabel.setText("📡 Multicast Group: " + actualGroup + ":" + std::to_string(port), juce::dontSendNotification);
+        
+        // Show performance info
+        performanceLabel.setText("🌐 UDP Multicast - Ready for fire-and-forget transport sync!", 
+                               juce::dontSendNotification);
+        
+        // Start clock sync with UDP timebase
+        if (clockArbiter) {
+            clockArbiter->startMasterElection();
+        }
+        
+        DBG("UDP multicast connection established on " + actualGroup + ":" + std::to_string(port));
+        
+    } catch (const std::exception& e) {
+        statusLabel.setText("❌ UDP Error: " + std::string(e.what()), juce::dontSendNotification);
+        statusLabel.setColour(juce::Label::textColourId, juce::Colours::lightcoral);
+    }
+}
+
+void NetworkConnectionPanel::handleUDPMessage(const uint8_t* data, size_t size) {
+    try {
+        // Convert raw bytes to string for JSON parsing
+        std::string message_str(reinterpret_cast<const char*>(data), size);
+        DBG("Received UDP message: " + message_str);
+        
+        // Parse JSON message
+        auto json = juce::JSON::parse(message_str);
+        if (!json.isObject()) {
+            DBG("Invalid JSON in UDP message");
+            return;
+        }
+        
+        auto messageObj = json.getProperty("message", juce::var()).getDynamicObject();
+        if (!messageObj) {
+            DBG("No message object in UDP data");
+            return;
+        }
+        
+        auto messageType = messageObj->getProperty("type").toString();
+        
+        if (messageType == "transport") {
+            // Handle transport command via UDP
+            auto command = messageObj->getProperty("command").toString().toStdString();
+            auto timestamp = static_cast<uint64_t>(static_cast<juce::int64>(messageObj->getProperty("timestamp")));
+            auto position = static_cast<uint64_t>(static_cast<juce::int64>(messageObj->getProperty("position")));
+            auto bpm = messageObj->getProperty("bpm");
+            
+            DBG("UDP Transport command: " + command + 
+                " at position " + std::to_string(position) + 
+                " BPM " + (bpm.isDouble() ? std::to_string(static_cast<double>(bpm)) : "N/A"));
+            
+            // Create a TOAST TransportMessage for consistency with TCP handling
+            auto toastMessage = std::make_unique<TOAST::TransportMessage>(
+                TOAST::MessageType::SESSION_CONTROL, command, timestamp);
+            handleIncomingMessage(std::move(toastMessage));
+            
+        } else if (messageType == "session_announcement") {
+            // Handle session discovery via UDP multicast
+            DBG("Received session announcement via UDP");
+            
+        } else if (messageType == "peer_discovery") {
+            // Handle peer discovery
+            auto peerId = messageObj->getProperty("peer_id").toString();
+            auto peerName = messageObj->getProperty("peer_name").toString();
+            DBG("Discovered UDP peer: " + peerId.toStdString() + " (" + peerName.toStdString() + ")");
+            
+        } else {
+            DBG("Unknown UDP message type: " + messageType.toStdString());
+        }
+        
+    } catch (const std::exception& e) {
+        DBG("Error processing UDP message: " + std::string(e.what()));
     }
 }

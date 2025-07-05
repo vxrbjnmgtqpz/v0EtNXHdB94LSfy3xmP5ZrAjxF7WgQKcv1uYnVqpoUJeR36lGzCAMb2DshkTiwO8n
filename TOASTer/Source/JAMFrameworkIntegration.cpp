@@ -202,6 +202,46 @@ bool JAMFrameworkIntegration::startNetwork() {
     }
 }
 
+bool JAMFrameworkIntegration::startNetworkDirect() {
+    if (!toastProtocol) {
+        notifyStatusChange("TOAST protocol not initialized", false);
+        return false;
+    }
+    
+    // BYPASS NETWORK TESTS for direct Thunderbolt connections
+    juce::Logger::writeToLog("🔗 Starting direct network connection (bypassing connectivity tests)...");
+    notifyStatusChange("Starting direct connection...", false);
+    
+    try {
+        // Skip all the complex network validation and go straight to starting the protocol
+        bool success = toastProtocol->start_processing();
+        
+        if (success) {
+            networkActive = true;
+            juce::Logger::writeToLog("JAM Framework v2 direct network started on " + 
+                                   juce::String(multicastAddress) + ":" + 
+                                   juce::String(udpPort));
+            
+            // Send discovery message to announce our presence
+            toastProtocol->send_discovery();
+            juce::Logger::writeToLog("🔍 Sent discovery message via direct connection");
+            
+            notifyStatusChange("Connected via direct connection - Looking for peers...", true);
+        } else {
+            juce::Logger::writeToLog("Failed to start JAM Framework v2 direct network");
+            notifyStatusChange("Failed to connect - direct connection failed", false);
+        }
+        
+        return success;
+        
+    } catch (const std::exception& e) {
+        juce::Logger::writeToLog("Direct network start failed: " + juce::String(e.what()));
+        notifyStatusChange("Direct connection error: " + std::string(e.what()), false);
+        networkActive = false;
+        return false;
+    }
+}
+
 void JAMFrameworkIntegration::stopNetwork() {
     if (toastProtocol && networkActive) {
         toastProtocol->stop_processing();

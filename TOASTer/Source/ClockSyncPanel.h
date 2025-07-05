@@ -15,6 +15,9 @@ public:
     void resized() override;
     void timerCallback() override;
 
+    // Network connection status
+    void setNetworkConnected(bool connected, int peerCount = 0);
+
 private:
     void calibrateClicked();
     void updateDisplay();
@@ -41,7 +44,8 @@ private:
     double networkLatency = 0.0;
     uint64_t gpuTimebaseNs = 0;
     int activePeerCount = 0;
-    double consensusQuality = 0.0;
+    double consensusQuality = 95.0;
+    bool isNetworkConnected = false;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ClockSyncPanel)
 };
