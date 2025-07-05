@@ -1,37 +1,49 @@
 #include <metal_stdlib>
 using namespace metal;
 
-#define PREDICTION_LENGTH 2400     // 50 ms @ 48kHz
+#define PREDICTION_LENGTH 2400
+#define MODE_TANH     0
+#define MODE_ATAN     1
+#define MODE_SIGMOID  2
+#define MODE_SOFTKNEE 3
 
 using namespace metal;
 
-// Analog soft-clipper (tape/saturation-like curve)
-inline float analogSaturate(float x) {
-    return tanh(1.5 * x);  // Mild saturation curve
+inline float saturate(float x, int mode) {
+    switch (mode) {
+        case MODE_TANH:     return tanh(1.5 * x);
+        case MODE_ATAN:     return atan(x);
+        case MODE_SIGMOID:  return (2.0 / (1.0 + exp(-2.0 * x))) - 1.0;
+        case MODE_SOFTKNEE: return (x < -1.0) ? -1.0 :
+                             (x >  1.0) ?  1.0 :
+                             x - (x * x * x) / 3.0; // soft clip approx
+        default: return x;
+    }
 }
 
-// Smoothing filter (very basic lowpass decay)
-inline float analogLowpass(float x, float prev, float alpha) {
-    return (alpha * x) + ((1.0 - alpha) * prev);
+inline float adaptiveLowpass(float x, float prev, float dynamicAlpha) {
+    return (dynamicAlpha * x) + ((1.0 - dynamicAlpha) * prev);
 }
 
 kernel void analog_model(
-    device const float* predictedInput      [[ buffer(0) ]],  // From any model (LPC, RNN, etc.)
-    device float* analogSmoothedOutput      [[ buffer(1) ]],
-    constant float& alpha                   [[ buffer(2) ]],  // Lowpass coefficient (e.g., 0.25)
-    uint tid                                [[ thread_position_in_grid ]]
+    device const float* predictedIn       [[ buffer(0) ]],
+    device float* analogOut              [[ buffer(1) ]],
+    constant int& saturationMode         [[ buffer(2) ]],  // MODE_* constant
+    device const float* dynamicAlphaMap  [[ buffer(3) ]],  // Optional: 1 float per sample
+    uint tid                             [[ thread_position_in_grid ]]
 ) {
     if (tid >= PREDICTION_LENGTH) return;
 
-    // Read input sample
-    float raw = predictedInput[tid];
+    float raw = predictedIn[tid];
 
-    // Soft clip to simulate analog wave compression
-    float shaped = analogSaturate(raw);
+    // Choose curve
+    float shaped = saturate(raw, saturationMode);
 
-    // Smooth with simple 1-pole filter
-    float prev = (tid == 0) ? 0.0 : analogSmoothedOutput[tid - 1];
-    float smooth = analogLowpass(shaped, prev, alpha);
+    // Use previous sample for smoothing
+    float prev = (tid == 0) ? shaped : analogOut[tid - 1];
 
-    analogSmoothedOutput[tid] = smooth;
+    float alpha = dynamicAlphaMap[tid]; // 0.0 → 1.0 smoothing coefficient
+    float smoothed = adaptiveLowpass(shaped, prev, alpha);
+
+    analogOut[tid] = smoothed;
 }

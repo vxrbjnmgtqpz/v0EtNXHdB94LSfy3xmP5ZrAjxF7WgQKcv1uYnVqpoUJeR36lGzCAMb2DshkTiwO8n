@@ -1,7 +1,18 @@
 #version 450
 
 #define PREDICTION_LENGTH 2400
-#define NUM_MODELS 6  // e.g. LPC, pitch, formant, analog, RNN, microdyn
+#define CONFIDENCE_BLOCK_SIZE 48     // 1 ms @ 48kHz
+#define NUM_MODELS 6
+
+// Optional: weights buffer for per-model weighting
+struct BlendWeights {
+    float lpc;
+    float pitch;
+    float formant;
+    float analog;
+    float rnn;
+    float micro;
+};
 
 layout(std430, binding = 0) readonly buffer LpcOut {
     float lpcOut[PREDICTION_LENGTH];
@@ -28,10 +39,14 @@ layout(std430, binding = 5) readonly buffer MicrodynOut {
 };
 
 layout(std430, binding = 6) readonly buffer Confidence {
-    float confidence[PREDICTION_LENGTH / 48];  // Per-48-sample block
+    float confidence[PREDICTION_LENGTH / CONFIDENCE_BLOCK_SIZE];
 };
 
-layout(std430, binding = 7) writeonly buffer FinalOut {
+layout(std430, binding = 7) readonly buffer Weights {
+    BlendWeights weights;
+};
+
+layout(std430, binding = 8) writeonly buffer FinalOut {
     float finalOut[PREDICTION_LENGTH];
 };
 
@@ -41,27 +56,26 @@ void main() {
     uint tid = gl_GlobalInvocationID.x;
     if (tid >= PREDICTION_LENGTH) return;
 
-    // Block confidence
-    uint blockIdx = tid / 48;
+    // Determine block-level confidence
+    uint blockIdx = tid / CONFIDENCE_BLOCK_SIZE;
     float conf = clamp(confidence[blockIdx], 0.0, 1.0);
 
-    // Fixed blending weights (tunable or learned)
-    const float wLPC      = 0.25;
-    const float wPitch    = 0.20;
-    const float wFormant  = 0.15;
-    const float wAnalog   = 0.10;
-    const float wRNN      = 0.20;
-    const float wMicro    = 0.10;
+    // Weighted blend of all sources
+    float combined =
+          lpcOut[tid]      * weights.lpc
+        + pitchOut[tid]    * weights.pitch
+        + formantOut[tid]  * weights.formant
+        + analogOut[tid]   * weights.analog
+        + rnnOut[tid]      * weights.rnn
+        + microdynOut[tid] * weights.micro;
 
-    // Weighted sum of all predictions
-    float blended =
-        (lpcOut[tid] * wLPC) +
-        (pitchOut[tid] * wPitch) +
-        (formantOut[tid] * wFormant) +
-        (analogOut[tid] * wAnalog) +
-        (rnnOut[tid] * wRNN) +
-        (microdynOut[tid] * wMicro);
+    // Normalize by total weight
+    float totalWeight = weights.lpc + weights.pitch + weights.formant +
+                        weights.analog + weights.rnn + weights.micro;
+    combined /= max(totalWeight, 1e-5); // prevent div-by-zero
 
-    // Fade out low-confidence zones
-    finalOut[tid] = conf * blended;
+    // Confidence blending: fade out or reduce intensity
+    float output = (conf > 0.05) ? combined : combined * conf;
+
+    finalOut[tid] = output;
 }

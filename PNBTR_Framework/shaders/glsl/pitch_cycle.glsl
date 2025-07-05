@@ -1,59 +1,83 @@
 #version 450
 
-#define SAMPLE_WINDOW 240            // 5 ms @ 48kHz
-#define MIN_LAG 20                   // ~2.4 kHz
-#define MAX_LAG 480                  // ~100 Hz
+#define SAMPLE_WINDOW 512
+#define MAX_HARMONICS 8
+#define CYCLE_PROFILE_RES 64
 #define SAMPLE_RATE 48000.0
 
-// Output pitch and phase structure
-struct PitchResult {
-    float frequency;
-    float cyclePhase;
+struct PitchCycleResult {
+    float baseFreq;
+    float phaseOffset;
+    float harmonicAmp[MAX_HARMONICS];
+    float cycleProfile[CYCLE_PROFILE_RES];
 };
 
-// Input buffer: most recent waveform samples
 layout(std430, binding = 0) readonly buffer RecentSamples {
     float recentSamples[SAMPLE_WINDOW];
 };
 
-layout(std430, binding = 1) writeonly buffer OutputBuffer {
-    PitchResult output[1];
+layout(std430, binding = 1) writeonly buffer ResultBuffer {
+    PitchCycleResult result;
 };
 
 layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
 
 void main() {
     uint tid = gl_GlobalInvocationID.x;
-    if (tid > 0) return; // Single-thread phase estimator
+    if (tid > 0) return; // single-thread extraction
 
-    float bestSum = 0.0;
-    int bestLag = MIN_LAG;
+    float autocorr[256];
+    int bestLag = 1;
+    float bestScore = 0.0;
 
-    // Autocorrelation-based lag finder
-    for (int lag = MIN_LAG; lag < MAX_LAG; ++lag) {
-        float sum = 0.0;
+    // Autocorrelation search
+    for (int lag = 20; lag < 256; ++lag) {
+        float score = 0.0;
         for (int i = 0; i < SAMPLE_WINDOW - lag; ++i) {
-            sum += recentSamples[i] * recentSamples[i + lag];
+            score += recentSamples[i] * recentSamples[i + lag];
         }
-        if (sum > bestSum) {
-            bestSum = sum;
+        if (score > bestScore) {
+            bestScore = score;
             bestLag = lag;
         }
     }
 
-    // Convert lag to frequency
-    float freq = SAMPLE_RATE / float(bestLag);
+    float baseFreq = SAMPLE_RATE / float(bestLag);
+    result.baseFreq = baseFreq;
 
-    // Estimate current phase in detected cycle (normalized 0–1)
-    float zeroCrossingIdx = 0.0;
+    // Estimate phase offset using zero-crossing
+    float zc = 0.0;
     for (int i = 1; i < SAMPLE_WINDOW; ++i) {
         if (recentSamples[i - 1] < 0.0 && recentSamples[i] >= 0.0) {
-            zeroCrossingIdx = float(i);
+            zc = float(i);
             break;
         }
     }
-    float phase = mod(zeroCrossingIdx, float(bestLag)) / float(bestLag);
+    result.phaseOffset = mod(zc, float(bestLag)) / float(bestLag);
 
-    output[0].frequency = freq;
-    output[0].cyclePhase = phase;
+    // Harmonic weights (simple projection)
+    for (int h = 0; h < MAX_HARMONICS; ++h) {
+        float freq = baseFreq * float(h + 1);
+        float sum = 0.0;
+        for (int i = 0; i < SAMPLE_WINDOW; ++i) {
+            float t = float(i) / SAMPLE_RATE;
+            sum += recentSamples[i] * sin(2.0 * 3.14159265359 * freq * t);
+        }
+        result.harmonicAmp[h] = abs(sum) / float(SAMPLE_WINDOW);
+    }
+
+    // Build cycle profile (normalized waveform over one cycle)
+    for (int j = 0; j < CYCLE_PROFILE_RES; ++j) {
+        float phase = float(j) / float(CYCLE_PROFILE_RES);
+        float t = phase / baseFreq;
+        float value = 0.0;
+
+        for (int h = 0; h < MAX_HARMONICS; ++h) {
+            float freq = baseFreq * float(h + 1);
+            float amp = result.harmonicAmp[h];
+            value += amp * sin(2.0 * 3.14159265359 * freq * t);
+        }
+
+        result.cycleProfile[j] = value;
+    }
 }

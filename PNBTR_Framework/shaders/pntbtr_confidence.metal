@@ -2,44 +2,56 @@
 using namespace metal;
 
 #define PREDICTION_LENGTH 2400
-#define CONFIDENCE_BLOCK 48          // 1ms @ 48kHz
-#define NOISE_FLOOR_THRESHOLD 0.001  // Used to reject silence
-#define MAX_SLOPE_THRESHOLD 0.3      // Used to flag sharp edges
+#define BLOCK_SIZE 48    // 1 ms @ 48kHz
+#define NUM_BLOCKS (PREDICTION_LENGTH / BLOCK_SIZE)
 
 using namespace metal;
 
+struct ConfidenceWeights {
+    float energyWeight;
+    float slopeWeight;
+    float spectralWeight;
+    float spectralExpected[BLOCK_SIZE];  // Optional: learned spectral average
+};
+
 kernel void pntbtr_confidence(
     device const float* predictedWaveform   [[ buffer(0) ]],
-    device float* confidenceProfile         [[ buffer(1) ]],
-    uint tid                                [[ thread_position_in_grid ]]
+    device const float* fftMagPerSample     [[ buffer(1) ]], // optional, same size as waveform
+    constant ConfidenceWeights& weights     [[ buffer(2) ]],
+    device float* confidenceOut             [[ buffer(3) ]],
+    uint blockID                            [[ thread_position_in_grid ]]
 ) {
-    uint blockIdx = tid;
-    uint start = blockIdx * CONFIDENCE_BLOCK;
-    if (start >= PREDICTION_LENGTH) return;
+    if (blockID >= NUM_BLOCKS) return;
 
+    uint start = blockID * BLOCK_SIZE;
     float energy = 0.0;
     float maxSlope = 0.0;
+    float spectralDiff = 0.0;
 
-    for (uint i = 1; i < CONFIDENCE_BLOCK; ++i) {
+    for (uint i = 1; i < BLOCK_SIZE; ++i) {
         uint idx = start + i;
-        if (idx >= PREDICTION_LENGTH) break;
-
         float x0 = predictedWaveform[idx - 1];
         float x1 = predictedWaveform[idx];
+        float slope = fabs(x1 - x0);
+        float absVal = fabs(x1);
 
-        float diff = x1 - x0;
-        energy += fabs(x1);
-        if (fabs(diff) > maxSlope) {
-            maxSlope = fabs(diff);
-        }
+        energy += absVal;
+        if (slope > maxSlope) maxSlope = slope;
+
+        float mag = fftMagPerSample[idx];
+        float expected = weights.spectralExpected[i];
+        spectralDiff += fabs(mag - expected);
     }
 
-    float normEnergy = energy / float(CONFIDENCE_BLOCK);
-    float slopePenalty = clamp(maxSlope / MAX_SLOPE_THRESHOLD, 0.0, 1.0);
+    float normEnergy = energy / float(BLOCK_SIZE);
+    float normSlope = maxSlope;
+    float normSpectral = spectralDiff / float(BLOCK_SIZE);
 
-    float confidence = normEnergy > NOISE_FLOOR_THRESHOLD
-                     ? 1.0 - slopePenalty
-                     : 0.0; // if silence, confidence is zero
+    // Weighted inverse: lower energy/slope/spectral deviation → higher confidence
+    float confidence =
+        (weights.energyWeight   * clamp(normEnergy, 0.0, 1.0)) +
+        (weights.slopeWeight    * clamp(1.0 - normSlope, 0.0, 1.0)) +
+        (weights.spectralWeight * clamp(1.0 - normSpectral, 0.0, 1.0));
 
-    confidenceProfile[blockIdx] = confidence;
+    confidenceOut[blockID] = clamp(confidence, 0.0, 1.0);
 }
