@@ -41,6 +41,18 @@ bool JAMFrameworkIntegration::initialize(const std::string& multicast_addr,
             handleIncomingFrame(frame);
         });
         
+        // Set up discovery callback for peer detection
+        toastProtocol->set_discovery_callback([this](const jam::TOASTFrame& frame) {
+            juce::Logger::writeToLog("🔍 Discovered peer!");
+            activePeers++;
+            notifyStatusChange("Peer discovered! Active peers: " + std::to_string(activePeers), true);
+        });
+        
+        // Set up heartbeat callback
+        toastProtocol->set_heartbeat_callback([this](const jam::TOASTFrame& frame) {
+            juce::Logger::writeToLog("💓 Received heartbeat from peer");
+        });
+        
         // Set up error callback
         toastProtocol->set_error_callback([this](const std::string& error) {
             juce::Logger::writeToLog("JAM Framework Error: " + juce::String(error));
@@ -119,7 +131,13 @@ bool JAMFrameworkIntegration::startNetwork() {
             juce::Logger::writeToLog("JAM Framework v2 network started on " + 
                                    juce::String(multicastAddress) + ":" + 
                                    juce::String(udpPort));
-            notifyStatusChange("Connected via UDP multicast", true);
+            
+            // Send discovery message to announce our presence
+            toastProtocol->send_discovery();
+            juce::Logger::writeToLog("🔍 Sent discovery message to announce presence");
+            
+            // Start periodic heartbeat (we'll do this with the timer)
+            notifyStatusChange("Connected via UDP multicast - Looking for peers...", true);
         } else {
             juce::Logger::writeToLog("Failed to start JAM Framework v2 network");
             notifyStatusChange("Failed to connect", false);
@@ -429,15 +447,16 @@ void JAMFrameworkIntegration::timerCallback() {
     // Update performance metrics every 100ms
     updatePerformanceMetrics();
     
-    // Send heartbeat if connected
-    if (toastProtocol && networkActive) {
-        jam::TOASTFrame heartbeat;
-        heartbeat.header.frame_type = static_cast<uint8_t>(jam::TOASTFrameType::HEARTBEAT);
-        heartbeat.header.timestamp_us = static_cast<uint32_t>(
-            juce::Time::getHighResolutionTicks() / 1000);
+    // Send heartbeat every second if connected
+    static int heartbeatCounter = 0;
+    heartbeatCounter++;
+    
+    if (toastProtocol && networkActive && heartbeatCounter >= 10) { // Every 1 second (10 * 100ms)
+        heartbeatCounter = 0;
         
         try {
-            toastProtocol->send_frame(heartbeat);
+            toastProtocol->send_heartbeat();
+            juce::Logger::writeToLog("💓 Sent heartbeat to peers");
         } catch (const std::exception& e) {
             // Heartbeat failure indicates network issues
             juce::Logger::writeToLog("Heartbeat failed: " + juce::String(e.what()));

@@ -161,12 +161,28 @@ public:
     bool send_sync(uint64_t sync_timestamp);
     
     /**
+     * Send discovery message to announce presence
+     * 
+     * @return true if successful
+     */
+    bool send_discovery();
+    
+    /**
+     * Send heartbeat to maintain presence
+     * 
+     * @return true if successful  
+     */
+    bool send_heartbeat();
+    
+    /**
      * Set frame callbacks
      */
     void set_midi_callback(FrameCallback callback) { midi_callback_ = std::move(callback); }
     void set_audio_callback(FrameCallback callback) { audio_callback_ = std::move(callback); }
     void set_video_callback(FrameCallback callback) { video_callback_ = std::move(callback); }
     void set_sync_callback(FrameCallback callback) { sync_callback_ = std::move(callback); }
+    void set_discovery_callback(FrameCallback callback) { discovery_callback_ = std::move(callback); }
+    void set_heartbeat_callback(FrameCallback callback) { heartbeat_callback_ = std::move(callback); }
     void set_error_callback(ErrorCallback callback) { error_callback_ = std::move(callback); }
     
     /**
@@ -192,6 +208,7 @@ public:
         uint64_t duplicate_packets_received = 0;
         uint64_t invalid_packets = 0;
         uint64_t checksum_errors = 0;
+        uint32_t active_peers = 0;
         double average_latency_us = 0.0;
     };
     
@@ -217,6 +234,8 @@ private:
     FrameCallback audio_callback_;
     FrameCallback video_callback_;
     FrameCallback sync_callback_;
+    FrameCallback discovery_callback_;
+    FrameCallback heartbeat_callback_;
     ErrorCallback error_callback_;
     
     // Statistics

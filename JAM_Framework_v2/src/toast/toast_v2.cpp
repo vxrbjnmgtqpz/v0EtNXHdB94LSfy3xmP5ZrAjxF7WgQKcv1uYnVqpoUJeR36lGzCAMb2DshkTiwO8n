@@ -189,6 +189,47 @@ public:
         return sent == static_cast<ssize_t>(data.size());
     }
     
+    void send_discovery_message() {
+        if (socket_fd < 0) return;
+        
+        TOASTFrame discovery_frame;
+        discovery_frame.header.frame_type = static_cast<uint8_t>(TOASTFrameType::DISCOVERY);
+        discovery_frame.header.timestamp_us = static_cast<uint32_t>(
+            std::chrono::duration_cast<std::chrono::microseconds>(
+                std::chrono::steady_clock::now().time_since_epoch()
+            ).count()
+        );
+        
+        // Add session info to payload
+        std::string session_info = "JAM_TOAST_v2_DISCOVERY";
+        discovery_frame.payload.assign(session_info.begin(), session_info.end());
+        discovery_frame.calculate_checksum();
+        
+        // Serialize and send
+        auto serialized = discovery_frame.serialize();
+        sendto(socket_fd, (char*)serialized.data(), serialized.size(), 0,
+               (struct sockaddr*)&multicast_addr, sizeof(multicast_addr));
+    }
+    
+    void send_heartbeat() {
+        if (socket_fd < 0) return;
+        
+        TOASTFrame heartbeat_frame;
+        heartbeat_frame.header.frame_type = static_cast<uint8_t>(TOASTFrameType::HEARTBEAT);
+        heartbeat_frame.header.timestamp_us = static_cast<uint32_t>(
+            std::chrono::duration_cast<std::chrono::microseconds>(
+                std::chrono::steady_clock::now().time_since_epoch()
+            ).count()
+        );
+        
+        heartbeat_frame.calculate_checksum();
+        
+        // Serialize and send
+        auto serialized = heartbeat_frame.serialize();
+        sendto(socket_fd, (char*)serialized.data(), serialized.size(), 0,
+               (struct sockaddr*)&multicast_addr, sizeof(multicast_addr));
+    }
+    
     void receiver_loop(TOASTv2Protocol* protocol) {
         uint8_t buffer[65536];
         
@@ -321,6 +362,16 @@ bool TOASTv2Protocol::send_sync(uint64_t sync_timestamp) {
     return send_frame(frame, true); // Sync uses burst for reliability
 }
 
+bool TOASTv2Protocol::send_discovery() {
+    impl_->send_discovery_message();
+    return true;
+}
+
+bool TOASTv2Protocol::send_heartbeat() {
+    impl_->send_heartbeat();
+    return true;
+}
+
 bool TOASTv2Protocol::start_processing() {
     if (impl_->running) return true;
     
@@ -416,6 +467,15 @@ void TOASTv2Protocol::handle_received_frame(const TOASTFrame& frame) {
             break;
         case TOASTFrameType::SYNC:
             if (sync_callback_) sync_callback_(frame);
+            break;
+        case TOASTFrameType::DISCOVERY:
+            // Handle peer discovery
+            if (discovery_callback_) discovery_callback_(frame);
+            stats_.active_peers++;
+            break;
+        case TOASTFrameType::HEARTBEAT:
+            // Handle peer heartbeat
+            if (heartbeat_callback_) heartbeat_callback_(frame);
             break;
         default:
             break;
