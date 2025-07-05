@@ -23,9 +23,10 @@ enum class TOASTFrameType : uint8_t {
     AUDIO = 0x02,       // PCM audio data  
     VIDEO = 0x03,       // Video frame data
     SYNC = 0x04,        // Timing synchronization
-    DISCOVERY = 0x05,   // Peer discovery
-    HEARTBEAT = 0x06,   // Keep-alive
-    BURST_HEADER = 0x07 // Burst transmission header
+    TRANSPORT = 0x05,   // Transport commands (play/stop/position/bpm)
+    DISCOVERY = 0x06,   // Peer discovery  
+    HEARTBEAT = 0x07,   // Keep-alive
+    BURST_HEADER = 0x08 // Burst transmission header
 };
 
 /**

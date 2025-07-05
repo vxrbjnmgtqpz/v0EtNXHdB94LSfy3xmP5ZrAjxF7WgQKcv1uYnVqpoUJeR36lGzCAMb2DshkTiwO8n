@@ -35,7 +35,8 @@ public:
     // Network integration
     void setNetworkPanel(JAMNetworkPanel* panel) { jamNetworkPanel = panel; }
     void syncTransportStateToNetwork();
-    void handleNetworkTransportCommand(const std::string& command, uint64_t timestamp);
+    void handleNetworkTransportCommand(const std::string& command, uint64_t timestamp, 
+                                       double position = 0.0, double bpm = 120.0);
 
 private:
     void playButtonClicked();

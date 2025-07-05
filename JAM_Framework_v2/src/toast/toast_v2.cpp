@@ -17,6 +17,8 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#include <fcntl.h>
+#include <errno.h>
 #endif
 
 namespace jam {
@@ -375,9 +377,68 @@ bool TOASTv2Protocol::send_heartbeat() {
 bool TOASTv2Protocol::start_processing() {
     if (impl_->running) return true;
     
+    // CRITICAL FIX: Test real network connectivity before claiming success
+    std::cout << "🔍 Testing network connectivity before starting processing..." << std::endl;
+    
+    // Test if socket can actually send/receive packets
+    uint8_t test_buffer[64];
+    struct sockaddr_in test_addr;
+    socklen_t addr_len = sizeof(test_addr);
+    
+    // Set non-blocking mode for quick test
+    int flags = fcntl(impl_->socket_fd, F_GETFL, 0);
+    fcntl(impl_->socket_fd, F_SETFL, flags | O_NONBLOCK);
+    
+    // Try to receive (should fail immediately if no packets available)
+    ssize_t test_recv = recvfrom(impl_->socket_fd, (char*)test_buffer, sizeof(test_buffer), 0,
+                                (struct sockaddr*)&test_addr, &addr_len);
+    
+    // Restore blocking mode
+    fcntl(impl_->socket_fd, F_SETFL, flags);
+    
+    // Even if recvfrom returns -1, if errno is EAGAIN/EWOULDBLOCK, socket is working
+    if (test_recv < 0 && errno != EAGAIN && errno != EWOULDBLOCK) {
+        std::cerr << "❌ Socket connectivity test failed (errno: " << errno << ")" << std::endl;
+        
+        // Common network permission/availability errors
+        if (errno == EACCES || errno == EPERM) {
+            std::cerr << "❌ Network permission denied by system" << std::endl;
+        } else if (errno == ENETDOWN || errno == ENETUNREACH) {
+            std::cerr << "❌ Network interface not available" << std::endl;
+        } else if (errno == ENOBUFS || errno == ENOMEM) {
+            std::cerr << "❌ System network buffers exhausted" << std::endl;
+        }
+        
+        return false;
+    }
+    
+    std::cout << "✅ Socket connectivity test passed" << std::endl;
+    
+    // Test multicast send capability
+    std::cout << "🔍 Testing multicast send capability..." << std::endl;
+    const char test_msg[] = "CONNECTIVITY_TEST";
+    ssize_t sent = sendto(impl_->socket_fd, test_msg, sizeof(test_msg), 0,
+                         (struct sockaddr*)&impl_->multicast_addr, sizeof(impl_->multicast_addr));
+    
+    if (sent < 0) {
+        std::cerr << "❌ Multicast send test failed (errno: " << errno << ")" << std::endl;
+        
+        if (errno == ENETDOWN || errno == ENETUNREACH) {
+            std::cerr << "❌ Network unreachable - check connection" << std::endl;
+        } else if (errno == EACCES) {
+            std::cerr << "❌ Multicast send permission denied" << std::endl;
+        }
+        
+        return false;
+    }
+    
+    std::cout << "✅ Multicast send test passed" << std::endl;
+    
+    // All connectivity tests passed - now start processing
     impl_->running = true;
     impl_->receiver_thread = std::thread(&Impl::receiver_loop, impl_.get(), this);
     
+    std::cout << "✅ Network processing started successfully" << std::endl;
     return true;
 }
 

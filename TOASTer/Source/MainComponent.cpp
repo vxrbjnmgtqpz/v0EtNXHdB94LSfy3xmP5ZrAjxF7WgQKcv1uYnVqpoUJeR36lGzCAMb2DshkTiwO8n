@@ -33,8 +33,9 @@ MainComponent::MainComponent()
     jmidPanel = std::make_unique<JMIDIntegrationPanel>();
     addAndMakeVisible(jmidPanel.get());
     
-    // Connect TransportController to Network Panel for automatic sync
+    // Connect TransportController to Network Panel for automatic sync (bidirectional)
     transportController->setNetworkPanel(jamNetworkPanel.get());
+    jamNetworkPanel->setTransportController(transportController.get());
     
     // Start timer to coordinate state updates between panels
     startTimer(250); // Update 4 times per second

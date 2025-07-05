@@ -298,25 +298,22 @@ void TransportController::syncTransportStateToNetwork()
 {
     if (!jamNetworkPanel || !jamNetworkPanel->isConnected()) return;
     
-    // Create transport sync message using JAM Framework v2
+    // Send transport command using JAM Framework v2 transport protocol
     std::string command = isPlaying ? "PLAY" : "STOP";
     uint64_t currentTime = std::chrono::duration_cast<std::chrono::microseconds>(
         std::chrono::high_resolution_clock::now().time_since_epoch()).count();
     
-    // Create JSON transport message
-    std::string message = "{\"type\":\"transport\",\"command\":\"" + command + 
-                         "\",\"timestamp\":" + std::to_string(currentTime) + 
-                         ",\"position\":" + std::to_string(currentPosition.count()) + 
-                         ",\"bpm\":" + std::to_string(bpm) + "}";
+    // Send via JAM Framework v2 new transport system
+    jamNetworkPanel->sendTransportCommand(command, currentTime, 
+                                        static_cast<double>(currentPosition.count()), bpm);
     
-    // Send via JAM Framework v2 as MIDI data (transport commands)
-    std::vector<uint8_t> messageData(message.begin(), message.end());
-    jamNetworkPanel->sendMIDIData(messageData.data(), messageData.size());
-    
-    juce::Logger::writeToLog("Transport sync sent via JAM Framework v2: " + juce::String(command));
+    juce::Logger::writeToLog("🎛️ Transport sync sent via JAM Framework v2: " + juce::String(command) +
+                           " (pos: " + juce::String(currentPosition.count()) + 
+                           ", bpm: " + juce::String(bpm) + ")");
 }
 
-void TransportController::handleNetworkTransportCommand(const std::string& command, uint64_t timestamp)
+void TransportController::handleNetworkTransportCommand(const std::string& command, uint64_t timestamp,
+                                                       double position, double bpm)
 {
     if (isMaster) return; // Master doesn't accept transport commands
     
@@ -324,18 +321,33 @@ void TransportController::handleNetworkTransportCommand(const std::string& comma
         isPlaying = true;
         playButton.setToggleState(true, juce::dontSendNotification);
         
-        // Sync to network timestamp
+        // Sync to network timestamp and position
         auto networkTime = std::chrono::microseconds{timestamp};
         auto now = std::chrono::duration_cast<std::chrono::microseconds>(
             std::chrono::high_resolution_clock::now().time_since_epoch());
         transportStartTime = std::chrono::high_resolution_clock::now() - (now - networkTime);
         
+        // Set position and BPM from network
+        currentPosition = std::chrono::milliseconds(static_cast<int64_t>(position));
+        this->bpm = bpm;
+        
         startTimer(16);
+        juce::Logger::writeToLog("🎛️ Received PLAY command - pos: " + juce::String(position) + 
+                                " bpm: " + juce::String(bpm));
     }
     else if (command == "STOP" && isPlaying) {
         isPlaying = false;
         playButton.setToggleState(false, juce::dontSendNotification);
         stopTimer();
+        juce::Logger::writeToLog("🎛️ Received STOP command");
+    }
+    else if (command == "POSITION") {
+        currentPosition = std::chrono::milliseconds(static_cast<int64_t>(position));
+        juce::Logger::writeToLog("🎛️ Received POSITION command: " + juce::String(position));
+    }
+    else if (command == "BPM") {
+        this->bpm = bpm;
+        juce::Logger::writeToLog("🎛️ Received BPM command: " + juce::String(bpm));
     }
     
     updateDisplay();

@@ -5,12 +5,22 @@
 #include "jam_core.h" 
 #include "compute_pipeline.h"
 #include "gpu_manager.h"
+#include "network_state_detector.h"
 
 #include <juce_core/juce_core.h>
 
 JAMFrameworkIntegration::JAMFrameworkIntegration() {
     // Initialize PNBTR manager
     pnbtrManager = std::make_unique<PNBTRManager>();
+    
+    // Initialize network state detector for real connectivity testing
+    networkStateDetector = std::make_unique<jam::NetworkStateDetector>();
+    
+    // Enable automatic features for seamless operation
+    auto_connection_enabled_ = true;    // Always auto-connect
+    minimum_peers_ = 1;                 // Connect as soon as one peer found
+    pnbtrAudioEnabled = true;          // Always use PNBTR audio prediction
+    pnbtrVideoEnabled = true;          // Always use PNBTR video prediction
     
     // Initialize with 100ms update timer for performance monitoring
     startTimer(100);
@@ -41,16 +51,53 @@ bool JAMFrameworkIntegration::initialize(const std::string& multicast_addr,
             handleIncomingFrame(frame);
         });
         
-        // Set up discovery callback for peer detection
+        // Set up discovery callback for peer detection with auto-connection
         toastProtocol->set_discovery_callback([this](const jam::TOASTFrame& frame) {
-            juce::Logger::writeToLog("🔍 Discovered peer!");
+            std::string peer_id = "peer_" + std::to_string(frame.header.session_id);
+            
+            {
+                std::lock_guard<std::mutex> lock(discovered_peers_mutex_);
+                auto it = std::find(discovered_peers_.begin(), discovered_peers_.end(), peer_id);
+                if (it == discovered_peers_.end()) {
+                    discovered_peers_.push_back(peer_id);
+                    juce::Logger::writeToLog("🔍 Discovered new peer: " + juce::String(peer_id));
+                }
+            }
+            
             activePeers++;
-            notifyStatusChange("Peer discovered! Active peers: " + std::to_string(activePeers), true);
+            
+            // Auto-connection logic: automatically "connect" to discovered peers
+            if (auto_connection_enabled_ && activePeers >= minimum_peers_) {
+                if (!networkActive) {
+                    juce::Logger::writeToLog("🚀 Auto-connecting - minimum peers reached!");
+                    // Network is already active, just update status
+                }
+                notifyStatusChange("Auto-connected! Active peers: " + std::to_string(activePeers), true);
+            } else {
+                notifyStatusChange("Peer discovered! Active peers: " + std::to_string(activePeers), true);
+            }
         });
         
-        // Set up heartbeat callback
+        // Set up heartbeat callback with peer maintenance
         toastProtocol->set_heartbeat_callback([this](const jam::TOASTFrame& frame) {
             juce::Logger::writeToLog("💓 Received heartbeat from peer");
+            
+            // Maintain peer list and auto-connection
+            std::string peer_id = "peer_" + std::to_string(frame.header.session_id);
+            {
+                std::lock_guard<std::mutex> lock(discovered_peers_mutex_);
+                auto it = std::find(discovered_peers_.begin(), discovered_peers_.end(), peer_id);
+                if (it == discovered_peers_.end()) {
+                    discovered_peers_.push_back(peer_id);
+                    juce::Logger::writeToLog("💓 Heartbeat from new peer: " + juce::String(peer_id));
+                    
+                    // Auto-connect to heartbeat peers too
+                    if (auto_connection_enabled_) {
+                        activePeers++;
+                        notifyStatusChange("Auto-connected via heartbeat! Active peers: " + std::to_string(activePeers), true);
+                    }
+                }
+            }
         });
         
         // Set up error callback
@@ -123,11 +170,50 @@ bool JAMFrameworkIntegration::startNetwork() {
         return false;
     }
     
+    // CRITICAL FIX: Test real network state before claiming connected
+    juce::Logger::writeToLog("🔍 Testing real network connectivity...");
+    notifyStatusChange("Testing network connectivity...", false);
+    
+    // Step 1: Check network permission (macOS specific issue)
+    if (!networkStateDetector->hasNetworkPermission()) {
+        std::string error = "❌ Network permission denied - please allow network access";
+        juce::Logger::writeToLog(error);
+        notifyStatusChange(error, false);
+        return false;
+    }
+    
+    // Step 2: Check if network interface is actually ready (not just DHCP pending)
+    if (!networkStateDetector->isNetworkInterfaceReady()) {
+        std::string error = "❌ Network interface not ready - check connection";
+        juce::Logger::writeToLog(error);
+        notifyStatusChange(error, false);
+        return false;
+    }
+    
+    // Step 3: Test actual UDP connectivity with our settings
+    if (!networkStateDetector->testUDPConnectivity(multicastAddress, udpPort)) {
+        std::string error = "❌ UDP connectivity test failed on " + multicastAddress + ":" + std::to_string(udpPort);
+        juce::Logger::writeToLog(error);
+        notifyStatusChange(error, false);
+        return false;
+    }
+    
+    // Step 4: Test multicast capability (critical for discovery)
+    if (!networkStateDetector->testMulticastCapability(multicastAddress, udpPort, 2000)) {
+        std::string error = "❌ Multicast test failed - check firewall/network settings";
+        juce::Logger::writeToLog(error);
+        notifyStatusChange(error, false);
+        return false;
+    }
+    
+    juce::Logger::writeToLog("✅ All network connectivity tests passed");
+    
     try {
+        // Now start the actual TOAST protocol with validated network
         bool success = toastProtocol->start_processing();
-        networkActive = success;
         
         if (success) {
+            networkActive = true;
             juce::Logger::writeToLog("JAM Framework v2 network started on " + 
                                    juce::String(multicastAddress) + ":" + 
                                    juce::String(udpPort));
@@ -140,7 +226,7 @@ bool JAMFrameworkIntegration::startNetwork() {
             notifyStatusChange("Connected via UDP multicast - Looking for peers...", true);
         } else {
             juce::Logger::writeToLog("Failed to start JAM Framework v2 network");
-            notifyStatusChange("Failed to connect", false);
+            notifyStatusChange("Failed to connect - socket initialization failed", false);
         }
         
         return success;
@@ -389,14 +475,127 @@ void JAMFrameworkIntegration::handleIncomingFrame(const jam::TOASTFrame& frame) 
                 }
                 break;
                 
+            case jam::TOASTFrameType::SYNC:
+                // Handle transport sync commands with full bidirectional support
+                if (frame.payload.size() > 0 && transportCallback) {
+                    std::string syncMessage(frame.payload.begin(), frame.payload.end());
+                    juce::Logger::writeToLog("🎵 Received transport sync: " + juce::String(syncMessage));
+                    
+                    // Parse JSON transport command and extract all parameters
+                    try {
+                        std::string command;
+                        uint64_t timestamp = frame.header.timestamp_us;
+                        double position = 0.0;
+                        double bpm = 120.0;
+                        
+                        // Extract command
+                        if (syncMessage.find("\"PLAY\"") != std::string::npos) {
+                            command = "PLAY";
+                        } else if (syncMessage.find("\"STOP\"") != std::string::npos) {
+                            command = "STOP";
+                        }
+                        
+                        // Extract position (simple parsing)
+                        auto posPos = syncMessage.find("\"position\":");
+                        if (posPos != std::string::npos) {
+                            auto start = syncMessage.find(':', posPos) + 1;
+                            auto end = syncMessage.find_first_of(",}", start);
+                            if (end != std::string::npos) {
+                                position = std::stod(syncMessage.substr(start, end - start));
+                            }
+                        }
+                        
+                        // Extract BPM
+                        auto bpmPos = syncMessage.find("\"bpm\":");
+                        if (bpmPos != std::string::npos) {
+                            auto start = syncMessage.find(':', bpmPos) + 1;
+                            auto end = syncMessage.find_first_of(",}", start);
+                            if (end != std::string::npos) {
+                                bpm = std::stod(syncMessage.substr(start, end - start));
+                            }
+                        }
+                        
+                        // Call transport callback with full parameters
+                        if (!command.empty()) {
+                            transportCallback(command, timestamp, position, bpm);
+                            juce::Logger::writeToLog("🎵 Transport command processed: " + juce::String(command) + 
+                                                   " pos=" + juce::String(position) + " bpm=" + juce::String(bpm));
+                        }
+                        
+                    } catch (const std::exception& e) {
+                        juce::Logger::writeToLog("Transport sync parse error: " + juce::String(e.what()));
+                    }
+                }
+                break;
+                
+            case jam::TOASTFrameType::TRANSPORT:
+                // Handle dedicated transport commands with full bidirectional support
+                if (frame.payload.size() > 0) {
+                    std::string transportMessage(frame.payload.begin(), frame.payload.end());
+                    juce::Logger::writeToLog("🎛️ Received transport frame: " + juce::String(transportMessage));
+                    
+                    // Parse JSON transport command
+                    try {
+                        std::string command;
+                        uint64_t timestamp = frame.header.timestamp_us * 1000; // Convert back to microseconds
+                        double position = 0.0;
+                        double bpm = 120.0;
+                        
+                        // Extract command
+                        if (transportMessage.find("\"PLAY\"") != std::string::npos) {
+                            command = "PLAY";
+                        } else if (transportMessage.find("\"STOP\"") != std::string::npos) {
+                            command = "STOP";
+                        } else if (transportMessage.find("\"POSITION\"") != std::string::npos) {
+                            command = "POSITION";
+                        } else if (transportMessage.find("\"BPM\"") != std::string::npos) {
+                            command = "BPM";
+                        }
+                        
+                        // Extract position (simple parsing)
+                        auto posPos = transportMessage.find("\"position\":");
+                        if (posPos != std::string::npos) {
+                            auto start = transportMessage.find(':', posPos) + 1;
+                            auto end = transportMessage.find_first_of(",}", start);
+                            if (end != std::string::npos) {
+                                position = std::stod(transportMessage.substr(start, end - start));
+                            }
+                        }
+                        
+                        // Extract BPM
+                        auto bpmPos = transportMessage.find("\"bpm\":");
+                        if (bpmPos != std::string::npos) {
+                            auto start = transportMessage.find(':', bpmPos) + 1;
+                            auto end = transportMessage.find_first_of(",}", start);
+                            if (end != std::string::npos) {
+                                bpm = std::stod(transportMessage.substr(start, end - start));
+                            }
+                        }
+                        
+                        // Handle transport command via callback
+                        if (!command.empty()) {
+                            handleTransportCommand(command, timestamp, position, bpm);
+                        }
+                        
+                    } catch (const std::exception& e) {
+                        juce::Logger::writeToLog("Transport frame parse error: " + juce::String(e.what()));
+                    }
+                }
+                break;
+                
             case jam::TOASTFrameType::DISCOVERY:
-                // Handle peer discovery - placeholder value for now
-                activePeers = 1; // toastProtocol->getActivePeerCount();
+                // Handle peer discovery frames
+                juce::Logger::writeToLog("🔍 Received discovery frame");
                 break;
                 
             case jam::TOASTFrameType::HEARTBEAT:
-                // Update peer count and latency - placeholder values for now
-                currentMetrics.latency_us = 50.0; // toastProtocol->getAverageLatency();
+                // Handle heartbeat frames
+                juce::Logger::writeToLog("💓 Received heartbeat frame");
+                break;
+                
+            case jam::TOASTFrameType::BURST_HEADER:
+                // Handle burst header frames
+                juce::Logger::writeToLog("📦 Received burst header frame");
                 break;
                 
             default:
@@ -447,6 +646,14 @@ void JAMFrameworkIntegration::timerCallback() {
     // Update performance metrics every 100ms
     updatePerformanceMetrics();
     
+    // Auto-initialize GPU if not done yet and network is active
+    static bool gpu_auto_init_attempted = false;
+    if (networkActive && !gpuInitialized && !gpu_auto_init_attempted) {
+        gpu_auto_init_attempted = true;
+        juce::Logger::writeToLog("🚀 Auto-initializing GPU acceleration...");
+        initializeGPU();
+    }
+    
     // Send heartbeat every second if connected
     static int heartbeatCounter = 0;
     heartbeatCounter++;
@@ -462,4 +669,64 @@ void JAMFrameworkIntegration::timerCallback() {
             juce::Logger::writeToLog("Heartbeat failed: " + juce::String(e.what()));
         }
     }
+    
+    // Auto-enable features if network becomes active
+    if (networkActive) {
+        // Ensure PNBTR prediction is always enabled
+        if (pnbtrManager && !pnbtrAudioEnabled) {
+            pnbtrAudioEnabled = true;
+            pnbtrManager->setAudioPredictionEnabled(true);
+        }
+        
+        if (pnbtrManager && !pnbtrVideoEnabled) {
+            pnbtrVideoEnabled = true; 
+            pnbtrManager->setVideoPredictionEnabled(true);
+        }
+    }
+}
+
+void JAMFrameworkIntegration::sendTransportCommand(const std::string& command, uint64_t timestamp, 
+                                                   double position, double bpm) {
+    if (!toastProtocol || !networkActive) {
+        return;
+    }
+    
+    try {
+        // Create JSON transport command
+        std::string transportMessage = 
+            "{\"type\":\"transport\","
+            "\"command\":\"" + command + "\","
+            "\"timestamp\":" + std::to_string(timestamp) + ","
+            "\"position\":" + std::to_string(position) + ","
+            "\"bpm\":" + std::to_string(bpm) + "}";
+        
+        // Create TOAST frame with TRANSPORT type
+        jam::TOASTFrame frame;
+        frame.header.frame_type = static_cast<uint8_t>(jam::TOASTFrameType::TRANSPORT);
+        frame.header.timestamp_us = static_cast<uint32_t>(timestamp / 1000); // Convert to milliseconds 
+        frame.payload.assign(transportMessage.begin(), transportMessage.end());
+        
+        // Send frame with burst transmission for reliability
+        toastProtocol->send_frame(frame, true);
+        
+        juce::Logger::writeToLog("📡 Sent transport command: " + juce::String(command) + 
+                               " (pos: " + juce::String(position) + ", bpm: " + juce::String(bpm) + ")");
+        
+    } catch (const std::exception& e) {
+        juce::Logger::writeToLog("Transport command send failed: " + juce::String(e.what()));
+    }
+}
+
+void JAMFrameworkIntegration::handleTransportCommand(const std::string& command, uint64_t timestamp, 
+                                                    double position, double bpm) {
+    if (transportCallback) {
+        transportCallback(command, timestamp, position, bpm);
+        juce::Logger::writeToLog("🎛️ Received transport command: " + juce::String(command) + 
+                               " (pos: " + juce::String(position) + ", bpm: " + juce::String(bpm) + ")");
+    }
+}
+
+std::vector<std::string> JAMFrameworkIntegration::getDiscoveredPeers() const {
+    std::lock_guard<std::mutex> lock(discovered_peers_mutex_);
+    return discovered_peers_;
 }

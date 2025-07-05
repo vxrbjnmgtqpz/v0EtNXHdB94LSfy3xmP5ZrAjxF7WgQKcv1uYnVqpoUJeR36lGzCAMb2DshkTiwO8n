@@ -4,6 +4,9 @@
 #include "JAMFrameworkIntegration.h"
 #include "BonjourDiscovery.h"
 
+// Forward declarations
+class TransportController;
+
 /**
  * JAM Framework v2 Network Panel for TOASTer
  * 
@@ -31,6 +34,10 @@ public:
     void sendMIDIEvent(uint8_t status, uint8_t data1, uint8_t data2);
     void sendMIDIData(const uint8_t* data, size_t size);
     
+    // Send transport commands through JAM Framework v2
+    void sendTransportCommand(const std::string& command, uint64_t timestamp, 
+                             double position = 0.0, double bpm = 120.0);
+
     // Configuration
     void setSessionName(const juce::String& sessionName);
     void setMulticastAddress(const juce::String& address);
@@ -38,10 +45,16 @@ public:
     void enablePNBTRPrediction(bool audio, bool video);
     void enableGPUAcceleration(bool enable);
     
+    // Transport controller integration  
+    void setTransportController(TransportController* controller) { transportController = controller; }
+    
 private:
     // JAM Framework v2 integration
     std::unique_ptr<JAMFrameworkIntegration> jamFramework;
     
+    // Transport controller for bidirectional sync
+    TransportController* transportController = nullptr;
+
     // UI Components
     juce::Label titleLabel;
     juce::Label statusLabel;
@@ -99,7 +112,8 @@ private:
     void onJAMStatusChanged(const std::string& status, bool connected);
     void onJAMPerformanceUpdate(double latency_us, double throughput_mbps, int active_peers);
     void onJAMMIDIReceived(uint8_t status, uint8_t data1, uint8_t data2, uint32_t timestamp);
-    
+    void onJAMTransportReceived(const std::string& command, uint64_t timestamp, double position, double bpm);
+
     // BonjourDiscovery::Listener implementation
     void deviceDiscovered(const BonjourDiscovery::DiscoveredDevice& device) override;
     void deviceLost(const std::string& deviceName) override;

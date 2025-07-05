@@ -13,6 +13,8 @@
 #include <functional>
 #include <vector>
 #include <string>
+#include <atomic>
+#include <mutex>
 
 // JAM Framework v2 and PNBTR integration
 #include "PNBTRManager.h"
@@ -24,6 +26,7 @@ namespace jam {
     struct BurstConfig;
     class ComputePipeline;
     class GPUManager;
+    class NetworkStateDetector;
 }
 
 /**
@@ -41,6 +44,7 @@ public:
     using VideoCallback = std::function<void(const uint8_t* frameData, int width, int height, uint32_t timestamp)>;
     using StatusCallback = std::function<void(const std::string& status, bool isConnected)>;
     using PerformanceCallback = std::function<void(double latency_us, double throughput_mbps, int active_peers)>;
+    using TransportCallback = std::function<void(const std::string& command, uint64_t timestamp, double position, double bpm)>;
     
     JAMFrameworkIntegration();
     ~JAMFrameworkIntegration();
@@ -174,6 +178,7 @@ public:
     void setVideoCallback(VideoCallback callback) { videoCallback = callback; }
     void setStatusCallback(StatusCallback callback) { statusCallback = callback; }
     void setPerformanceCallback(PerformanceCallback callback) { performanceCallback = callback; }
+    void setTransportCallback(TransportCallback callback) { transportCallback = callback; }
     
     // === Configuration ===
     
@@ -200,11 +205,49 @@ public:
     
     PerformanceMetrics getPerformanceMetrics() const { return currentMetrics; }
     
+    // === Transport Control ===
+    
+    /**
+     * Send transport command (play/stop/position/bpm) to all peers
+     * 
+     * @param command Transport command ("PLAY", "STOP", "POSITION", "BPM")
+     * @param timestamp Current timestamp in microseconds
+     * @param position Current playback position (optional)
+     * @param bpm Current BPM (optional)
+     */
+    void sendTransportCommand(const std::string& command, uint64_t timestamp, 
+                             double position = 0.0, double bpm = 120.0);
+    
+    /**
+     * Handle incoming transport command from network
+     */
+    void handleTransportCommand(const std::string& command, uint64_t timestamp, 
+                               double position, double bpm);
+    
+    // === Auto-Discovery and Auto-Connection ===
+    
+    /**
+     * Enable automatic peer discovery and connection
+     * When enabled, will automatically connect to discovered peers
+     */
+    void enableAutoConnection(bool enable) { auto_connection_enabled_ = enable; }
+    
+    /**
+     * Set minimum peers for session start (auto-starts when reached)
+     */
+    void setMinimumPeers(int min_peers) { minimum_peers_ = min_peers; }
+    
+    /**
+     * Get discovered but not yet connected peers
+     */
+    std::vector<std::string> getDiscoveredPeers() const;
+    
 private:
     // JAM Framework v2 components
     std::unique_ptr<jam::TOASTv2Protocol> toastProtocol;
     std::unique_ptr<jam::ComputePipeline> gpuPipeline;
     std::unique_ptr<jam::GPUManager> gpuManager;
+    std::unique_ptr<jam::NetworkStateDetector> networkStateDetector;
     
     // PNBTR Prediction Manager
     std::unique_ptr<PNBTRManager> pnbtrManager;
@@ -214,7 +257,9 @@ private:
     bool gpuInitialized = false;
     bool pnbtrAudioEnabled = true;
     bool pnbtrVideoEnabled = true;
+    std::atomic<bool> auto_connection_enabled_{true}; // Always auto-connect for seamless experience
     int activePeers = 0;
+    int minimum_peers_ = 1;  // Start session as soon as one peer is found
     int predictionBufferSize = 256;
     double predictionConfidence = 0.0;
     
@@ -232,7 +277,12 @@ private:
     VideoCallback videoCallback;
     StatusCallback statusCallback;
     PerformanceCallback performanceCallback;
+    TransportCallback transportCallback;
     
+    // Auto-discovery and connection
+    std::vector<std::string> discovered_peers_;
+    mutable std::mutex discovered_peers_mutex_;
+
     // Internal methods
     void handleIncomingFrame(const jam::TOASTFrame& frame);
     void updatePerformanceMetrics();

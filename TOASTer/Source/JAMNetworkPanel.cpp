@@ -1,4 +1,5 @@
 #include "JAMNetworkPanel.h"
+#include "TransportController.h"
 
 // Helper function for emoji-compatible font setup
 juce::Font JAMNetworkPanel::getEmojiCompatibleFont(float size) {
@@ -34,6 +35,10 @@ JAMNetworkPanel::JAMNetworkPanel()
     
     jamFramework->setMIDICallback([this](uint8_t status, uint8_t data1, uint8_t data2, uint32_t timestamp) {
         onJAMMIDIReceived(status, data1, data2, timestamp);
+    });
+    
+    jamFramework->setTransportCallback([this](const std::string& command, uint64_t timestamp, double position, double bpm) {
+        onJAMTransportReceived(command, timestamp, position, bpm);
     });
     
     // Title label
@@ -91,38 +96,46 @@ JAMNetworkPanel::JAMNetworkPanel()
     gpuInitButton.setColour(juce::TextButton::buttonColourId, juce::Colours::cyan.withAlpha(0.7f));
     addAndMakeVisible(gpuInitButton);
     
-    // Feature toggles
-    pnbtrAudioToggle.setToggleState(false, juce::dontSendNotification);
+    // Feature toggles - NOW AUTOMATIC (always enabled for optimal performance)
+    pnbtrAudioToggle.setToggleState(true, juce::dontSendNotification);
+    pnbtrAudioToggle.setEnabled(false); // Always on - not user configurable
+    pnbtrAudioToggle.setAlpha(0.6f); // Visual indicator that it's automatic
     pnbtrAudioToggle.onStateChange = [this] {
-        if (jamFramework && networkConnected) {
-            jamFramework->setPNBTRAudioPrediction(pnbtrAudioToggle.getToggleState());
+        // Always enabled for seamless audio continuity - no user control
+        if (jamFramework) {
+            jamFramework->setPNBTRAudioPrediction(true);
         }
     };
     addAndMakeVisible(pnbtrAudioToggle);
     
-    pnbtrVideoToggle.setToggleState(false, juce::dontSendNotification);
+    pnbtrVideoToggle.setToggleState(true, juce::dontSendNotification);
+    pnbtrVideoToggle.setEnabled(false); // Always on - not user configurable
+    pnbtrVideoToggle.setAlpha(0.6f); // Visual indicator that it's automatic
     pnbtrVideoToggle.onStateChange = [this] {
-        if (jamFramework && networkConnected) {
-            jamFramework->setPNBTRVideoPrediction(pnbtrVideoToggle.getToggleState());
+        // Always enabled for seamless video continuity - no user control
+        if (jamFramework) {
+            jamFramework->setPNBTRVideoPrediction(true);
         }
     };
     addAndMakeVisible(pnbtrVideoToggle);
     
-    burstTransmissionToggle.setToggleState(false, juce::dontSendNotification);
+    burstTransmissionToggle.setToggleState(true, juce::dontSendNotification);
+    burstTransmissionToggle.setEnabled(false); // Always on for redundancy
+    burstTransmissionToggle.setAlpha(0.6f); // Visual indicator that it's automatic
     burstTransmissionToggle.onStateChange = [this] {
-        if (jamFramework && networkConnected) {
-            if (burstTransmissionToggle.getToggleState()) {
-                jamFramework->setBurstConfig(3, 500, true);
-            } else {
-                jamFramework->setBurstConfig(1, 0, false);
-            }
+        // Always enabled for packet loss protection - no user control
+        if (jamFramework) {
+            jamFramework->setBurstConfig(3, 500, true); // Always use burst
         }
     };
     addAndMakeVisible(burstTransmissionToggle);
     
-    gpuAccelerationToggle.setToggleState(false, juce::dontSendNotification);
+    gpuAccelerationToggle.setToggleState(true, juce::dontSendNotification);
+    gpuAccelerationToggle.setEnabled(false); // Always on for performance
+    gpuAccelerationToggle.setAlpha(0.6f); // Visual indicator that it's automatic
     gpuAccelerationToggle.onStateChange = [this] {
-        if (gpuAccelerationToggle.getToggleState() && !gpuInitialized) {
+        // Always enabled for maximum performance - no user control
+        if (!gpuInitialized) {
             gpuInitButtonClicked();
         }
     };
@@ -364,16 +377,17 @@ void JAMNetworkPanel::connectButtonClicked() {
         statusLabel.setText("✅ Connected via JAM Framework v2 UDP multicast", juce::dontSendNotification);
         statusLabel.setColour(juce::Label::textColourId, juce::Colours::green);
         
-        // Update PNBTR settings
-        jamFramework->setPNBTRAudioPrediction(pnbtrAudioToggle.getToggleState());
-        jamFramework->setPNBTRVideoPrediction(pnbtrVideoToggle.getToggleState());
-        
-        // Update burst settings
-        if (burstTransmissionToggle.getToggleState()) {
-            jamFramework->setBurstConfig(3, 500, true);
-        } else {
-            jamFramework->setBurstConfig(1, 0, false);
+        // AUTO-INITIALIZE GPU for maximum performance
+        if (!gpuInitialized) {
+            gpuInitButtonClicked();
         }
+        
+        // AUTO-ENABLE all optimal settings (no user choice needed)
+        jamFramework->setPNBTRAudioPrediction(true);    // Always on
+        jamFramework->setPNBTRVideoPrediction(true);    // Always on
+        jamFramework->setBurstConfig(3, 500, true);     // Always use burst redundancy
+        
+        juce::Logger::writeToLog("🚀 AUTO-CONFIGURED: PNBTR, GPU acceleration, and burst transmission enabled");
         
     } else {
         statusLabel.setText("❌ Failed to start UDP multicast network", juce::dontSendNotification);
@@ -517,5 +531,23 @@ void JAMNetworkPanel::updatePerformanceDisplay() {
         latencyLabel.setColour(juce::Label::textColourId, juce::Colours::yellow);
     } else {
         latencyLabel.setColour(juce::Label::textColourId, juce::Colours::red);
+    }
+}
+
+void JAMNetworkPanel::sendTransportCommand(const std::string& command, uint64_t timestamp, 
+                                          double position, double bpm) {
+    if (jamFramework && networkConnected) {
+        jamFramework->sendTransportCommand(command, timestamp, position, bpm);
+    }
+}
+
+void JAMNetworkPanel::onJAMTransportReceived(const std::string& command, uint64_t timestamp, 
+                                             double position, double bpm) {
+    // Forward transport command to the TransportController for proper bidirectional sync
+    juce::Logger::writeToLog("🎛️ JAM Transport Received: " + juce::String(command) + 
+                           " pos=" + juce::String(position) + " bpm=" + juce::String(bpm));
+    
+    if (transportController) {
+        transportController->handleNetworkTransportCommand(command, timestamp, position, bpm);
     }
 }

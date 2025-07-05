@@ -25,57 +25,81 @@
 - ⏳ **Windows support via optimized Linux VM** distribution
 ## GPU-Native JDAT + JMID Framework with UDP Multicast Architecture
 
-_Building the complete JSON-based audio+MIDI streaming ecosystem with GPU-accelerated JSONL processing and UDP-native transport_
+_Building the complete JSON-based audio+MIDI streaming ecosystem with GPU-NATIVE JSONL processing where the GPU becomes the master timebase and conductor_
 
 ---
 
 ## Project Overview
 
-**JAMNet** is a comprehensive real-time audio and MIDI streaming platform built on **GPU-accelerated JSON protocols** with **UDP-native multicast streaming**. The system leverages graphics processing units as structured data co-processors, recognizing that JSONL is fundamentally structured memory that GPUs excel at processing.
+**JAMNet** is a comprehensive real-time audio and MIDI streaming platform built on **GPU-NATIVE JSON protocols** with **UDP-native multicast streaming**. The system leverages graphics processing units not as accelerators, but as the **primary timebase and conductor** for all multimedia operations, recognizing that modern GPUs provide more stable, deterministic timing than CPU threads.
+
+**Revolutionary Insight**: Traditional DAWs clock with CPU threads designed in the Pentium era. JAMNet clocks with GPU compute pipelines designed for microsecond precision. The GPU doesn't assist - it conducts.
 
 The system consists of multiple parallel streaming frameworks:
 
 **Open Source Frameworks:**
-- **JAM Framework**: Core UDP GPU JSONL framework (TOAST-optimized fork of Bassoon.js)
-- **TOAST Protocol**: Transport Oriented Audio Sync Tunnel
-- **TOASTer App**: TOAST protocol implementation and testing application
-- **JMID Framework**: MIDI events and control data via **compact JMID format** with GPU parsing
-- **JDAT Framework**: Open source **JSON as ADAT** with GPU/memory mapped processing over **TOAST (Transport Oriented Audio Sync Tunnel)**
-- **JVID Framework**: Open source video streaming with direct pixel JSONL transmission
-- **PNBTR Framework**: Open source predictive neural buffered transient recovery (dither replacement)
+- **JAM Framework**: Core UDP GPU-NATIVE JSONL framework (TOAST-optimized fork of Bassoon.js)
+- **TOAST Protocol**: Transport Oriented Audio Sync Tunnel with GPU-native timing
+- **TOASTer App**: TOAST protocol implementation and testing application  
+- **JMID Framework**: MIDI events and control data via **compact JMID format** with GPU-native parsing
+- **JDAT Framework**: Open source **JSON as ADAT** with GPU-native/memory mapped processing over **TOAST (Transport Oriented Audio Sync Tunnel)**
+- **JVID Framework**: Open source video streaming with GPU-native pixel JSONL transmission
+- **PNBTR Framework**: Open source predictive neural buffered transient recovery (GPU-native dither replacement)
 
 **Proprietary Applications:**
 - **JAMer**: Proprietary JAMNet Studio LLC application of the JAM Framework
 - **JELLIE (JAM Embedded Low-Latency Instrument Encoding)**: Proprietary JAMNet Studio LLC application of JDAT for **single mono signal** transmission. JELLIE divides mono audio into 4 simultaneous PCM JSONL streams (even/odd sample interleaving plus redundancy) modeled after ADAT protocol behavior, prioritizing redundancy over prediction for musical integrity in packet loss environments.
 - **JAMCam**: Proprietary JAMNet Studio LLC application of JVID with face detection, auto-framing, and lighting processing
 
-All systems use **GPU-accelerated compute shaders** for parsing, prediction, and processing, with **UDP-based multicast TOAST protocol** and **GPU-native PNBTR** for musical continuity.
+All systems use **GPU-NATIVE compute shaders** for parsing, prediction, and processing, with **UDP-based multicast TOAST protocol** and **GPU-native PNBTR** for musical continuity.
 
-### Core Technology: Stateless UDP GPU Clock Sync Fundamentals
+### 🎯 **GPU-Native Evolution Path**
+
+#### **Phase 1: GPU-Accelerated Foundation (Current)**
+- ✅ GPU compute shaders for PNBTR and burst processing
+- ✅ Memory-mapped GPU buffers and zero-copy architecture  
+- ✅ Metal/Vulkan compute pipelines established
+- ⚠️ CPU still controls master timing and transport coordination
+
+#### **Phase 2: GPU-Native Timing (Next Major Release)**
+- 🔄 GPU compute pipeline becomes master timebase
+- 🔄 Transport sync (play/stop/position/BPM) driven by GPU timeline
+- 🔄 Peer discovery and heartbeat coordinated by GPU clocks
+- 🔄 CPU relegated to DAW interface layer (VST3, M4L, JSFX, AU)
+
+#### **Phase 3: True GPU Conductor (Revolutionary Target)**
+- 🎯 GPU provides all timing - CPU only handles legacy compatibility
+- 🎯 Sub-microsecond precision impossible with CPU threads
+- 🎯 Game engine-level deterministic frame timing for audio
+- 🎯 Complete paradigm shift: GPU as musical conductor
+
+### Core Technology: GPU-Native UDP Clock Sync Fundamentals
 
 **JAMNet's revolutionary foundation is built on four core principles:**
 
-#### **1. Stateless Message Design**
-- **Self-Contained**: Every message carries complete context - no session state required
-- **Independent Processing**: Messages can be processed in any order without breaking streams
-- **Zero Dependencies**: No connection setup, teardown, or state maintenance overhead
-- **Sequence Recovery**: GPU shaders reconstruct perfect timeline from unordered packets
+#### **1. GPU-Native Message Design**
+- **GPU-Timestamped**: Every message carries GPU-generated microsecond timestamps
+- **GPU Processing**: Messages processed entirely on GPU compute pipeline
+- **GPU Sequencing**: GPU shaders handle ordering and timeline reconstruction
+- **Zero CPU Dependencies**: No CPU thread involvement in timing-critical operations
 
-#### **2. Fire-and-Forget UDP Multicast**
-- **No Handshakes**: Eliminates TCP 3-way handshake latency (~3ms saved per connection)
-- **No Acknowledgments**: Zero waiting for delivery confirmation or retransmission delays
-- **No Flow Control**: Sender transmits at optimal rate regardless of receiver constraints
-- **Infinite Scalability**: Single transmission reaches unlimited receivers simultaneously
+#### **2. GPU-Coordinated UDP Multicast**
+- **GPU-Timed Transmission**: Send timing controlled by GPU compute pipeline
+- **GPU Heartbeat Discovery**: Peer discovery synchronized to GPU master clock  
+- **GPU Timeline Sync**: All operations follow GPU conductor, not CPU threads
+- **Deterministic GPU Precision**: Sub-microsecond accuracy impossible with CPU
 
-#### **3. GPU-Accelerated Clock Synchronization**
-- **Parallel Timeline Processing**: Thousands of GPU threads reconstruct timing simultaneously
-- **Sub-Microsecond Precision**: Hardware timestamp generation and drift correction
-- **Predictive Synchronization**: Neural networks anticipate and compensate for network jitter
-- **Real-Time Clock Arbiter**: GPU compute shaders manage distributed timing consensus
+#### **3. GPU-Native Clock Architecture**
+- **GPU Master Timeline**: Single GPU compute pipeline controls all timing
+- **GPU Drift Correction**: GPU-native prediction and compensation algorithms
+- **GPU Synchronization**: All components synchronized to GPU heartbeat
+- **GPU Timeline Reconstruction**: Receiving GPU rebuilds perfect order from any packets
 
-#### **4. Optimized Performance Architecture**
-- **Memory-Mapped GPU Buffers**: Zero-copy network-to-GPU data paths
-- **Lock-Free Ring Buffers**: Lockless producer-consumer patterns for maximum throughput
+#### **4. GPU-Native Performance Architecture**
+- **GPU Memory-Mapped Buffers**: Zero-copy network-to-GPU data paths
+- **GPU Lock-Free Architecture**: GPU-native producer-consumer patterns  
+- **GPU SIMD Processing**: Vectorized JSONL processing in parallel compute units
+- **GPU Pipeline Optimization**: All operations on GPU timeline for mathematical precision
 - **SIMD JSONL Processing**: Vectorized parsing of multiple messages per GPU thread
 - **Compute Shader Pipeline**: Full audio/video/MIDI processing stack on GPU
 
