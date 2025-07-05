@@ -72,9 +72,6 @@ public:
     };
 
 private:
-    std::shared_ptr<gpu_native::GPUTimebase> gpu_timebase_;
-    std::shared_ptr<gpu_native::GPUSharedTimelineManager> timeline_manager_;
-    
     GPUVideoConfig config_;
     std::atomic<bool> is_initialized_{false};
     std::atomic<bool> is_running_{false};
@@ -107,13 +104,9 @@ private:
 public:
     /**
      * @brief Constructor
-     * @param gpu_timebase Shared GPU timebase reference
-     * @param timeline_manager Shared GPU timeline manager
      * @param config GPU video configuration
      */
-    GPUJVIDFramework(std::shared_ptr<gpu_native::GPUTimebase> gpu_timebase,
-                     std::shared_ptr<gpu_native::GPUSharedTimelineManager> timeline_manager,
-                     const GPUVideoConfig& config);
+    GPUJVIDFramework(const GPUVideoConfig& config);
 
     /**
      * @brief Destructor

@@ -32,15 +32,15 @@ juce_add_gui_app(TOASTer
 target_sources(TOASTer PRIVATE
     Source/Main.cpp
     Source/MainComponent.cpp
-    Source/TransportController.cpp
-    Source/JAMNetworkPanel.cpp          # Re-enabled JAM Framework v2 panel
-    Source/JAMFrameworkIntegration.cpp  # Re-enabled JAM Framework v2 integration
-    Source/PNBTRManager.cpp             # PNBTR GPU-accelerated prediction system
-    Source/NetworkConnectionPanel.cpp   # Legacy TCP panel (for fallback)
+    Source/GPUTransportController.cpp       # GPU-native transport controller
+    Source/GPUMIDIManager_impl.cpp          # GPU-native MIDI manager implementation
+    Source/JAMNetworkPanel.cpp              # Re-enabled JAM Framework v2 panel
+    Source/JAMFrameworkIntegration.cpp      # Re-enabled JAM Framework v2 integration
+    Source/PNBTRManager.cpp                 # PNBTR GPU-accelerated prediction system
+    Source/NetworkConnectionPanel.cpp       # Legacy TCP panel (for fallback)
     Source/ConnectionDiscovery.cpp
     Source/BonjourDiscovery.mm
     Source/MIDITestingPanel.cpp
-    Source/MIDIManager.cpp
     Source/PerformanceMonitorPanel.cpp
     Source/ClockSyncPanel.cpp
     Source/JMIDIntegrationPanel.cpp

@@ -63,7 +63,7 @@ private:
  */
 class GPUJSONLParser {
 public:
-    GPUJSONLParser(gpu_native::GPUTimebase* timebase, GPUMIDIEventQueue* event_queue);
+    GPUJSONLParser(GPUMIDIEventQueue* event_queue);
     ~GPUJSONLParser();
 
     // Parse JSONL chunk with GPU timing
@@ -109,7 +109,7 @@ class GPUMIDIDispatcher {
 public:
     using MIDIOutputCallback = std::function<void(const GPUMIDIEvent& event, uint32_t frame_offset)>;
     
-    GPUMIDIDispatcher(gpu_native::GPUTimebase* timebase);
+    GPUMIDIDispatcher();
     ~GPUMIDIDispatcher();
 
     // Register MIDI output callback
@@ -146,7 +146,7 @@ private:
  */
 class GPUMIDITransportBridge {
 public:
-    GPUMIDITransportBridge(gpu_native::GPUTimebase* timebase);
+    GPUMIDITransportBridge();
     ~GPUMIDITransportBridge();
 
     // Legacy transport compatibility
@@ -192,7 +192,6 @@ public:
     bool is_initialized() const;
     
     // Component access
-    gpu_native::GPUTimebase* get_timebase() const;
     GPUMIDIEventQueue* get_event_queue() const;
     GPUJSONLParser* get_parser() const;
     GPUMIDIDispatcher* get_dispatcher() const;

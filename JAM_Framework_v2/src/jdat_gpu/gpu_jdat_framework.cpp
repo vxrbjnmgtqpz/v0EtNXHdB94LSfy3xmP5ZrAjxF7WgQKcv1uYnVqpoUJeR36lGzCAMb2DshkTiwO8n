@@ -5,13 +5,8 @@
 
 namespace jam::jdat {
 
-GPUJDATFramework::GPUJDATFramework(
-    std::shared_ptr<gpu_native::GPUTimebase> gpu_timebase,
-    std::shared_ptr<gpu_native::GPUSharedTimelineManager> timeline_manager,
-    const GPUAudioConfig& config)
-    : gpu_timebase_(gpu_timebase)
-    , timeline_manager_(timeline_manager)
-    , config_(config)
+GPUJDATFramework::GPUJDATFramework(const GPUAudioConfig& config)
+    : config_(config)
     , gpu_audio_buffer_(nullptr)
     , gpu_buffer_size_bytes_(0) {
     
@@ -45,13 +40,13 @@ bool GPUJDATFramework::initialize() {
     }
 
     // Verify GPU timebase is available
-    if (!gpu_timebase_ || !gpu_timebase_->is_initialized()) {
+    if (!gpu_native::GPUTimebase::is_initialized()) {
         std::cerr << "GPU-JDAT: GPU timebase not initialized" << std::endl;
         return false;
     }
 
     // Verify timeline manager is available
-    if (!timeline_manager_ || !timeline_manager_->isInitialized()) {
+    if (!gpu_native::GPUSharedTimelineManager::isInitialized()) {
         std::cerr << "GPU-JDAT: GPU timeline manager not initialized" << std::endl;
         return false;
     }
@@ -70,7 +65,7 @@ bool GPUJDATFramework::initialize() {
         return true;
     };
 
-    if (!timeline_manager_->registerEventHandler(gpu_native::EventType::AUDIO_FRAME, audio_handler)) {
+    if (!gpu_native::GPUSharedTimelineManager::registerEventHandler(gpu_native::EventType::AUDIO_FRAME, audio_handler)) {
         std::cerr << "GPU-JDAT: Failed to register audio event handler" << std::endl;
         return false;
     }
@@ -156,7 +151,7 @@ bool GPUJDATFramework::scheduleAudioFrameAt(const GPUAudioEvent& event, uint64_t
     timeline_event.data_size = event.frame_size_samples * sizeof(float) * event.num_channels;
 
     // Schedule event on GPU timeline
-    if (!timeline_manager_->scheduleEvent(timeline_event)) {
+    if (!gpu_native::GPUSharedTimelineManager::scheduleEvent(timeline_event)) {
         stats_.gpu_overruns++;
         return false;
     }
@@ -167,12 +162,11 @@ bool GPUJDATFramework::scheduleAudioFrameAt(const GPUAudioEvent& event, uint64_t
     return true;
 }
 
-bool GPUJDATFramework::cancelScheduledFrame(uint64_t frame_id) {
-    if (!timeline_manager_) {
+bool GPUJDATFramework::cancelScheduledFrame(uint64_t frame_id) {    if (!gpu_native::GPUSharedTimelineManager::isInitialized()) {
         return false;
     }
-    
-    return timeline_manager_->cancelEvent(frame_id);
+
+    return gpu_native::GPUSharedTimelineManager::cancelEvent(frame_id);
 }
 
 bool GPUJDATFramework::allocateGPUAudioBuffer(size_t size_bytes) {
@@ -291,10 +285,7 @@ bool GPUJDATFramework::applyGPUAudioEffects(uint64_t frame_id, const std::vector
 }
 
 uint64_t GPUJDATFramework::getCurrentGPUTimestamp() const {
-    if (gpu_timebase_) {
-        return gpu_timebase_->getCurrentTimestamp();
-    }
-    return 0;
+    return gpu_native::GPUTimebase::get_current_time_ns();
 }
 
 uint64_t GPUJDATFramework::predictNextFrameTimestamp() const {
@@ -304,12 +295,12 @@ uint64_t GPUJDATFramework::predictNextFrameTimestamp() const {
 }
 
 bool GPUJDATFramework::synchronizeWithGPUTimeline() {
-    if (!gpu_timebase_ || !timeline_manager_) {
+    if (!gpu_native::GPUTimebase::is_initialized()) {
         return false;
     }
 
     // Synchronize local state with GPU timeline
-    uint64_t gpu_time = gpu_timebase_->getCurrentTimestamp();
+    uint64_t gpu_time = gpu_native::GPUTimebase::get_current_time_ns();
     stats_.last_gpu_timestamp_ns = gpu_time;
     
     return true;

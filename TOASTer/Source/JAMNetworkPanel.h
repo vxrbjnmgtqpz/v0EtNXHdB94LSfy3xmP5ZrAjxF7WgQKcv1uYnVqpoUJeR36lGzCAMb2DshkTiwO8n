@@ -5,7 +5,7 @@
 #include "BonjourDiscovery.h"
 
 // Forward declarations
-class TransportController;
+class GPUTransportController;
 
 /**
  * JAM Framework v2 Network Panel for TOASTer
@@ -46,14 +46,14 @@ public:
     void enableGPUAcceleration(bool enable);
     
     // Transport controller integration  
-    void setTransportController(TransportController* controller) { transportController = controller; }
+    void setTransportController(GPUTransportController* controller) { transportController = controller; }
     
 private:
     // JAM Framework v2 integration
     std::unique_ptr<JAMFrameworkIntegration> jamFramework;
     
     // Transport controller for bidirectional sync
-    TransportController* transportController = nullptr;
+    GPUTransportController* transportController = nullptr;
 
     // UI Components
     juce::Label titleLabel;

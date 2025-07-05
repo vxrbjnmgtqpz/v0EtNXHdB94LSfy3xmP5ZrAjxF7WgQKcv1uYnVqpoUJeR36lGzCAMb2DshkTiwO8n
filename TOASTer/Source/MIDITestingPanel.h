@@ -5,7 +5,7 @@
 #include "JMIDParser.h"
 
 // Forward declaration
-class MIDIManager;
+class GPUMIDIManager;
 
 //==============================================================================
 class MIDITestingPanel : public juce::Component,
@@ -19,8 +19,8 @@ public:
     void paint (juce::Graphics&) override;
     void resized() override;
     
-    // Set reference to MIDI manager
-    void setMIDIManager(MIDIManager* manager);
+    // Set reference to GPU MIDI manager
+    void setGPUMIDIManager(GPUMIDIManager* manager);
     
     // ChangeListener interface
     void changeListenerCallback(juce::ChangeBroadcaster* source) override;
@@ -61,8 +61,8 @@ private:
     // JMID Framework integration
     std::unique_ptr<JMID::BassoonParser> parser;
     
-    // MIDI I/O reference
-    MIDIManager* midiManager = nullptr;
+    // GPU MIDI I/O reference
+    GPUMIDIManager* midiManager = nullptr;
     
     // Helper function for emoji-compatible font setup
     static juce::Font getEmojiCompatibleFont(float size = 12.0f);

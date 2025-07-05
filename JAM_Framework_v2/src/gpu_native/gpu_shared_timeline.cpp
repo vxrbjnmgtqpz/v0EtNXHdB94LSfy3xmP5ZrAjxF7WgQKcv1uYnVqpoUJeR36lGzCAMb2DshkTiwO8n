@@ -136,12 +136,7 @@ uint64_t GPUSharedTimelineManager::get_update_counter() {
     return 0;
 }
 
-bool GPUSharedTimelineManager::wait_for_update(uint64_t current_counter, uint32_t timeout_ms) {
-    // Simple implementation - in real GPU implementation this would use GPU synchronization
-    (void)current_counter;
-    (void)timeout_ms;
-    return true;
-}
+
 
 GPUSharedTimelineManager::TimelineStats GPUSharedTimelineManager::get_performance_stats() {
     TimelineStats stats = {};

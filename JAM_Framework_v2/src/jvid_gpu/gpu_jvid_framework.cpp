@@ -6,13 +6,8 @@
 
 namespace jam::jvid {
 
-GPUJVIDFramework::GPUJVIDFramework(
-    std::shared_ptr<gpu_native::GPUTimebase> gpu_timebase,
-    std::shared_ptr<gpu_native::GPUSharedTimelineManager> timeline_manager,
-    const GPUVideoConfig& config)
-    : gpu_timebase_(gpu_timebase)
-    , timeline_manager_(timeline_manager)
-    , config_(config) {
+GPUJVIDFramework::GPUJVIDFramework(const GPUVideoConfig& config)
+    : config_(config) {
     
     // Set default config if needed
     if (config_.max_concurrent_frames == 0) {
@@ -49,13 +44,13 @@ bool GPUJVIDFramework::initialize() {
     }
 
     // Verify GPU timebase is available
-    if (!gpu_timebase_ || !gpu_timebase_->is_initialized()) {
+    if (!gpu_native::GPUTimebase::is_initialized()) {
         std::cerr << "GPU-JVID: GPU timebase not initialized" << std::endl;
         return false;
     }
 
     // Verify timeline manager is available
-    if (!timeline_manager_ || !timeline_manager_->isInitialized()) {
+    if (!gpu_native::GPUSharedTimelineManager::isInitialized()) {
         std::cerr << "GPU-JVID: GPU timeline manager not initialized" << std::endl;
         return false;
     }
@@ -83,7 +78,7 @@ bool GPUJVIDFramework::initialize() {
         return true;
     };
 
-    if (!timeline_manager_->registerEventHandler(gpu_native::EventType::VIDEO_FRAME, video_handler)) {
+    if (!gpu_native::GPUSharedTimelineManager::registerEventHandler(gpu_native::EventType::VIDEO_FRAME, video_handler)) {
         std::cerr << "GPU-JVID: Failed to register video event handler" << std::endl;
         return false;
     }
@@ -173,7 +168,7 @@ bool GPUJVIDFramework::scheduleVideoFrameAt(const GPUVideoEvent& event, uint64_t
     timeline_event.data_size = event.width * event.height * event.channels;
 
     // Schedule event on GPU timeline
-    if (!timeline_manager_->scheduleEvent(timeline_event)) {
+    if (!gpu_native::GPUSharedTimelineManager::scheduleEvent(timeline_event)) {
         stats_.gpu_texture_overruns++;
         return false;
     }
@@ -195,12 +190,11 @@ bool GPUJVIDFramework::scheduleVideoFrameAt(const GPUVideoEvent& event, uint64_t
     return true;
 }
 
-bool GPUJVIDFramework::cancelScheduledFrame(uint64_t frame_id) {
-    if (!timeline_manager_) {
+bool GPUJVIDFramework::cancelScheduledFrame(uint64_t frame_id) {    if (!gpu_native::GPUSharedTimelineManager::isInitialized()) {
         return false;
     }
-    
-    if (timeline_manager_->cancelEvent(frame_id)) {
+
+    if (gpu_native::GPUSharedTimelineManager::cancelEvent(frame_id)) {
         scheduled_frames_.fetch_sub(1);
         return true;
     }
@@ -382,10 +376,7 @@ bool GPUJVIDFramework::resizeFrameOnGPU(uint32_t source_texture_id, uint32_t tar
 }
 
 uint64_t GPUJVIDFramework::getCurrentGPUTimestamp() const {
-    if (gpu_timebase_) {
-        return gpu_timebase_->getCurrentTimestamp();
-    }
-    return 0;
+    return gpu_native::GPUTimebase::get_current_time_ns();
 }
 
 uint64_t GPUJVIDFramework::predictNextFrameTimestamp() const {
@@ -402,12 +393,12 @@ uint64_t GPUJVIDFramework::predictNextFrameTimestamp() const {
 }
 
 bool GPUJVIDFramework::synchronizeWithGPUTimeline() {
-    if (!gpu_timebase_ || !timeline_manager_) {
+    if (!gpu_native::GPUTimebase::is_initialized()) {
         return false;
     }
 
     // Synchronize local state with GPU timeline
-    uint64_t gpu_time = gpu_timebase_->getCurrentTimestamp();
+    uint64_t gpu_time = gpu_native::GPUTimebase::get_current_time_ns();
     stats_.last_gpu_timestamp_ns = gpu_time;
     
     return true;

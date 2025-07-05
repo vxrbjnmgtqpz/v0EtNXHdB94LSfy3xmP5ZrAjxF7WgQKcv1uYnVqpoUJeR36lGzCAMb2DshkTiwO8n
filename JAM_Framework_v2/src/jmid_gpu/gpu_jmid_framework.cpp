@@ -33,7 +33,6 @@ public:
     };
     
     std::unique_ptr<EventBuffer> buffer;
-    gpu_native::GPUTimebase* timebase = nullptr;
     
     Impl(size_t capacity) : buffer(std::make_unique<EventBuffer>(capacity)) {}
 };
@@ -73,7 +72,7 @@ bool GPUMIDIEventQueue::get_next_ready_event(GPUMIDIEvent& event) {
     
     // Check if event is ready based on GPU timebase
     const GPUMIDIEvent& next_event = buf.events[current_read];
-    uint32_t current_frame = pImpl->timebase ? pImpl->timebase->get_current_frame() : 0;
+    uint32_t current_frame = static_cast<uint32_t>(gpu_native::GPUTimebase::get_current_time_us());
     
     if (next_event.timestamp_frame > current_frame) {
         return false; // Event not ready yet
@@ -114,13 +113,12 @@ size_t GPUMIDIEventQueue::get_capacity() const {
 }
 
 uint32_t GPUMIDIEventQueue::get_current_gpu_frame() const {
-    return pImpl->timebase ? pImpl->timebase->get_current_frame() : 0;
+    return static_cast<uint32_t>(gpu_native::GPUTimebase::get_current_time_us());
 }
 
 // GPU JSONL Parser Implementation
 class GPUJSONLParser::Impl {
 public:
-    gpu_native::GPUTimebase* timebase;
     GPUMIDIEventQueue* event_queue;
     
     // Parsing state
@@ -134,8 +132,8 @@ public:
     std::atomic<uint64_t> total_parse_time_us{0};
     std::atomic<uint32_t> deduplicated_count{0};
     
-    Impl(gpu_native::GPUTimebase* tb, GPUMIDIEventQueue* eq) 
-        : timebase(tb), event_queue(eq) {}
+    Impl(GPUMIDIEventQueue* eq) 
+        : event_queue(eq) {}
         
     uint64_t compute_event_hash(const GPUMIDIEvent& event) {
         // Simple hash for burst deduplication
@@ -151,7 +149,7 @@ public:
         }
         
         uint64_t hash = compute_event_hash(event);
-        uint32_t current_frame = timebase->get_current_frame();
+        uint32_t current_frame = static_cast<uint32_t>(gpu_native::GPUTimebase::get_current_time_us());
         
         auto it = burst_hash_map.find(hash);
         if (it != burst_hash_map.end()) {
@@ -198,14 +196,14 @@ public:
         }
         
         // Set GPU timestamp
-        event.timestamp_frame = timebase->get_current_frame();
+        event.timestamp_frame = static_cast<uint32_t>(gpu_native::GPUTimebase::get_current_time_us());
         
         return event;
     }
 };
 
-GPUJSONLParser::GPUJSONLParser(gpu_native::GPUTimebase* timebase, GPUMIDIEventQueue* event_queue)
-    : pImpl(std::make_unique<Impl>(timebase, event_queue)) {
+GPUJSONLParser::GPUJSONLParser(GPUMIDIEventQueue* event_queue)
+    : pImpl(std::make_unique<Impl>(event_queue)) {
 }
 
 GPUJSONLParser::~GPUJSONLParser() = default;
@@ -311,7 +309,6 @@ bool GPUJSONLParser::is_gpu_parsing_available() const {
 // GPU MIDI Dispatcher Implementation
 class GPUMIDIDispatcher::Impl {
 public:
-    gpu_native::GPUTimebase* timebase;
     GPUMIDIEventQueue* event_queue = nullptr;
     MIDIOutputCallback output_callback;
     
@@ -324,11 +321,11 @@ public:
     std::atomic<uint32_t> timing_jitter_max_us{0};
     std::atomic<uint64_t> total_dispatch_latency_us{0};
     
-    Impl(gpu_native::GPUTimebase* tb) : timebase(tb) {}
+    Impl() {}
 };
 
-GPUMIDIDispatcher::GPUMIDIDispatcher(gpu_native::GPUTimebase* timebase)
-    : pImpl(std::make_unique<Impl>(timebase)) {
+GPUMIDIDispatcher::GPUMIDIDispatcher()
+    : pImpl(std::make_unique<Impl>()) {
 }
 
 GPUMIDIDispatcher::~GPUMIDIDispatcher() = default;
@@ -368,7 +365,7 @@ void GPUMIDIDispatcher::process_dispatch_frame() {
     
     auto start_time = std::chrono::high_resolution_clock::now();
     
-    uint32_t current_frame = pImpl->timebase->get_current_frame();
+    uint32_t current_frame = static_cast<uint32_t>(gpu_native::GPUTimebase::get_current_time_us());
     uint32_t dispatch_frame = current_frame + pImpl->lookahead_frames.load();
     dispatch_frame += pImpl->latency_compensation_frames.load();
     
@@ -415,7 +412,6 @@ double GPUMIDIDispatcher::get_average_dispatch_latency() const {
 // Main GPU JMID Framework Implementation
 class GPUJMIDFramework::Impl {
 public:
-    std::unique_ptr<gpu_native::GPUTimebase> timebase;
     std::unique_ptr<GPUMIDIEventQueue> event_queue;
     std::unique_ptr<GPUJSONLParser> parser;
     std::unique_ptr<GPUMIDIDispatcher> dispatcher;
@@ -437,26 +433,25 @@ bool GPUJMIDFramework::initialize(uint32_t sample_rate, size_t event_queue_capac
         return true;
     }
     
-    // Initialize GPU timebase
-    pImpl->timebase = std::make_unique<gpu_native::GPUTimebase>();
-    if (!pImpl->timebase->initialize()) {
+    // Initialize GPU timebase statically
+    if (!gpu_native::GPUTimebase::initialize()) {
         return false;
     }
     
-    pImpl->timebase->set_sample_rate(sample_rate);
+    gpu_native::GPUTimebase::set_audio_sample_rate(sample_rate);
     
     // Create event queue
     pImpl->event_queue = std::make_unique<GPUMIDIEventQueue>(event_queue_capacity);
     
     // Create parser
-    pImpl->parser = std::make_unique<GPUJSONLParser>(pImpl->timebase.get(), pImpl->event_queue.get());
+    pImpl->parser = std::make_unique<GPUJSONLParser>(pImpl->event_queue.get());
     
     // Create dispatcher
-    pImpl->dispatcher = std::make_unique<GPUMIDIDispatcher>(pImpl->timebase.get());
+    pImpl->dispatcher = std::make_unique<GPUMIDIDispatcher>();
     pImpl->dispatcher->connect_event_queue(pImpl->event_queue.get());
     
     // Create transport bridge
-    pImpl->transport_bridge = std::make_unique<GPUMIDITransportBridge>(pImpl->timebase.get());
+    pImpl->transport_bridge = std::make_unique<GPUMIDITransportBridge>();
     
     pImpl->initialized = true;
     return true;
@@ -471,25 +466,19 @@ void GPUJMIDFramework::shutdown() {
         pImpl->dispatcher->stop_dispatching();
     }
     
-    if (pImpl->timebase) {
-        pImpl->timebase->shutdown();
-    }
-    
     pImpl->transport_bridge.reset();
     pImpl->dispatcher.reset();
     pImpl->parser.reset();
     pImpl->event_queue.reset();
-    pImpl->timebase.reset();
+    
+    // Shutdown static GPU timebase
+    gpu_native::GPUTimebase::shutdown();
     
     pImpl->initialized = false;
 }
 
 bool GPUJMIDFramework::is_initialized() const {
     return pImpl->initialized;
-}
-
-gpu_native::GPUTimebase* GPUJMIDFramework::get_timebase() const {
-    return pImpl->timebase.get();
 }
 
 GPUMIDIEventQueue* GPUJMIDFramework::get_event_queue() const {
@@ -521,9 +510,7 @@ void GPUJMIDFramework::set_midi_output_callback(GPUMIDIDispatcher::MIDIOutputCal
 }
 
 void GPUJMIDFramework::start_playback() {
-    if (pImpl->timebase) {
-        pImpl->timebase->start_transport();
-    }
+    gpu_native::GPUTimebase::set_transport_state(gpu_native::GPUTransportState::PLAYING);
     if (pImpl->dispatcher) {
         pImpl->dispatcher->start_dispatching();
     }
@@ -533,27 +520,21 @@ void GPUJMIDFramework::stop_playback() {
     if (pImpl->dispatcher) {
         pImpl->dispatcher->stop_dispatching();
     }
-    if (pImpl->timebase) {
-        pImpl->timebase->stop_transport();
-    }
+    gpu_native::GPUTimebase::set_transport_state(gpu_native::GPUTransportState::STOPPED);
 }
 
 void GPUJMIDFramework::pause_playback() {
-    if (pImpl->timebase) {
-        pImpl->timebase->pause_transport();
-    }
+    gpu_native::GPUTimebase::set_transport_state(gpu_native::GPUTransportState::PAUSED);
 }
 
 void GPUJMIDFramework::seek_to_frame(uint32_t frame) {
-    if (pImpl->timebase) {
-        pImpl->timebase->seek_to_frame(frame);
-    }
+    // Convert frame to nanoseconds (assuming 48kHz for now)
+    gpu_native::gpu_timeline_t position_ns = static_cast<gpu_native::gpu_timeline_t>(frame) * 1000000000ULL / 48000;
+    gpu_native::GPUTimebase::set_transport_position_ns(position_ns);
 }
 
 void GPUJMIDFramework::set_bpm(uint32_t bpm) {
-    if (pImpl->timebase) {
-        pImpl->timebase->set_bpm(bpm);
-    }
+    gpu_native::GPUTimebase::set_bpm(bpm);
 }
 
 GPUJMIDFramework::PerformanceStats GPUJMIDFramework::get_performance_stats() const {
@@ -588,12 +569,11 @@ void GPUJMIDFramework::reset_performance_stats() {
 // Placeholder implementation for GPUMIDITransportBridge
 class GPUMIDITransportBridge::Impl {
 public:
-    gpu_native::GPUTimebase* timebase;
-    Impl(gpu_native::GPUTimebase* tb) : timebase(tb) {}
+    Impl() {}
 };
 
-GPUMIDITransportBridge::GPUMIDITransportBridge(gpu_native::GPUTimebase* timebase)
-    : pImpl(std::make_unique<Impl>(timebase)) {}
+GPUMIDITransportBridge::GPUMIDITransportBridge()
+    : pImpl(std::make_unique<Impl>()) {}
 
 GPUMIDITransportBridge::~GPUMIDITransportBridge() = default;
 

@@ -1,27 +1,70 @@
 #include "MainComponent.h"
-#include "TransportController.h"
-#include "JAMNetworkPanel.h"  // Using JAM Framework v2 panel
+#include "GPUTransportController.h"  // GPU-native transport controller
+#include "JAMNetworkPanel.h"         // Using JAM Framework v2 panel
 #include "MIDITestingPanel.h"
 #include "PerformanceMonitorPanel.h"
 #include "ClockSyncPanel.h"
 #include "JMIDIntegrationPanel.h"
-#include "MIDIManager.h"
+#include "GPUMIDIManager.h"          // GPU-native MIDI manager
 
 //==============================================================================
 MainComponent::MainComponent()
 {
-    // Initialize MIDI I/O system first
-    midiManager = std::make_unique<MIDIManager>();
+    // Initialize GPU-native infrastructure first
+    if (!jam::gpu_native::GPUTimebase::initialize()) {
+        juce::AlertWindow::showMessageBoxAsync(
+            juce::MessageBoxIconType::WarningIcon,
+            "GPU Initialization Warning",
+            "GPU timebase initialization failed. Falling back to CPU timing.\n"
+            "For best performance, ensure Metal/Vulkan drivers are installed."
+        );
+    }
     
-    // Create and add child components
-    transportController = std::make_unique<TransportController>();
+    // Initialize shared timeline manager (static)
+    if (!jam::gpu_native::GPUSharedTimelineManager::initialize()) {
+        juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon,
+            "GPU Error", "Failed to initialize GPU shared timeline!");
+        return;
+    }
+    
+    // Initialize GPU-native multimedia frameworks
+    jmidFramework = std::make_unique<jam::jmid_gpu::GPUJMIDFramework>();
+    if (!jmidFramework->initialize()) {
+        juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon,
+            "GPU Error", "Failed to initialize JMID framework!");
+        return;
+    }
+    
+    // Note: JDAT and JVID frameworks need configuration objects, create with defaults
+    jam::jdat::GPUJDATFramework::GPUAudioConfig audioConfig;
+    jdatFramework = std::make_unique<jam::jdat::GPUJDATFramework>(audioConfig);
+    if (!jdatFramework->initialize()) {
+        juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon,
+            "GPU Error", "Failed to initialize JDAT framework!");
+        return;
+    }
+    
+    jam::jvid::GPUJVIDFramework::GPUVideoConfig videoConfig;
+    jvidFramework = std::make_unique<jam::jvid::GPUJVIDFramework>(videoConfig);
+    if (!jvidFramework->initialize()) {
+        juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon,
+            "GPU Error", "Failed to initialize JVID framework!");
+        return;
+    }
+    
+    // Initialize GPU-native MIDI I/O system first
+    midiManager = std::make_unique<GPUMIDIManager>();
+    midiManager->initialize(jmidFramework.get());
+    
+    // Create and add child components with GPU-native backends
+    transportController = std::make_unique<GPUTransportController>();
     addAndMakeVisible(transportController.get());
     
     jamNetworkPanel = std::make_unique<JAMNetworkPanel>();  // Using JAM Framework v2 panel
     addAndMakeVisible(jamNetworkPanel.get());
     
     midiPanel = std::make_unique<MIDITestingPanel>();
-    midiPanel->setMIDIManager(midiManager.get()); // Connect MIDI manager
+    midiPanel->setGPUMIDIManager(midiManager.get()); // Connect GPU MIDI manager
     addAndMakeVisible(midiPanel.get());
     
     performancePanel = std::make_unique<PerformanceMonitorPanel>();
@@ -33,12 +76,19 @@ MainComponent::MainComponent()
     jmidPanel = std::make_unique<JMIDIntegrationPanel>();
     addAndMakeVisible(jmidPanel.get());
     
-    // Connect TransportController to Network Panel for automatic sync (bidirectional)
+    // Connect GPU TransportController to Network Panel for automatic sync (bidirectional)
     transportController->setNetworkPanel(jamNetworkPanel.get());
-    jamNetworkPanel->setTransportController(transportController.get());
+    // Note: setGPUTransportController method needs to be implemented in JAMNetworkPanel
+    // jamNetworkPanel->setGPUTransportController(transportController.get());
     
-    // Start timer to coordinate state updates between panels
-    startTimer(250); // Update 4 times per second
+    // Start timer synchronized with GPU timebase
+    if (jam::gpu_native::GPUTimebase::is_initialized()) {
+        // Update at ~60 FPS synchronized with GPU timeline
+        startTimer(16); // ~60 FPS for UI updates
+    } else {
+        // Fallback to slower updates if GPU is not available
+        startTimer(250); // Update 4 times per second
+    }
     
     // Set the main window size (increased for new panel)
     setSize(1200, 800);
@@ -80,51 +130,89 @@ void MainComponent::resized()
 
 void MainComponent::timerCallback()
 {
-    // Update shared state timestamp
-    appState.lastUpdate = std::chrono::high_resolution_clock::now();
+    // Update GPU timeline timestamp (not CPU clock)
+    if (jam::gpu_native::GPUTimebase::is_initialized()) {
+        gpuAppState.lastGPUTimestamp = jam::gpu_native::GPUTimebase::get_current_time_ns();
+        
+        // Check for GPU performance metrics
+        updateGPUPerformance();
+    }
     
-    // Push current state to all panels
-    performancePanel.get()->setConnectionState(appState.isNetworkConnected, appState.activeConnections);
-    performancePanel.get()->setNetworkLatency(appState.networkLatency);
-    performancePanel.get()->setClockAccuracy(appState.clockAccuracy);
-    performancePanel->setMessageProcessingRate(appState.messageProcessingRate);
-    performancePanel->setMIDIThroughput(appState.midiThroughput);
+    // Push current GPU-synchronized state to all panels
+    performancePanel.get()->setConnectionState(gpuAppState.isNetworkConnected, gpuAppState.activeConnections);
+    performancePanel.get()->setNetworkLatency(gpuAppState.networkLatency);
+    performancePanel.get()->setClockAccuracy(gpuAppState.clockAccuracy);
+    performancePanel->setMessageProcessingRate(gpuAppState.messageProcessingRate);
+    performancePanel->setMIDIThroughput(gpuAppState.midiThroughput);
+}
+
+void MainComponent::updateGPUPerformance()
+{
+    if (!jam::gpu_native::GPUTimebase::is_initialized()) return;
+    
+    // Update GPU performance metrics
+    auto currentFrame = jam::gpu_native::GPUTimebase::get_current_time_ns();
+    auto deltaFrames = currentFrame - lastGPUFrame;
+    lastGPUFrame = currentFrame;
+    
+    // Calculate processing rates based on GPU timeline
+    if (jmidFramework) {
+        // Note: Implementation pending - need to add metrics to GPUJMIDFramework
+        // gpuAppState.midiThroughput = jmidFramework->getProcessedEventsPerSecond();
+    }
+    
+    // Get processing rate from shared timeline manager (static)
+    if (jam::gpu_native::GPUSharedTimelineManager::isInitialized()) {
+        // Note: Implementation pending - need to add metrics to GPUSharedTimelineManager
+        // gpuAppState.messageProcessingRate = jam::gpu_native::GPUSharedTimelineManager::getEventsProcessedPerSecond();
+    }
 }
 
 void MainComponent::updateNetworkState(bool connected, int connections, const std::string& ip, int port)
 {
-    appState.isNetworkConnected = connected;
-    appState.activeConnections = connections;
-    appState.connectedIP = ip;
-    appState.connectedPort = port;
-    appState.lastUpdate = std::chrono::high_resolution_clock::now();
+    gpuAppState.isNetworkConnected = connected;
+    gpuAppState.activeConnections = connections;
+    gpuAppState.connectedIP = ip;
+    gpuAppState.connectedPort = port;
+    
+    // Update GPU timestamp
+    if (jam::gpu_native::GPUTimebase::is_initialized()) {
+        gpuAppState.lastGPUTimestamp = jam::gpu_native::GPUTimebase::get_current_time_ns();
+    }
     
     // Update JAM Network Panel performance metrics
     if (jamNetworkPanel) {
-        appState.networkLatency = jamNetworkPanel->getCurrentLatency();
+        // Note: getCurrentLatency method needs to be implemented in JAMNetworkPanel
+        // gpuAppState.networkLatency = jamNetworkPanel->getCurrentLatency();
     }
 }
 
 void MainComponent::updateNetworkLatency(double latencyMs)
 {
-    appState.networkLatency = latencyMs;
-    appState.lastUpdate = std::chrono::high_resolution_clock::now();
+    gpuAppState.networkLatency = latencyMs;
+    if (jam::gpu_native::GPUTimebase::is_initialized()) {
+        gpuAppState.lastGPUTimestamp = jam::gpu_native::GPUTimebase::get_current_time_ns();
+    }
 }
 
 void MainComponent::updateClockSync(bool enabled, double accuracy, double offset, uint64_t rtt)
 {
-    appState.isClockSyncEnabled = enabled;
-    appState.clockAccuracy = accuracy;
-    appState.clockOffset = offset;
-    appState.roundTripTime = rtt;
-    appState.lastUpdate = std::chrono::high_resolution_clock::now();
+    gpuAppState.isClockSyncEnabled = enabled;
+    gpuAppState.clockAccuracy = accuracy;
+    gpuAppState.clockOffset = offset;
+    gpuAppState.roundTripTime = rtt;
+    if (jam::gpu_native::GPUTimebase::is_initialized()) {
+        gpuAppState.lastGPUTimestamp = jam::gpu_native::GPUTimebase::get_current_time_ns();
+    }
 }
 
 void MainComponent::updatePerformanceMetrics(int msgRate, int midiRate)
 {
-    appState.messageProcessingRate = msgRate;
-    appState.midiThroughput = midiRate;
-    appState.lastUpdate = std::chrono::high_resolution_clock::now();
+    gpuAppState.messageProcessingRate = msgRate;
+    gpuAppState.midiThroughput = midiRate;
+    if (jam::gpu_native::GPUTimebase::is_initialized()) {
+        gpuAppState.lastGPUTimestamp = jam::gpu_native::GPUTimebase::get_current_time_ns();
+    }
 }
 
 void MainComponent::sendMIDIEventViaJAM(uint8_t status, uint8_t data1, uint8_t data2)
@@ -133,8 +221,10 @@ void MainComponent::sendMIDIEventViaJAM(uint8_t status, uint8_t data1, uint8_t d
         jamNetworkPanel->sendMIDIEvent(status, data1, data2);
         
         // Update performance metrics
-        appState.midiThroughput++;
-        appState.lastUpdate = std::chrono::high_resolution_clock::now();
+        gpuAppState.midiThroughput++;
+        if (jam::gpu_native::GPUTimebase::is_initialized()) {
+            gpuAppState.lastGPUTimestamp = jam::gpu_native::GPUTimebase::get_current_time_ns();
+        }
     }
 }
 

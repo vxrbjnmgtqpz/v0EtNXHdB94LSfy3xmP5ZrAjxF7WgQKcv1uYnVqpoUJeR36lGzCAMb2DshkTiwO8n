@@ -1,5 +1,5 @@
 #include "MIDITestingPanel.h"
-#include "MIDIManager.h"
+#include "GPUMIDIManager.h"
 #include "JMIDParser.h"
 #include <nlohmann/json.hpp>
 
@@ -106,30 +106,35 @@ MIDITestingPanel::MIDITestingPanel()
 
 MIDITestingPanel::~MIDITestingPanel()
 {
-    if (midiManager != nullptr)
-        midiManager->removeChangeListener(this);
+    // GPU MIDI manager handles its own cleanup
 }
 
 //==============================================================================
-void MIDITestingPanel::setMIDIManager(MIDIManager* manager)
+void MIDITestingPanel::setGPUMIDIManager(GPUMIDIManager* manager)
 {
-    if (midiManager != nullptr)
-        midiManager->removeChangeListener(this);
-    
     midiManager = manager;
     
-    if (midiManager != nullptr)
-    {
-        midiManager->addChangeListener(this);
+    if (midiManager != nullptr) {
+        // Set up callbacks for MIDI events
+        midiManager->onMIDIInputReceived = [this](const juce::MidiMessage& message) {
+            logMessage("🎹 MIDI In: " + message.getDescription());
+        };
         
-        // Set up message callback to receive incoming MIDI
-        midiManager->setMessageCallback(
-            [this](std::shared_ptr<JMID::MIDIMessage> message) {
-                onMIDIMessageReceived(message);
-            });
+        midiManager->onNetworkMIDIReceived = [this](const jam::jmid_gpu::GPUMIDIEvent& event) {
+            logMessage("🌐 Network MIDI: Ch" + juce::String(event.channel + 1) + 
+                      " St:" + juce::String::toHexString(event.status) +
+                      " D1:" + juce::String(event.data1) +
+                      " D2:" + juce::String(event.data2));
+        };
         
-        // Only refresh once on initial setup
+        midiManager->onStatusUpdate = [this](const juce::String& status) {
+            logMessage("🖥️ GPU MIDI: " + status);
+        };
+        
+        // Refresh device lists
         refreshDeviceLists();
+        
+        logMessage("✅ GPU MIDI Manager connected");
     }
 }
 
@@ -202,25 +207,21 @@ void MIDITestingPanel::refreshDeviceLists()
     if (midiManager == nullptr)
         return;
     
-    // Only call refreshDeviceList when we actually need to update the UI
-    // This should be driven by real device change events, not polling
-    midiManager->refreshDeviceList();
-    
     // Update input device selector
     inputDeviceSelector.clear();
     inputDeviceSelector.addItem("No Input Device", 1);
-    auto inputNames = midiManager->getInputDeviceNames();
+    auto inputNames = midiManager->getMIDIInputDevices();
     for (int i = 0; i < inputNames.size(); ++i)
         inputDeviceSelector.addItem(inputNames[i], i + 2);
     
     // Update output device selector
     outputDeviceSelector.clear();
     outputDeviceSelector.addItem("No Output Device", 1);
-    auto outputNames = midiManager->getOutputDeviceNames();
+    auto outputNames = midiManager->getMIDIOutputDevices();
     for (int i = 0; i < outputNames.size(); ++i)
         outputDeviceSelector.addItem(outputNames[i], i + 2);
     
-    logMessage("🔄 Device lists refreshed (event-driven)");
+    logMessage("🔄 GPU MIDI device lists refreshed");
 }
 
 void MIDITestingPanel::inputDeviceChanged()
@@ -231,19 +232,22 @@ void MIDITestingPanel::inputDeviceChanged()
     int selectedId = inputDeviceSelector.getSelectedId();
     if (selectedId == 1)
     {
-        midiManager->closeInputDevice();
-        logMessage("📥 Input device closed");
+        midiManager->closeMIDIInput();
+        logMessage("📥 GPU MIDI input device closed");
     }
     else
     {
         int deviceIndex = selectedId - 2;
-        if (midiManager->openInputDevice(deviceIndex))
+        if (midiManager->openMIDIInput(deviceIndex))
         {
-            logMessage("📥 Opened input: " + midiManager->getCurrentInputDeviceName());
+            auto inputNames = midiManager->getMIDIInputDevices();
+            if (deviceIndex < inputNames.size()) {
+                logMessage("📥 GPU MIDI input opened: " + inputNames[deviceIndex]);
+            }
         }
         else
         {
-            logMessage("❌ Failed to open input device");
+            logMessage("❌ Failed to open GPU MIDI input device");
         }
     }
 }
@@ -256,19 +260,22 @@ void MIDITestingPanel::outputDeviceChanged()
     int selectedId = outputDeviceSelector.getSelectedId();
     if (selectedId == 1)
     {
-        midiManager->closeOutputDevice();
-        logMessage("📤 Output device closed");
+        midiManager->closeMIDIOutput();
+        logMessage("📤 GPU MIDI output device closed");
     }
     else
     {
         int deviceIndex = selectedId - 2;
-        if (midiManager->openOutputDevice(deviceIndex))
+        if (midiManager->openMIDIOutput(deviceIndex))
         {
-            logMessage("📤 Opened output: " + midiManager->getCurrentOutputDeviceName());
+            auto outputNames = midiManager->getMIDIOutputDevices();
+            if (deviceIndex < outputNames.size()) {
+                logMessage("📤 GPU MIDI output opened: " + outputNames[deviceIndex]);
+            }
         }
         else
         {
-            logMessage("❌ Failed to open output device");
+            logMessage("❌ Failed to open GPU MIDI output device");
         }
     }
 }
@@ -278,45 +285,27 @@ void MIDITestingPanel::sendTestNoteClicked()
 {
     if (midiManager == nullptr)
     {
-        logMessage("❌ MIDI Manager not available");
+        logMessage("❌ GPU MIDI Manager not available");
         return;
     }
     
     auto note = static_cast<int>(noteSlider.getValue());
     auto velocity = static_cast<int>(velocitySlider.getValue());
-    auto channel = midiChannelSelector.getSelectedId();
+    auto channel = midiChannelSelector.getSelectedId() - 1; // Convert to 0-based
     
     try {
-        // Create JMID NoteOn message
-        auto timestamp = std::chrono::high_resolution_clock::now();
-        auto noteOnMessage = std::make_shared<JMID::NoteOnMessage>(
-            static_cast<uint8_t>(channel),
-            static_cast<uint8_t>(note),
-            static_cast<uint32_t>(velocity),
-            timestamp
-        );
-        
-        // Send via MIDI manager
-        midiManager->sendJMIDMessage(noteOnMessage);
+        // Send GPU-native MIDI Note On
+        midiManager->sendMIDINoteOn(channel, note, velocity);
         
         // Log the message
-        std::string json = noteOnMessage->toJSON();
-        logMessage("🎵 Sent Note On: Ch=" + juce::String(channel) + 
+        logMessage("🎵 GPU MIDI Note On: Ch=" + juce::String(channel + 1) + 
                   ", Note=" + juce::String(note) + 
                   ", Vel=" + juce::String(velocity));
-        logMessage("   JSON: " + juce::String(json.substr(0, 100)) + "...");
         
         // Schedule note off after 500ms
-        juce::Timer::callAfterDelay(500, [this, channel, note, timestamp]() {
-            auto noteOffMessage = std::make_shared<JMID::NoteOffMessage>(
-                static_cast<uint8_t>(channel),
-                static_cast<uint8_t>(note),
-                0, // Release velocity
-                timestamp + std::chrono::milliseconds(500)
-            );
-            
-            midiManager->sendJMIDMessage(noteOffMessage);
-            logMessage("🎵 Sent Note Off: Ch=" + juce::String(channel) + ", Note=" + juce::String(note));
+        juce::Timer::callAfterDelay(500, [this, channel, note]() {
+            midiManager->sendMIDINoteOff(channel, note, 0);
+            logMessage("🎵 GPU MIDI Note Off: Ch=" + juce::String(channel + 1) + ", Note=" + juce::String(note));
         });
         
     } catch (const std::exception& e) {

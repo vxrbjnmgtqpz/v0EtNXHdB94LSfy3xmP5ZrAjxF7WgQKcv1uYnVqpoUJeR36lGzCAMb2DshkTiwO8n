@@ -1,5 +1,5 @@
 #include "JAMNetworkPanel.h"
-#include "TransportController.h"
+#include "GPUTransportController.h"
 
 // Helper function for emoji-compatible font setup
 juce::Font JAMNetworkPanel::getEmojiCompatibleFont(float size) {
@@ -548,6 +548,6 @@ void JAMNetworkPanel::onJAMTransportReceived(const std::string& command, uint64_
                            " pos=" + juce::String(position) + " bpm=" + juce::String(bpm));
     
     if (transportController) {
-        transportController->handleNetworkTransportCommand(command, timestamp, position, bpm);
+        transportController->handleRemoteTransportCommand(command, timestamp);
     }
 }
