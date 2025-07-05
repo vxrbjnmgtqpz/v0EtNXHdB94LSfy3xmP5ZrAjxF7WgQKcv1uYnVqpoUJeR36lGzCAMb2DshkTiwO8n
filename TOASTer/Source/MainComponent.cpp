@@ -78,8 +78,7 @@ MainComponent::MainComponent()
     
     // Connect GPU TransportController to Network Panel for automatic sync (bidirectional)
     transportController->setNetworkPanel(jamNetworkPanel.get());
-    // Note: setGPUTransportController method needs to be implemented in JAMNetworkPanel
-    // jamNetworkPanel->setGPUTransportController(transportController.get());
+    jamNetworkPanel->setTransportController(transportController.get());
     
     // Start timer synchronized with GPU timebase
     if (jam::gpu_native::GPUTimebase::is_initialized()) {

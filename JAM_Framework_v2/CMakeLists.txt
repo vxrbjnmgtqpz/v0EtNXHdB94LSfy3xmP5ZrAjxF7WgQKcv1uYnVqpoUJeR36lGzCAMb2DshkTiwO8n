@@ -89,11 +89,17 @@ set(JAM_SOURCES
     src/gpu/memory_mapper.cpp
 )
 
-# Platform-specific GPU timebase implementation
+# Platform-specific GPU timebase and transport implementation
 if(JAM_GPU_BACKEND STREQUAL "metal")
-    list(APPEND JAM_SOURCES src/gpu_native/gpu_timebase.mm)
+    list(APPEND JAM_SOURCES 
+        src/gpu_native/gpu_timebase.mm
+        src/gpu_transport/gpu_transport_manager.mm
+    )
 elseif(JAM_GPU_BACKEND STREQUAL "vulkan")
-    list(APPEND JAM_SOURCES src/gpu_native/gpu_timebase.cpp)
+    list(APPEND JAM_SOURCES 
+        src/gpu_native/gpu_timebase.cpp
+        src/gpu_transport/gpu_transport_manager.cpp
+    )
 endif()
 
 # GPU and UDP transport disabled for initial build

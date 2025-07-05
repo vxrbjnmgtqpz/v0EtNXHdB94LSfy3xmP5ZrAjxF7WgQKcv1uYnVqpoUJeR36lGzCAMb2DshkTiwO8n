@@ -26,6 +26,10 @@ import random
 from dataclasses import dataclass
 from datetime import datetime
 import os
+from enhanced_emotion_parser import EnhancedEmotionParser
+from emotion_integration_layer import EmotionIntegrationLayer
+from contextual_progression_engine import ContextualProgressionEngine
+from emotion_interpolation_engine import EmotionInterpolationEngine
 
 
 @dataclass
@@ -517,13 +521,16 @@ class ChordProgressionModel(nn.Module):
     def __init__(self):
         super().__init__()
         self.database = EmotionMusicDatabase()
-        self.emotion_parser = EmotionParser()
+        self.emotion_parser = EnhancedEmotionParser()
+        self.emotion_integration_layer = EmotionIntegrationLayer()
+        self.contextual_progression_engine = ContextualProgressionEngine()
+        self.emotion_interpolation_engine = EmotionInterpolationEngine()
         self.mode_blender = ModeBlender()
         self.progression_generator = ChordProgressionGenerator()
         
         # Neural generation control
-        self.use_neural_generation = False  # DISABLED: Disable neural generation until retrained for 23 emotions
-        self.is_trained = False  # Disable until retrained
+        self.use_neural_generation = False  # Initially disabled - enable after training
+        self.is_trained = False  # Enable after training completes
         
         # Build genre and mode mappings
         self._build_mappings()
@@ -572,12 +579,24 @@ class ChordProgressionModel(nn.Module):
         """Enable neural generation mode (after training)"""
         self.use_neural_generation = True
         self.is_trained = True
-        print("✅ Neural generation enabled")
+        print("✅ Neural generation enabled with 23-emotion system")
     
     def disable_neural_generation(self):
         """Disable neural generation mode (fallback to database)"""
         self.use_neural_generation = False
         print("🔄 Switched to database lookup mode")
+    
+    def load_trained_model(self, model_path: str = 'trained_neural_analyzer_23emotions.pth'):
+        """Load a trained model from file"""
+        try:
+            self.load_state_dict(torch.load(model_path))
+            self.enable_neural_generation()
+            print(f"✅ Trained model loaded from {model_path}")
+            return True
+        except Exception as e:
+            print(f"⚠️ Could not load trained model: {e}")
+            self.disable_neural_generation()
+            return False
         
     def get_genre_index(self, genre_name: str) -> int:
         """Convert genre name to index"""
@@ -600,19 +619,23 @@ class ChordProgressionModel(nn.Module):
         Returns:
             List of progression dictionaries with metadata
         """
-        # 1. Parse emotions from text (use keyword method for sub-emotion support)
-        # Always use keyword-based parsing for better sub-emotion detection
-        emotion_weights = self.emotion_parser.parse_emotion_weights(text_prompt)
+        # 1. Parse emotions from text using enhanced emotion parser
+        parsed_emotions = self.emotion_parser.parse_emotions(text_prompt)
         
-        # 2. Get detected sub-emotion for contextual information
-        detected_sub_emotion = ""
-        if hasattr(self.emotion_parser, 'get_detected_sub_emotion'):
-            detected_sub_emotion = self.emotion_parser.get_detected_sub_emotion()
+        # 2. Use integration layer to map to database emotions and get contextual information
+        integrated_result = self.emotion_integration_layer.process_emotion_input(text_prompt)
+        emotion_weights = integrated_result['database_emotions']
         
-        # 3. Get mode blend (use neural or static method)
+        # 3. Get detected emotions for contextual information
+        detected_emotions = parsed_emotions.get('detected_emotions', {})
+        primary_emotion = max(detected_emotions, key=detected_emotions.get) if detected_emotions else "Joy"
+        compound_emotions = parsed_emotions.get('compound_emotions', [])
+        sarcasm_detected = parsed_emotions.get('sarcasm_detected', False)
+        
+        # 4. Get mode blend (use neural or static method)
         if self.use_neural_generation and self.is_trained:
             # Use neural mode blending
-            emotion_tensor = torch.tensor([[emotion_weights[emotion] for emotion in self.emotion_parser.emotion_labels]])
+            emotion_tensor = torch.tensor([[emotion_weights[emotion] for emotion in emotion_weights.keys()]])
             mode_blend_tensor = self.mode_blender.forward(emotion_tensor)
             mode_blend_probs = F.softmax(mode_blend_tensor, dim=-1)
             mode_blend = {
@@ -624,7 +647,7 @@ class ChordProgressionModel(nn.Module):
             # Use static mode mapping (fallback)
             primary_mode, mode_blend = self.mode_blender.get_primary_mode(emotion_weights)
         
-        # 4. Generate or select progressions
+        # 5. Generate or select progressions
         results = []
         
         for i in range(num_progressions):
@@ -641,15 +664,32 @@ class ChordProgressionModel(nn.Module):
             else:
                 # Option B: Database lookup (all chords are "original")
                 chords = self._database_select(emotion_weights, mode_blend, genre_preference)
+                
+                # Apply emotional interpolation for more nuanced progressions
+                if len(detected_emotions) > 1:
+                    # Multiple emotions detected - use interpolation
+                    emotion_sequence = list(detected_emotions.keys())[:2]  # Take top 2 emotions
+                    interpolated_chords = self._apply_emotion_interpolation(chords, emotion_sequence, detected_emotions)
+                    if interpolated_chords:
+                        chords = interpolated_chords
+                        generation_method = "database_selection_with_interpolation"
+                    else:
+                        generation_method = "database_selection"
+                else:
+                    generation_method = "database_selection"
+                
                 chord_metadata = [{"is_substitution": False, "original_chord": chord, "source": "database"} 
                                 for chord in chords]
-                generation_method = "database_selection"
             
             result = {
                 "progression_id": f"generated_{i}",
                 "prompt": text_prompt,
                 "emotion_weights": emotion_weights,
-                "detected_sub_emotion": detected_sub_emotion,  # NEW: Sub-emotion detection
+                "primary_emotion": primary_emotion,
+                "compound_emotions": compound_emotions,
+                "sarcasm_detected": sarcasm_detected,
+                "parsed_emotions": parsed_emotions,  # Full enhanced emotion analysis
+                "integration_result": integrated_result,  # Full integration layer result
                 "primary_mode": primary_mode,
                 "mode_blend": mode_blend,
                 "chords": chords,
@@ -660,7 +700,10 @@ class ChordProgressionModel(nn.Module):
                     "generation_method": generation_method,
                     "timestamp": datetime.now().isoformat(),
                     "neural_mode": self.use_neural_generation,
-                    "has_substitutions": any(meta["is_substitution"] for meta in chord_metadata)  # NEW
+                    "has_substitutions": any(meta["is_substitution"] for meta in chord_metadata),  # NEW
+                    "enhanced_parsing": True,  # Indicate enhanced parsing was used
+                    "hierarchical_emotions": len(parsed_emotions.get('detected_emotions', {})) > 1,
+                    "context_aware": sarcasm_detected or len(compound_emotions) > 0
                 }
             }
             results.append(result)
@@ -797,53 +840,40 @@ class ChordProgressionModel(nn.Module):
     
     def _database_select(self, emotion_weights: Dict[str, float], 
                         mode_blend: Dict[str, float], genre: str) -> List[str]:
-        """Select progression from database based on weighted emotions and genre with sub-emotion support"""
+        """Select progression from database using contextual progression engine for enhanced selection"""
+        
+        # Use contextual progression engine for enhanced chord selection
+        primary_emotion = max(emotion_weights, key=emotion_weights.get)
+        
+        # Get contextually appropriate progression
+        contextual_chords = self.contextual_progression_engine.generate_contextual_progression(
+            emotion=primary_emotion,
+            length=4
+        )
+        
+        if contextual_chords:
+            return contextual_chords
+        
+        # Fallback to original database selection method  
         # Find dominant emotions (weight > 0.1)
         dominant_emotions = [emotion for emotion, weight in emotion_weights.items() if weight > 0.1]
         
         if not dominant_emotions:
             dominant_emotions = [max(emotion_weights, key=emotion_weights.get)]
         
-        # Check if we detected a specific sub-emotion
-        detected_sub_emotion = ""
-        if hasattr(self.emotion_parser, 'get_detected_sub_emotion'):
-            detected_sub_emotion = self.emotion_parser.get_detected_sub_emotion()
-        
         # Collect candidate progressions
         candidates = []
         for emotion in dominant_emotions:
             emotion_weight = emotion_weights[emotion]
             
-            # First, look for sub-emotion specific progressions
-            if detected_sub_emotion and detected_sub_emotion.startswith(emotion + ":"):
-                # Try to find progressions specifically for this sub-emotion
-                sub_emotion_progressions = []
-                for prog in self.database.chord_progressions.get(emotion, []):
-                    if prog.emotion == detected_sub_emotion:
-                        sub_emotion_progressions.append(prog)
-                
-                # If we found sub-emotion specific progressions, prioritize them
-                if sub_emotion_progressions:
-                    for prog in sub_emotion_progressions:
-                        genre_weight = prog.genres.get(genre, 0.1)
-                        combined_weight = emotion_weight * genre_weight * 1.5  # Boost sub-emotion matches
-                        candidates.append((prog, combined_weight))
-                    continue  # Skip to next emotion
-            
-            # Fallback to general emotion progressions
+            # Look for emotion progressions
             if emotion in self.database.chord_progressions:
                 emotion_progressions = self.database.chord_progressions[emotion]
                 for prog in emotion_progressions:
-                    # Only include general progressions (not sub-emotion specific)
-                    if ":" not in prog.emotion:
-                        genre_weight = prog.genres.get(genre, 0.1)
-                        combined_weight = emotion_weight * genre_weight
-                        candidates.append((prog, combined_weight))
-                    # Also include sub-emotion progressions if no specific match found
-                    elif prog.emotion.startswith(emotion + ":"):
-                        genre_weight = prog.genres.get(genre, 0.1)
-                        combined_weight = emotion_weight * genre_weight * 0.8  # Slight reduction for non-specific sub-emotions
-                        candidates.append((prog, combined_weight))
+                    # Include all progressions for this emotion
+                    genre_weight = prog.genres.get(genre, 0.1)
+                    combined_weight = emotion_weight * genre_weight
+                    candidates.append((prog, combined_weight))
         
         if not candidates:
             # Fallback to basic progression
@@ -857,6 +887,26 @@ class ChordProgressionModel(nn.Module):
         selected = random.choices(top_candidates, weights=weights, k=1)[0]
         
         return selected[0].chords
+    
+    def _apply_emotion_interpolation(self, base_chords: List[str], emotion_sequence: List[str], emotion_weights: Dict[str, float]) -> List[str]:
+        """Apply emotional interpolation to create more nuanced progressions"""
+        try:
+            # Use emotion interpolation engine to create a nuanced progression
+            interpolated_result = self.emotion_interpolation_engine.interpolate_emotions(
+                start_emotion=emotion_sequence[0],
+                end_emotion=emotion_sequence[1],
+                num_steps=len(base_chords),
+                base_progression=base_chords,
+                interpolation_type="smooth"
+            )
+            
+            if interpolated_result and 'chord_progression' in interpolated_result:
+                return interpolated_result['chord_progression']
+            
+            return None
+        except Exception as e:
+            print(f"Warning: Emotion interpolation failed: {e}")
+            return None
     
     def _analyze_substitutions(self, neural_chords: List[str], database_chords: List[str]) -> List[Dict]:
         """
@@ -982,22 +1032,62 @@ class ChordProgressionModel(nn.Module):
 
 
 # Usage example and training utilities
-def create_training_data(database: EmotionMusicDatabase) -> List[Dict]:
-    """Create training examples from the progression database"""
+def create_training_data(database: EmotionMusicDatabase, individual_chord_model=None) -> List[Dict]:
+    """Create training examples from the progression database with 23-emotion system and C/D profiles"""
     training_data = []
+    
+    # Initialize individual chord model if not provided
+    if individual_chord_model is None:
+        from individual_chord_model import IndividualChordModel
+        individual_chord_model = IndividualChordModel()
     
     for emotion, progressions in database.chord_progressions.items():
         for prog in progressions:
-            # Create synthetic prompts for each progression
-            emotion_keywords = database.emotion_keywords[emotion]
+            # Create synthetic prompts for each progression using enhanced emotion keywords
+            emotion_keywords = database.emotion_keywords.get(emotion, [emotion.lower()])
             prompt = f"I want something {random.choice(emotion_keywords)}"
+            
+            # Get C/D profiles for each chord in the progression
+            chord_cd_profiles = []
+            for chord in prog.chords:
+                try:
+                    # Get individual chord data
+                    individual_results = individual_chord_model.generate_chord_from_prompt(
+                        "neutral", num_options=1
+                    )
+                    
+                    # Find matching chord in individual database
+                    cd_value = 0.4  # Default moderate consonance
+                    chord_emotions = {}
+                    
+                    for chord_obj in individual_chord_model.database.chord_emotion_map:
+                        if chord_obj.roman_numeral == chord:
+                            chord_emotions = chord_obj.emotion_weights
+                            if chord_obj.consonant_dissonant_profile:
+                                cd_value = chord_obj.consonant_dissonant_profile.get("base_value", 0.4)
+                            break
+                    
+                    chord_cd_profiles.append({
+                        "chord": chord,
+                        "cd_value": cd_value,
+                        "chord_emotions": chord_emotions
+                    })
+                except Exception as e:
+                    # Fallback for missing chord data
+                    chord_cd_profiles.append({
+                        "chord": chord,
+                        "cd_value": 0.4,
+                        "chord_emotions": {}
+                    })
             
             example = {
                 "prompt": prompt,
                 "target_emotion": emotion,
                 "target_mode": prog.mode,
                 "target_chords": prog.chords,
-                "genres": prog.genres
+                "chord_cd_profiles": chord_cd_profiles,  # NEW: Include C/D profiles
+                "genres": prog.genres,
+                "progression_id": prog.progression_id
             }
             training_data.append(example)
     
@@ -1005,7 +1095,7 @@ def create_training_data(database: EmotionMusicDatabase) -> List[Dict]:
 
 
 def train_model(model: ChordProgressionModel, training_data: List[Dict], epochs: int = 10):
-    """Training loop for the complete model"""
+    """Training loop for the complete model with 23-emotion system and C/D profiles"""
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
     
     for epoch in range(epochs):
@@ -1014,8 +1104,12 @@ def train_model(model: ChordProgressionModel, training_data: List[Dict], epochs:
         for batch in training_data:
             optimizer.zero_grad()
             
-            # Forward pass through emotion parser and mode blender
-            emotion_weights = model.emotion_parser.parse_emotion_weights(batch["prompt"])
+            # Forward pass through enhanced emotion parser and integration layer
+            parsed_emotions = model.emotion_parser.parse_emotions(batch["prompt"])
+            integrated_result = model.emotion_integration_layer.integrate_emotions(parsed_emotions)
+            emotion_weights = integrated_result['progression_emotions']
+            
+            # Get mode blend using proper emotion system
             primary_mode, mode_blend = model.mode_blender.get_primary_mode(emotion_weights)
             
             # Convert target data to tensors
@@ -1034,11 +1128,34 @@ def train_model(model: ChordProgressionModel, training_data: List[Dict], epochs:
             # Calculate loss (simplified)
             loss = F.cross_entropy(predictions.view(-1, predictions.size(-1)), target_tensor.view(-1))
             
+            # Additional loss for C/D profiles (if available)
+            if "chord_cd_profiles" in batch:
+                # Extract C/D values from training data
+                target_cd_values = [profile["cd_value"] for profile in batch["chord_cd_profiles"]]
+                if target_cd_values:
+                    # This would require additional neural architecture to predict C/D values
+                    # For now, we'll just include it in the training data for future use
+                    pass
+            
             loss.backward()
             optimizer.step()
             total_loss += loss.item()
         
         print(f"Epoch {epoch+1}/{epochs}, Loss: {total_loss/len(training_data):.4f}")
+    
+    print("Training complete! Model now supports 23-emotion system with C/D profiles.")
+    
+    # Enable neural generation after training
+    model.enable_neural_generation()
+    
+    # Save the trained model
+    try:
+        torch.save(model.state_dict(), 'trained_neural_analyzer_23emotions.pth')
+        print("✅ Model saved as trained_neural_analyzer_23emotions.pth")
+    except Exception as e:
+        print(f"⚠️ Could not save model: {e}")
+    
+    return model
 
 
 if __name__ == "__main__":

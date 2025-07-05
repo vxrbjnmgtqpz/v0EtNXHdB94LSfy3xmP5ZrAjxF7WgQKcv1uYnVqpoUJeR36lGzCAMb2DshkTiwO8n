@@ -4,6 +4,35 @@
 //==============================================================================
 GPUTransportController::GPUTransportController()
 {
+    // Initialize GPU transport manager first
+    auto& transportManager = jam::gpu_transport::GPUTransportManager::getInstance();
+    if (!transportManager.isInitialized()) {
+        bool initSuccess = transportManager.initialize();
+        if (!initSuccess) {
+            juce::Logger::writeToLog("⚠️ Failed to initialize GPU Transport Manager - falling back to CPU timing");
+        } else {
+            juce::Logger::writeToLog("✅ GPU Transport Manager initialized successfully");
+        }
+    } else {
+        juce::Logger::writeToLog("✅ GPU Transport Manager already initialized");
+    }
+    
+    // Set up state change callback for real-time GPU state updates
+    transportManager.setStateChangeCallback([this](::GPUTransportState oldState, ::GPUTransportState newState) {
+        // Convert to local enum and update UI
+        currentState = static_cast<GPUTransportState>(newState);
+        
+        // Trigger UI update on message thread
+        juce::MessageManager::callAsync([this]() {
+            updatePositionDisplay();
+            repaint();
+        });
+    });
+    
+    // Initialize default time signature and subdivision for GPU bars/beats calculation
+    transportManager.setTimeSignature(4, 4);    // 4/4 time signature
+    transportManager.setSubdivision(1000);      // 1000 subdivisions per beat for precise display
+    
     // Initialize GPU timebase if not already done (static)
     if (!jam::gpu_native::GPUTimebase::is_initialized()) {
         jam::gpu_native::GPUTimebase::initialize();
@@ -14,32 +43,34 @@ GPUTransportController::GPUTransportController()
         jam::gpu_native::GPUSharedTimelineManager::initialize();
     }
     
-    // Create GUI components
-    playButton = std::make_unique<juce::TextButton>("▶️ Play");
+    // Create GUI components with custom canvas rendering
+    playButton = std::make_unique<GPUTransportButton>("Play", GPUTransportButton::Play);
     playButton->onClick = [this]() { playButtonClicked(); };
-    playButton->setColour(juce::TextButton::buttonColourId, juce::Colours::green.withAlpha(0.3f));
     addAndMakeVisible(playButton.get());
     
-    stopButton = std::make_unique<juce::TextButton>("⏹️ Stop");
+    stopButton = std::make_unique<GPUTransportButton>("Stop", GPUTransportButton::Stop);
     stopButton->onClick = [this]() { stopButtonClicked(); };
-    stopButton->setColour(juce::TextButton::buttonColourId, juce::Colours::red.withAlpha(0.3f));
     addAndMakeVisible(stopButton.get());
     
-    pauseButton = std::make_unique<juce::TextButton>("⏸️ Pause");
+    pauseButton = std::make_unique<GPUTransportButton>("Pause", GPUTransportButton::Pause);
     pauseButton->onClick = [this]() { pauseButtonClicked(); };
-    pauseButton->setColour(juce::TextButton::buttonColourId, juce::Colours::orange.withAlpha(0.3f));
     addAndMakeVisible(pauseButton.get());
     
-    recordButton = std::make_unique<juce::TextButton>("🔴 Record");
+    recordButton = std::make_unique<GPUTransportButton>("Record", GPUTransportButton::Record);
     recordButton->onClick = [this]() { recordButtonClicked(); };
-    recordButton->setColour(juce::TextButton::buttonColourId, juce::Colours::red.withAlpha(0.5f));
     addAndMakeVisible(recordButton.get());
     
     // Position display
-    positionLabel = std::make_unique<juce::Label>("Position", "00:00.000");
-    positionLabel->setFont(juce::Font(16.0f, juce::Font::bold));
+    positionLabel = std::make_unique<juce::Label>("Position", "00:00.000.000");
+    positionLabel->setFont(juce::Font(juce::FontOptions(16.0f).withStyle("bold")));
     positionLabel->setJustificationType(juce::Justification::centred);
     addAndMakeVisible(positionLabel.get());
+    
+    // Bars/Beats display
+    barsBeatsLabel = std::make_unique<juce::Label>("BarsBeats", "001.01.000");
+    barsBeatsLabel->setFont(juce::Font(juce::FontOptions(16.0f).withStyle("bold")));
+    barsBeatsLabel->setJustificationType(juce::Justification::centred);
+    addAndMakeVisible(barsBeatsLabel.get());
     
     // BPM controls
     bpmLabel = std::make_unique<juce::Label>("BPM", "BPM:");
@@ -95,8 +126,10 @@ void GPUTransportController::resized()
     pauseButton->setBounds(buttonArea.removeFromLeft(buttonWidth).reduced(2));
     recordButton->setBounds(buttonArea.removeFromLeft(buttonWidth).reduced(2));
     
-    // Position display
-    positionLabel->setBounds(bounds.removeFromLeft(120).reduced(5));
+    // Position displays - put them side by side instead of stacked
+    auto displayArea = bounds.removeFromLeft(400);  // Make it wider for both displays
+    positionLabel->setBounds(displayArea.removeFromLeft(200).reduced(2));  // Time display on left
+    barsBeatsLabel->setBounds(displayArea.reduced(2));  // Bars/beats on right
     
     // BPM controls
     auto bpmArea = bounds.removeFromLeft(200);
@@ -106,7 +139,14 @@ void GPUTransportController::resized()
 
 void GPUTransportController::timerCallback()
 {
+    // Update GPU Transport Manager to process timeline events
+    auto& transportManager = jam::gpu_transport::GPUTransportManager::getInstance();
+    if (transportManager.isInitialized()) {
+        transportManager.update();
+    }
+    
     updatePositionDisplay();
+    updateBarsBeatsDisplay();  // Also update bars/beats
 }
 
 //==============================================================================
@@ -114,100 +154,96 @@ void GPUTransportController::timerCallback()
 
 void GPUTransportController::play()
 {
-    if (!jam::gpu_native::GPUTimebase::is_initialized()) {
-        juce::Logger::writeToLog("WARNING: GPU timebase not available for play command");
+    auto& transportManager = jam::gpu_transport::GPUTransportManager::getInstance();
+    bool isInit = transportManager.isInitialized();
+    juce::Logger::writeToLog("GPU Transport Manager initialized status: " + juce::String(isInit ? "YES" : "NO"));
+    
+    if (!isInit) {
+        juce::Logger::writeToLog("WARNING: GPU Transport Manager not available for play command");
         return;
     }
     
+    // Use GPU Transport Manager for actual transport control
+    uint64_t startFrame = 0;
     if (currentState == GPUTransportState::Paused) {
-        // Resume from paused position
-        playStartFrame = pausedFrame;
-    } else {
-        // Start from current GPU frame
-        playStartFrame = jam::gpu_native::GPUTimebase::get_current_time_ns();
+        startFrame = pausedFrame;
     }
     
-    currentState = GPUTransportState::Playing;
-    jam::gpu_native::GPUTimebase::set_transport_state(jam::gpu_native::GPUTransportState::PLAYING);
+    transportManager.play(startFrame);
     
-    // Schedule transport event on GPU timeline (static API)
-    if (jam::gpu_native::GPUSharedTimelineManager::isInitialized()) {
-        jam::gpu_native::GPUTimelineEvent event;
-        event.timestamp_ns = playStartFrame;
-        event.type = jam::gpu_native::EventType::TRANSPORT_CHANGE;
-        jam::gpu_native::GPUSharedTimelineManager::scheduleEvent(event);
+    // Update local state (will be synced via callback)
+    if (currentState == GPUTransportState::Paused) {
+        playStartFrame = pausedFrame;
+    } else {
+        playStartFrame = jam::gpu_native::GPUTimebase::get_current_time_ns();
     }
     
     // Send to network peers
     sendTransportCommand("play");
     
-    juce::Logger::writeToLog("GPU Transport: Play at frame " + juce::String((int64_t)playStartFrame));
+    juce::Logger::writeToLog("GPU Transport: Play command sent to GPU");
 }
 
 void GPUTransportController::stop()
 {
-    auto stopFrame = jam::gpu_native::GPUTimebase::get_current_time_ns();
-    currentState = GPUTransportState::Stopped;
+    auto& transportManager = jam::gpu_transport::GPUTransportManager::getInstance();
+    if (!transportManager.isInitialized()) {
+        juce::Logger::writeToLog("WARNING: GPU Transport Manager not available for stop command");
+        return;
+    }
+    
+    // Use GPU Transport Manager for actual transport control
+    transportManager.stop();
+    
+    // Update local state (will be synced via callback)
     playStartFrame = 0;
     pausedFrame = 0;
-    
-    jam::gpu_native::GPUTimebase::set_transport_state(jam::gpu_native::GPUTransportState::STOPPED);
-    
-    // Schedule stop event on GPU timeline
-    if (jam::gpu_native::GPUSharedTimelineManager::isInitialized()) {
-        jam::gpu_native::GPUTimelineEvent event;
-        event.timestamp_ns = stopFrame;
-        event.type = jam::gpu_native::EventType::TRANSPORT_CHANGE;
-        jam::gpu_native::GPUSharedTimelineManager::scheduleEvent(event);
-    }
     
     // Send to network peers
     sendTransportCommand("stop");
     
-    juce::Logger::writeToLog("GPU Transport: Stop at frame " + juce::String((int64_t)stopFrame));
+    juce::Logger::writeToLog("GPU Transport: Stop command sent to GPU");
 }
 
 void GPUTransportController::pause()
 {
-    pausedFrame = jam::gpu_native::GPUTimebase::get_current_time_ns();
-    currentState = GPUTransportState::Paused;
-    
-    jam::gpu_native::GPUTimebase::set_transport_state(jam::gpu_native::GPUTransportState::PAUSED);
-    
-    // Schedule pause event on GPU timeline
-    if (jam::gpu_native::GPUSharedTimelineManager::isInitialized()) {
-        jam::gpu_native::GPUTimelineEvent event;
-        event.timestamp_ns = pausedFrame;
-        event.type = jam::gpu_native::EventType::TRANSPORT_CHANGE;
-        jam::gpu_native::GPUSharedTimelineManager::scheduleEvent(event);
+    auto& transportManager = jam::gpu_transport::GPUTransportManager::getInstance();
+    if (!transportManager.isInitialized()) {
+        juce::Logger::writeToLog("WARNING: GPU Transport Manager not available for pause command");
+        return;
     }
+    
+    // Use GPU Transport Manager for actual transport control
+    transportManager.pause();
+    
+    // Update local state (will be synced via callback)
+    pausedFrame = jam::gpu_native::GPUTimebase::get_current_time_ns();
     
     // Send to network peers
     sendTransportCommand("pause");
     
-    juce::Logger::writeToLog("GPU Transport: Pause at frame " + juce::String((int64_t)pausedFrame));
+    juce::Logger::writeToLog("GPU Transport: Pause command sent to GPU");
 }
 
 void GPUTransportController::record()
 {
-    auto recordFrame = jam::gpu_native::GPUTimebase::get_current_time_ns();
-    currentState = GPUTransportState::Recording;
-    playStartFrame = recordFrame;
-    
-    jam::gpu_native::GPUTimebase::set_transport_state(jam::gpu_native::GPUTransportState::RECORDING);
-    
-    // Schedule record event on GPU timeline
-    if (jam::gpu_native::GPUSharedTimelineManager::isInitialized()) {
-        jam::gpu_native::GPUTimelineEvent event;
-        event.timestamp_ns = recordFrame;
-        event.type = jam::gpu_native::EventType::TRANSPORT_CHANGE;
-        jam::gpu_native::GPUSharedTimelineManager::scheduleEvent(event);
+    auto& transportManager = jam::gpu_transport::GPUTransportManager::getInstance();
+    if (!transportManager.isInitialized()) {
+        juce::Logger::writeToLog("WARNING: GPU Transport Manager not available for record command");
+        return;
     }
+    
+    // Use GPU Transport Manager for actual transport control
+    uint64_t recordFrame = jam::gpu_native::GPUTimebase::get_current_time_ns();
+    transportManager.record(recordFrame);
+    
+    // Update local state (will be synced via callback)
+    playStartFrame = recordFrame;
     
     // Send to network peers
     sendTransportCommand("record");
     
-    juce::Logger::writeToLog("GPU Transport: Record at frame " + juce::String((int64_t)recordFrame));
+    juce::Logger::writeToLog("GPU Transport: Record command sent to GPU");
 }
 
 void GPUTransportController::seek(uint64_t gpuFrame)
@@ -238,21 +274,38 @@ void GPUTransportController::seek(uint64_t gpuFrame)
 
 bool GPUTransportController::isPlaying() const
 {
+    auto& transportManager = jam::gpu_transport::GPUTransportManager::getInstance();
+    if (transportManager.isInitialized()) {
+        return transportManager.isPlaying();
+    }
     return currentState == GPUTransportState::Playing || currentState == GPUTransportState::Recording;
 }
 
 bool GPUTransportController::isRecording() const
 {
+    auto& transportManager = jam::gpu_transport::GPUTransportManager::getInstance();
+    if (transportManager.isInitialized()) {
+        return transportManager.isRecording();
+    }
     return currentState == GPUTransportState::Recording;
 }
 
 bool GPUTransportController::isPaused() const
 {
+    auto& transportManager = jam::gpu_transport::GPUTransportManager::getInstance();
+    if (transportManager.isInitialized()) {
+        return transportManager.isPaused();
+    }
     return currentState == GPUTransportState::Paused;
 }
 
 uint64_t GPUTransportController::getCurrentGPUFrame() const
 {
+    auto& transportManager = jam::gpu_transport::GPUTransportManager::getInstance();
+    if (transportManager.isInitialized()) {
+        return transportManager.getCurrentFrame();
+    }
+    
     if (!jam::gpu_native::GPUTimebase::is_initialized()) return 0;
     
     if (currentState == GPUTransportState::Paused) {
@@ -264,6 +317,11 @@ uint64_t GPUTransportController::getCurrentGPUFrame() const
 
 double GPUTransportController::getCurrentTimeInSeconds() const
 {
+    auto& transportManager = jam::gpu_transport::GPUTransportManager::getInstance();
+    if (transportManager.isInitialized()) {
+        return transportManager.getPositionSeconds();
+    }
+    
     if (!jam::gpu_native::GPUTimebase::is_initialized()) return 0.0;
     
     auto currentFrame = getCurrentGPUFrame();
@@ -277,8 +335,14 @@ void GPUTransportController::setBPM(double bpm)
     currentBPM = juce::jlimit(60.0, 200.0, bpm);
     bpmSlider->setValue(currentBPM, juce::dontSendNotification);
     
-    // Update GPU timebase tempo
-    jam::gpu_native::GPUTimebase::set_bpm(static_cast<uint32_t>(currentBPM));
+    // Update GPU Transport Manager BPM
+    auto& transportManager = jam::gpu_transport::GPUTransportManager::getInstance();
+    if (transportManager.isInitialized()) {
+        transportManager.setBPM(static_cast<float>(currentBPM));
+    } else {
+        // Fallback to GPU timebase
+        jam::gpu_native::GPUTimebase::set_bpm(static_cast<uint32_t>(currentBPM));
+    }
     
     // Send BPM change to network peers
     sendTransportCommand(("bpm:" + juce::String(currentBPM, 1)).toStdString());
@@ -319,7 +383,8 @@ void GPUTransportController::sendTransportCommand(const std::string& command)
     if (networkPanel) {
         // Send via JAM Framework v2 network panel
         auto timestamp = jam::gpu_native::GPUTimebase::is_initialized() ? jam::gpu_native::GPUTimebase::get_current_time_ns() : 0;
-        networkPanel->sendTransportCommand(command, timestamp);
+        double position = getCurrentTimeInSeconds();
+        networkPanel->sendTransportCommand(command, timestamp, position, currentBPM);
     }
 }
 
@@ -354,15 +419,43 @@ void GPUTransportController::bpmSliderChanged()
 void GPUTransportController::updatePositionDisplay()
 {
     if (!jam::gpu_native::GPUTimebase::is_initialized()) {
-        positionLabel->setText("--:--:---", juce::dontSendNotification);
+        positionLabel->setText("--:--:---.---", juce::dontSendNotification);
         return;
     }
     
     double timeInSeconds = getCurrentTimeInSeconds();
     int minutes = static_cast<int>(timeInSeconds) / 60;
     int seconds = static_cast<int>(timeInSeconds) % 60;
-    int milliseconds = static_cast<int>((timeInSeconds - static_cast<int>(timeInSeconds)) * 1000);
+    double fractionalSeconds = timeInSeconds - static_cast<int>(timeInSeconds);
+    int milliseconds = static_cast<int>(fractionalSeconds * 1000) % 1000;
+    int microseconds = static_cast<int>(fractionalSeconds * 1000000) % 1000;
     
-    juce::String timeString = juce::String::formatted("%02d:%02d.%03d", minutes, seconds, milliseconds);
+    juce::String timeString = juce::String::formatted("%02d:%02d.%03d.%03d", 
+                                                      minutes, seconds, milliseconds, microseconds);
     positionLabel->setText(timeString, juce::dontSendNotification);
+}
+
+void GPUTransportController::updateBarsBeatsDisplay()
+{
+    if (!jam::gpu_native::GPUTimebase::is_initialized()) {
+        barsBeatsLabel->setText("---.---.---", juce::dontSendNotification);
+        return;
+    }
+    
+    // Get current bars/beats info directly from GPU transport manager
+    auto& transportManager = jam::gpu_transport::GPUTransportManager::getInstance();
+    if (!transportManager.isInitialized()) {
+        barsBeatsLabel->setText("---.---.---", juce::dontSendNotification);
+        return;
+    }
+    
+    // Get GPU-native bars/beats calculation 
+    GPUBarsBeatsBuffer barsBeatsInfo = transportManager.getBarsBeatsInfo();
+    
+    // Format as "BAR.BEAT.TICKS" like a DAW (e.g., "001.01.000")
+    juce::String barsBeatsString = juce::String::formatted("%03d.%02d.%03d", 
+                                                           barsBeatsInfo.bars, 
+                                                           barsBeatsInfo.beats, 
+                                                           barsBeatsInfo.subdivisions);
+    barsBeatsLabel->setText(barsBeatsString, juce::dontSendNotification);
 }

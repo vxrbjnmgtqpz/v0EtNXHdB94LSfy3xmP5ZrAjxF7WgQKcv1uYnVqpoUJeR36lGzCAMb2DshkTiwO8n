@@ -15,7 +15,6 @@ juce::Font JAMNetworkPanel::getEmojiCompatibleFont(float size) {
 JAMNetworkPanel::JAMNetworkPanel()
     : connectButton("🚀 Connect JAM v2"), 
       disconnectButton("⏹️ Disconnect"),
-      gpuInitButton("⚡ Init GPU"),
       pnbtrAudioToggle("🎵 PNBTR Audio"),
       pnbtrVideoToggle("🎬 PNBTR Video"),
       burstTransmissionToggle("📡 Burst Transmission"),
@@ -92,10 +91,6 @@ JAMNetworkPanel::JAMNetworkPanel()
     disconnectButton.setEnabled(false);
     addAndMakeVisible(disconnectButton);
     
-    gpuInitButton.onClick = [this] { gpuInitButtonClicked(); };
-    gpuInitButton.setColour(juce::TextButton::buttonColourId, juce::Colours::cyan.withAlpha(0.7f));
-    addAndMakeVisible(gpuInitButton);
-    
     // Feature toggles - NOW AUTOMATIC (always enabled for optimal performance)
     pnbtrAudioToggle.setToggleState(true, juce::dontSendNotification);
     pnbtrAudioToggle.setEnabled(false); // Always on - not user configurable
@@ -134,10 +129,7 @@ JAMNetworkPanel::JAMNetworkPanel()
     gpuAccelerationToggle.setEnabled(false); // Always on for performance
     gpuAccelerationToggle.setAlpha(0.6f); // Visual indicator that it's automatic
     gpuAccelerationToggle.onStateChange = [this] {
-        // Always enabled for maximum performance - no user control
-        if (!gpuInitialized) {
-            gpuInitButtonClicked();
-        }
+        // GPU is already initialized in GPU-native architecture - no action needed
     };
     addAndMakeVisible(gpuAccelerationToggle);
     
@@ -223,8 +215,6 @@ void JAMNetworkPanel::resized() {
     connectButton.setBounds(row.removeFromLeft(100));
     row.removeFromLeft(5);
     disconnectButton.setBounds(row.removeFromLeft(100));
-    row.removeFromLeft(5);
-    gpuInitButton.setBounds(row.removeFromLeft(80));
     
     bounds.removeFromTop(5);
     
@@ -377,10 +367,8 @@ void JAMNetworkPanel::connectButtonClicked() {
         statusLabel.setText("✅ Connected via JAM Framework v2 UDP multicast", juce::dontSendNotification);
         statusLabel.setColour(juce::Label::textColourId, juce::Colours::green);
         
-        // AUTO-INITIALIZE GPU for maximum performance
-        if (!gpuInitialized) {
-            gpuInitButtonClicked();
-        }
+        // GPU is already initialized in GPU-native architecture
+        // All GPU acceleration is automatic and always enabled
         
         // AUTO-ENABLE all optimal settings (no user choice needed)
         jamFramework->setPNBTRAudioPrediction(true);    // Always on
@@ -410,30 +398,6 @@ void JAMNetworkPanel::disconnectButtonClicked() {
         statusLabel.setColour(juce::Label::textColourId, juce::Colours::orange);
         
         updatePerformanceDisplay();
-    }
-}
-
-void JAMNetworkPanel::gpuInitButtonClicked() {
-    if (!jamFramework) {
-        statusLabel.setText("❌ JAM Framework not initialized", juce::dontSendNotification);
-        statusLabel.setColour(juce::Label::textColourId, juce::Colours::red);
-        return;
-    }
-    
-    bool gpuSuccess = jamFramework->initializeGPU();
-    gpuInitialized = gpuSuccess;
-    
-    if (gpuSuccess) {
-        gpuInitButton.setEnabled(false);
-        gpuAccelerationToggle.setToggleState(true, juce::dontSendNotification);
-        gpuAccelerationToggle.setEnabled(false);
-        
-        pnbtrStatusLabel.setText("⚡ PNBTR GPU acceleration enabled (Metal backend)", juce::dontSendNotification);
-        pnbtrStatusLabel.setColour(juce::Label::textColourId, juce::Colours::cyan);
-        
-    } else {
-        pnbtrStatusLabel.setText("❌ GPU acceleration unavailable", juce::dontSendNotification);
-        pnbtrStatusLabel.setColour(juce::Label::textColourId, juce::Colours::red);
     }
 }
 
@@ -543,7 +507,7 @@ void JAMNetworkPanel::sendTransportCommand(const std::string& command, uint64_t 
 
 void JAMNetworkPanel::onJAMTransportReceived(const std::string& command, uint64_t timestamp, 
                                              double position, double bpm) {
-    // Forward transport command to the TransportController for proper bidirectional sync
+    // Forward transport command to the GPUTransportController for proper bidirectional sync
     juce::Logger::writeToLog("🎛️ JAM Transport Received: " + juce::String(command) + 
                            " pos=" + juce::String(position) + " bpm=" + juce::String(bpm));
     

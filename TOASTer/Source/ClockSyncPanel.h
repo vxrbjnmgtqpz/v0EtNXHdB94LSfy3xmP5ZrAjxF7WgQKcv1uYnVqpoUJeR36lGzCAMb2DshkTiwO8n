@@ -16,34 +16,32 @@ public:
     void timerCallback() override;
 
 private:
-    void toggleSync();
-    void toggleForceMaster();
     void calibrateClicked();
     void updateDisplay();
     
     // UI Components
     juce::GroupComponent syncGroup;
-    juce::ToggleButton enableSyncToggle;
-    juce::ToggleButton forceMasterToggle;
-    juce::Label roleLabel;
-    juce::Label syncStatusLabel;
-    juce::Label networkOffsetLabel;
-    juce::Label syncQualityLabel;
-    juce::Label rttLabel;
+    juce::Label peerSyncStatusLabel;
+    juce::Label localTimingLabel;
+    juce::Label networkLatencyLabel;
+    juce::Label syncAccuracyLabel;
+    juce::Label gpuTimebaseLabel;
     
-    juce::GroupComponent settingsGroup;
-    juce::Label syncRateLabel;
-    juce::Slider syncRateSlider;
+    juce::GroupComponent networkGroup;
+    juce::Label activePeersLabel;
+    juce::Label consensusQualityLabel;
+    juce::Label networkStabilityLabel;
     juce::TextButton calibrateButton;
     
-    // Clock Sync Integration
+    // GPU-Native Clock Sync Integration
     std::unique_ptr<TOAST::ClockDriftArbiter> clockArbiter;
     
-    bool syncEnabled = false;
-    TOAST::ClockRole currentRole = TOAST::ClockRole::UNINITIALIZED;
-    double currentQuality = 0.0;
-    double currentOffset = 0.0;
-    uint64_t currentRTT = 0;
+    // Network consensus state (no master/slave)
+    double currentAccuracy = 0.0;
+    double networkLatency = 0.0;
+    uint64_t gpuTimebaseNs = 0;
+    int activePeerCount = 0;
+    double consensusQuality = 0.0;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ClockSyncPanel)
 };

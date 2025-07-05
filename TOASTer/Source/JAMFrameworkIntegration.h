@@ -9,6 +9,7 @@
 
 #include <juce_core/juce_core.h>
 #include <juce_events/juce_events.h>
+#include "../../JAM_Framework_v2/include/gpu_native/gpu_timebase.h"  // GPU-native timebase
 #include <memory>
 #include <functional>
 #include <vector>
@@ -86,14 +87,9 @@ public:
     // === GPU Backend Management ===
     
     /**
-     * Initialize GPU backend (Metal on macOS)
+     * Check if GPU backend is available (always true in GPU-native architecture)
      */
-    bool initializeGPU();
-    
-    /**
-     * Check if GPU backend is available
-     */
-    bool isGPUAvailable() const { return gpuInitialized; }
+    bool isGPUAvailable() const { return jam::gpu_native::GPUTimebase::is_initialized(); }
     
     // === MIDI Transmission ===
     
@@ -254,7 +250,6 @@ private:
     
     // State management
     bool networkActive = false;
-    bool gpuInitialized = false;
     bool pnbtrAudioEnabled = true;
     bool pnbtrVideoEnabled = true;
     std::atomic<bool> auto_connection_enabled_{true}; // Always auto-connect for seamless experience

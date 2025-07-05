@@ -125,44 +125,7 @@ bool JAMFrameworkIntegration::initialize(const std::string& multicast_addr,
     }
 }
 
-bool JAMFrameworkIntegration::initializeGPU() {
-    try {
-        // Initialize GPU Manager first
-        gpuManager = std::make_unique<jam::GPUManager>();
-        if (!gpuManager->initialize()) {
-            juce::Logger::writeToLog("JAM Framework GPU Manager initialization failed");
-            return false;
-        }
-        
-        // Initialize Metal GPU backend on macOS
-        gpuPipeline = std::make_unique<jam::ComputePipeline>();
-        
-        bool success = gpuPipeline->initialize();
-        gpuInitialized = success;
-        
-        if (success) {
-            // Initialize PNBTR prediction system with GPU backend
-            if (pnbtrManager && !pnbtrManager->initialize(gpuManager.get())) {
-                juce::Logger::writeToLog("PNBTR initialization failed - continuing without prediction");
-            } else {
-                juce::Logger::writeToLog("PNBTR GPU-accelerated prediction system initialized");
-            }
-            
-            juce::Logger::writeToLog("JAM Framework GPU backend initialized (Metal)");
-            notifyStatusChange("GPU acceleration enabled", networkActive);
-        } else {
-            juce::Logger::writeToLog("JAM Framework GPU backend initialization failed");
-            notifyStatusChange("GPU acceleration unavailable", networkActive);
-        }
-        
-        return success;
-        
-    } catch (const std::exception& e) {
-        juce::Logger::writeToLog("GPU backend initialization failed: " + juce::String(e.what()));
-        gpuInitialized = false;
-        return false;
-    }
-}
+
 
 bool JAMFrameworkIntegration::startNetwork() {
     if (!toastProtocol) {
@@ -617,7 +580,7 @@ void JAMFrameworkIntegration::updatePerformanceMetrics() {
         currentMetrics.packet_loss_rate = 0.01; // toastProtocol->getPacketLossRate();
         
         // Update prediction accuracy if GPU backend is available
-        if (gpuPipeline && gpuInitialized) {
+        if (gpuPipeline && jam::gpu_native::GPUTimebase::is_initialized()) {
             // TODO: Get prediction accuracy from PNBTR system
             currentMetrics.prediction_accuracy = predictionConfidence;
         }
@@ -646,13 +609,7 @@ void JAMFrameworkIntegration::timerCallback() {
     // Update performance metrics every 100ms
     updatePerformanceMetrics();
     
-    // Auto-initialize GPU if not done yet and network is active
-    static bool gpu_auto_init_attempted = false;
-    if (networkActive && !gpuInitialized && !gpu_auto_init_attempted) {
-        gpu_auto_init_attempted = true;
-        juce::Logger::writeToLog("🚀 Auto-initializing GPU acceleration...");
-        initializeGPU();
-    }
+    // GPU is already initialized in GPU-native architecture - no auto-init needed
     
     // Send heartbeat every second if connected
     static int heartbeatCounter = 0;

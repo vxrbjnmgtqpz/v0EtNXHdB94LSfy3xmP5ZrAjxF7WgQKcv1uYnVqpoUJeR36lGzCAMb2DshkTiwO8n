@@ -631,7 +631,7 @@ void NetworkConnectionPanel::establishConnection(const std::string& ip, const st
     }
     
     // Auto-enable transport sync - no manual intervention needed
-    // This will be handled by the TransportController automatically
+    // This will be handled by the GPUTransportController automatically
 }
 
 //==============================================================================

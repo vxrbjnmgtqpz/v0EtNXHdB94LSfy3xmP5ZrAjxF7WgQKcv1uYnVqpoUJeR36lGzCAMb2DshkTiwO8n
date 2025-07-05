@@ -72,7 +72,6 @@ private:
     // Connection controls
     juce::TextButton connectButton;
     juce::TextButton disconnectButton;
-    juce::TextButton gpuInitButton;
     
     // Feature toggles
     juce::ToggleButton pnbtrAudioToggle;
@@ -95,7 +94,6 @@ private:
     double currentLatency = 0.0;
     double currentThroughput = 0.0;
     double predictionAccuracy = 0.0;
-    bool gpuInitialized = false;
     
     // Session configuration
     juce::String currentSessionName = "TOASTer_Session";
@@ -105,7 +103,6 @@ private:
     // Callbacks
     void connectButtonClicked();
     void disconnectButtonClicked();
-    void gpuInitButtonClicked();
     void sessionConfigurationChanged();
     
     // JAM Framework callbacks

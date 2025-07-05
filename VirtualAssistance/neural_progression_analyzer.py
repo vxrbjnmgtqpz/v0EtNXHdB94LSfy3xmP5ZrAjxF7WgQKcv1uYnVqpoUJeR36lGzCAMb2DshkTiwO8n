@@ -65,7 +65,7 @@ class NeuralProgressionAnalyzer(nn.Module):
     
     def __init__(self, 
                  chord_vocab_size: int = 100,  # Max number of unique chords
-                 emotion_dim: int = 22,        # 22 core emotions (expanded system)
+                 emotion_dim: int = 23,        # 23 core emotions (expanded system including Transcendence)
                  hidden_dim: int = 256,
                  context_window: int = 8):
         super().__init__()
@@ -336,8 +336,8 @@ class ContextualProgressionIntegrator:
             print(f"Warning: Error processing progression database: {e}")
     
     def _emotion_name_to_vector(self, emotion_name: str) -> List[float]:
-        """Convert emotion name to 22-dimensional vector"""
-        vector = [0.0] * 22  # Updated to 22 emotions
+        """Convert emotion name to 23-dimensional vector"""
+        vector = [0.0] * 23  # Updated to 23 emotions including Transcendence
         if emotion_name in self.emotion_labels:
             idx = self.emotion_labels.index(emotion_name)
             vector[idx] = 1.0
@@ -393,18 +393,7 @@ class ContextualProgressionIntegrator:
             chord = chord_progression[i]
             
             # Get base emotions from individual model
-            try:
-                individual_results = self.individual_model.generate_chord_from_prompt(
-                    "neutral", num_options=1  # We just want the emotion weights
-                )
-                # Find matching chord in individual results
-                base_emotions = {"Joy": 0.1}  # Default fallback
-                for chord_obj in self.individual_model.database.chord_emotion_map:
-                    if chord_obj.roman_numeral == chord:
-                        base_emotions = chord_obj.emotion_weights
-                        break
-            except:
-                base_emotions = {"Joy": 0.1}  # Fallback
+            base_emotions, cd_value_from_individual = self._get_individual_chord_data(chord)
             
             # Get contextual emotions from neural network
             context_emotions = {
@@ -421,8 +410,11 @@ class ContextualProgressionIntegrator:
             # Harmonic tension
             harmonic_tension = float(tension_scores[i]) if i < len(tension_scores) else 0.5
             
-            # Consonant/Dissonant prediction
-            consonant_dissonant_value = float(consonant_dissonant_scores[i]) if i < len(consonant_dissonant_scores) else 0.5
+            # Consonant/Dissonant value: Use individual chord data if available, otherwise neural prediction
+            if cd_value_from_individual is not None:
+                consonant_dissonant_value = cd_value_from_individual
+            else:
+                consonant_dissonant_value = float(consonant_dissonant_scores[i]) if i < len(consonant_dissonant_scores) else 0.5
             
             analysis = ContextualChordAnalysis(
                 chord_symbol=self._roman_to_symbol(chord),
@@ -477,6 +469,71 @@ class ContextualProgressionIntegrator:
             cd_flow_description=cd_flow_description
         )
     
+    def _get_individual_chord_data(self, roman_numeral: str) -> Tuple[Dict[str, float], Optional[float]]:
+        """
+        Get base emotions and consonant/dissonant value from individual chord model
+        
+        Returns:
+            Tuple of (emotion_weights, cd_value)
+        """
+        try:
+            # Search through individual chord database for matching roman numeral
+            for chord_obj in self.individual_model.database.chord_emotion_map:
+                if chord_obj.roman_numeral == roman_numeral:
+                    # Get emotion weights
+                    base_emotions = chord_obj.emotion_weights.copy()
+                    
+                    # Get consonant/dissonant value if available
+                    cd_value = None
+                    if chord_obj.consonant_dissonant_profile:
+                        cd_profile = chord_obj.consonant_dissonant_profile
+                        cd_value = cd_profile.get("base_value", 0.4)
+                        
+                        # Apply context modifiers if available
+                        context_modifiers = cd_profile.get("context_modifiers", {})
+                        # Use Classical as default context for progression analysis
+                        context_modifier = context_modifiers.get("Classical", 1.0)
+                        cd_value = cd_value * context_modifier
+                    
+                    return base_emotions, cd_value
+            
+            # If no exact match found, try to find a similar chord
+            # Look for chords with similar function
+            fallback_chords = {
+                'I': ['I', 'Imaj7', 'I6'],
+                'ii': ['ii', 'ii7', 'iim7'],
+                'iii': ['iii', 'iii7', 'iiim7'],
+                'IV': ['IV', 'IVmaj7', 'IV6'],
+                'V': ['V', 'V7', 'Vmaj7'],
+                'vi': ['vi', 'vi7', 'vim7'],
+                'vii': ['vii', 'vii7', 'viim7b5'],
+                'i': ['i', 'im7', 'i6'],
+                'iv': ['iv', 'ivm7', 'iv6'],
+                'v': ['v', 'vm7', 'v6']
+            }
+            
+            for base_chord, variants in fallback_chords.items():
+                if roman_numeral in variants:
+                    # Look for the base chord
+                    for chord_obj in self.individual_model.database.chord_emotion_map:
+                        if chord_obj.roman_numeral == base_chord:
+                            base_emotions = chord_obj.emotion_weights.copy()
+                            cd_value = None
+                            if chord_obj.consonant_dissonant_profile:
+                                cd_value = chord_obj.consonant_dissonant_profile.get("base_value", 0.4)
+                            return base_emotions, cd_value
+            
+            # Final fallback - return neutral emotions
+            fallback_emotions = {emotion: 0.1 for emotion in self.emotion_labels}
+            fallback_emotions["Trust"] = 0.5  # Slightly more trust as default
+            return fallback_emotions, 0.4  # Moderate consonance
+            
+        except Exception as e:
+            print(f"Warning: Error retrieving individual chord data for {roman_numeral}: {e}")
+            fallback_emotions = {emotion: 0.1 for emotion in self.emotion_labels}
+            fallback_emotions["Joy"] = 0.5  # Default to mild joy
+            return fallback_emotions, 0.4
+
     def _determine_functional_role(self, chord: str, position: int, progression: List[str]) -> str:
         """Determine the functional role of a chord in the progression"""
         # Simplified functional analysis
