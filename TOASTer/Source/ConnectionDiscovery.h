@@ -55,7 +55,9 @@ public:
     
     // Device management
     std::vector<DiscoveredDevice> getDiscoveredDevices() const;
+    std::vector<std::string> getDiscoveredPeers() const; // Simplified peer list for BasicNetworkPanel
     bool connectToDevice(const std::string& deviceId);
+    bool isRunning() const { return isDiscovering.load(); }
     
     // Listener management
     void addListener(Listener* listener);

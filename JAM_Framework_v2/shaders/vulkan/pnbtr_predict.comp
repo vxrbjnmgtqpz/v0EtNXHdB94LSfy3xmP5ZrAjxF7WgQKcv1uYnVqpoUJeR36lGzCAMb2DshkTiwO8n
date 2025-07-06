@@ -1,0 +1,93 @@
+#version 450
+
+/**
+ * Vulkan PNBTR Prediction Compute Shader
+ * Equivalent to Metal pnbtr_predict.metal
+ * Predicts audio samples based on recent input analysis
+ */
+
+// Local work group size 
+layout(local_size_x = 64, local_size_y = 1, local_size_z = 1) in;
+
+// Constants
+#define SAMPLE_WINDOW 96            // 1 ms @ 96kHz
+#define PREDICTION_HORIZON 2400     // 50 ms @ 48kHz
+#define SAMPLE_RATE 48000.0
+#define PI 3.14159265359
+
+// Shared analysis results per threadgroup
+shared float shared_envelope;
+shared float shared_base_freq;
+shared float shared_phase;
+
+// Buffer bindings
+layout(set = 0, binding = 0) restrict readonly buffer RecentSamplesBuffer {
+    float recent_samples[SAMPLE_WINDOW];
+} recent_buffer;
+
+layout(set = 0, binding = 1) restrict buffer PredictedSamplesBuffer {
+    float predicted_samples[PREDICTION_HORIZON];
+} predicted_buffer;
+
+layout(set = 0, binding = 2) restrict buffer TimestampBuffer {
+    uint64_t timestamps[2];  // start, end
+} timestamp_buffer;
+
+// Envelope follower
+float computeEnvelope() {
+    float sum = 0.0;
+    for (uint i = 0; i < SAMPLE_WINDOW; i++) {
+        sum += abs(recent_buffer.recent_samples[i]);
+    }
+    return sum / float(SAMPLE_WINDOW);
+}
+
+// Crude autocorrelation pitch estimation
+float estimatePitch() {
+    float peak = 0.0;
+    int bestLag = 1;
+    
+    for (int lag = 1; lag < SAMPLE_WINDOW / 2; lag++) {
+        float sum = 0.0;
+        for (int i = 0; i < SAMPLE_WINDOW - lag; i++) {
+            sum += recent_buffer.recent_samples[i] * recent_buffer.recent_samples[i + lag];
+        }
+        if (sum > peak) {
+            peak = sum;
+            bestLag = lag;
+        }
+    }
+    
+    return SAMPLE_RATE / float(bestLag);
+}
+
+void main() {
+    uint tid = gl_GlobalInvocationID.x;
+    
+    // Step 1: Perform envelope + pitch analysis once (first thread in workgroup)
+    if (gl_LocalInvocationID.x == 0) {
+        shared_envelope = computeEnvelope();
+        float est = estimatePitch();
+        shared_base_freq = clamp(est, 60.0, 2000.0);
+        shared_phase = 0.0;
+        
+        // Write start timestamp
+        timestamp_buffer.timestamps[0] = uint64_t(gl_GlobalInvocationID.x * 1000); // Placeholder timestamp
+    }
+    
+    // Wait for analysis to complete
+    barrier();
+    
+    // Step 2: Synthesize predicted waveform
+    if (tid < PREDICTION_HORIZON) {
+        float t = float(tid) / SAMPLE_RATE;
+        float wave = shared_envelope * sin(2.0 * PI * shared_base_freq * t + shared_phase);
+        predicted_buffer.predicted_samples[tid] = wave;
+    }
+    
+    // Write end timestamp from last thread
+    barrier();
+    if (gl_LocalInvocationID.x == 0 && tid >= PREDICTION_HORIZON - 64) {
+        timestamp_buffer.timestamps[1] = timestamp_buffer.timestamps[0] + uint64_t(50000000); // Add 50ms
+    }
+}

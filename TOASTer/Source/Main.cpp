@@ -1,6 +1,5 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 #include "MainComponent.h"
-#include "ProjectInfo.h"
 
 //==============================================================================
 class TOASTerApplication : public juce::JUCEApplication
@@ -8,8 +7,8 @@ class TOASTerApplication : public juce::JUCEApplication
 public:
     TOASTerApplication() {}
 
-    const juce::String getApplicationName() override       { return ProjectInfo::projectName; }
-    const juce::String getApplicationVersion() override    { return ProjectInfo::versionString; }
+    const juce::String getApplicationName() override       { return "TOASTer"; }
+    const juce::String getApplicationVersion() override    { return "1.0.0"; }
     bool moreThanOneInstanceAllowed() override             { return true; }
 
     //==============================================================================
@@ -50,7 +49,7 @@ public:
             setFullScreen (true);
            #else
             setResizable (true, true);
-            centreWithSize (getWidth(), getHeight());
+            centreWithSize (800, 600);
            #endif
 
             setVisible (true);

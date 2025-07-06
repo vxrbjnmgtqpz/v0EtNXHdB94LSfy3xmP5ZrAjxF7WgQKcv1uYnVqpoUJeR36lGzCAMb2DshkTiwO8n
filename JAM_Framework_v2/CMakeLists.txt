@@ -300,6 +300,27 @@ elseif(JAM_GPU_BACKEND STREQUAL "vulkan")
         set(SHADER_COMPILE_COMMAND ${GLSLC_COMPILER})
         set(SHADER_EXTENSION ".spv")
         
+        # Compile Vulkan compute shaders for JAM Framework
+        set(VULKAN_COMPUTE_SHADERS
+            ${CMAKE_SOURCE_DIR}/shaders/vulkan/audio_processing.comp
+            ${CMAKE_SOURCE_DIR}/shaders/vulkan/pnbtr_predict.comp
+        )
+        
+        foreach(SHADER_FILE ${VULKAN_COMPUTE_SHADERS})
+            get_filename_component(SHADER_NAME ${SHADER_FILE} NAME_WE)
+            set(COMPILED_SHADER ${COMPILED_SHADER_DIR}/${SHADER_NAME}${SHADER_EXTENSION})
+            
+            add_custom_command(
+                OUTPUT ${COMPILED_SHADER}
+                COMMAND ${CMAKE_COMMAND} -E make_directory ${COMPILED_SHADER_DIR}
+                COMMAND ${GLSLC_COMPILER} ${SHADER_FILE} -o ${COMPILED_SHADER}
+                DEPENDS ${SHADER_FILE}
+                COMMENT "Compiling Vulkan compute shader ${SHADER_NAME}"
+            )
+            
+            list(APPEND COMPILED_VULKAN_SHADERS ${COMPILED_SHADER})
+        endforeach()
+        
         # Compile GPU-Native timing shaders
         set(TIMING_SHADERS
             ${TIMING_SHADER_DIR}/master_timebase.glsl
@@ -340,9 +361,13 @@ if(SHADER_COMPILE_COMMAND)
     #     list(APPEND COMPILED_SHADERS ${COMPILED_SHADER})
     # endforeach()
     
-    # Add timing shaders to compiled shaders list
+    # Add shaders to compiled shaders list
     if(COMPILED_TIMING_SHADERS)
         list(APPEND COMPILED_SHADERS ${COMPILED_TIMING_SHADERS})
+    endif()
+    
+    if(COMPILED_VULKAN_SHADERS)
+        list(APPEND COMPILED_SHADERS ${COMPILED_VULKAN_SHADERS})
     endif()
     
     if(COMPILED_SHADERS)

@@ -1,0 +1,106 @@
+#version 450
+
+/**
+ * Vulkan GPU Audio Processing Compute Shader
+ * Equivalent to Metal gpu_audio_processing.metal
+ * Handles real-time audio frame processing on GPU timeline
+ */
+
+// Local work group size (64 threads per group for optimal GPU utilization)
+layout(local_size_x = 64, local_size_y = 1, local_size_z = 1) in;
+
+// Audio frame event structure
+struct AudioFrameEvent {
+    uint64_t gpu_timestamp_ns;      // GPU timebase timestamp
+    uint64_t frame_id;              // Sequential frame identifier
+    uint channel_mask;              // Bitfield for active channels
+    uint sample_rate;               // Samples per second
+    uint frame_size_samples;        // Number of samples in this frame
+    uint gpu_buffer_offset;         // Offset in GPU audio buffer
+    uint bit_depth;                 // Bits per sample (16-bit packed with num_channels)
+    uint format_channels;           // Format flags (8-bit) + num_channels (8-bit) + realtime flags (16-bit)
+};
+
+// Audio processing parameters
+struct AudioProcessingParams {
+    float gain;                     // Audio gain multiplier
+    float mix_level;                // Mix level (0.0 - 1.0)
+    uint effect_mask;               // Bitfield for enabled effects
+    float effect_params[8];         // Effect-specific parameters
+};
+
+// Buffer bindings
+layout(set = 0, binding = 0) restrict buffer AudioBuffer {
+    float audio_data[];
+} audio_buffer;
+
+layout(set = 0, binding = 1) restrict readonly buffer EventBuffer {
+    AudioFrameEvent event;
+} event_buffer;
+
+layout(set = 0, binding = 2) restrict readonly buffer ParamsBuffer {
+    AudioProcessingParams params;
+} params_buffer;
+
+layout(set = 0, binding = 3) restrict buffer TimestampBuffer {
+    uint64_t timestamps[2];  // start, end
+} timestamp_buffer;
+
+void main() {
+    uint sample_index = gl_GlobalInvocationID.x;
+    
+    // Extract channel count from packed format_channels field
+    uint num_channels = (event_buffer.event.format_channels >> 8) & 0xFF;
+    uint is_realtime = (event_buffer.event.format_channels >> 16) & 0x1;
+    
+    // Bounds checking
+    if (sample_index >= event_buffer.event.frame_size_samples) {
+        return;
+    }
+    
+    // Write start timestamp on first thread
+    if (sample_index == 0) {
+        timestamp_buffer.timestamps[0] = event_buffer.event.gpu_timestamp_ns;
+    }
+    
+    // Process all channels for this sample
+    for (uint channel = 0; channel < num_channels; channel++) {
+        // Calculate buffer position
+        uint buffer_offset = event_buffer.event.gpu_buffer_offset / 4; // Convert bytes to float indices
+        uint position = buffer_offset + (sample_index * num_channels) + channel;
+        
+        // Load sample
+        float sample = audio_buffer.audio_data[position];
+        
+        // Apply gain
+        sample *= params_buffer.params.gain;
+        
+        // Apply effects based on effect mask
+        if ((params_buffer.params.effect_mask & 0x01) != 0) {
+            // High-pass filter (simplified)
+            sample *= 0.95;
+        }
+        
+        if ((params_buffer.params.effect_mask & 0x02) != 0) {
+            // Compression
+            float threshold = params_buffer.params.effect_params[0];
+            if (abs(sample) > threshold) {
+                sample *= 0.7; // Simplified compressor
+            }
+        }
+        
+        if ((params_buffer.params.effect_mask & 0x04) != 0) {
+            // Reverb (simplified)
+            sample += sample * params_buffer.params.effect_params[1] * 0.3;
+        }
+        
+        // Apply mix level and write back
+        audio_buffer.audio_data[position] = sample * params_buffer.params.mix_level;
+    }
+    
+    // Write end timestamp on last thread
+    barrier();
+    if (sample_index == event_buffer.event.frame_size_samples - 1) {
+        timestamp_buffer.timestamps[1] = event_buffer.event.gpu_timestamp_ns + uint64_t(1000000); // Add 1ms as placeholder
+    }
+}

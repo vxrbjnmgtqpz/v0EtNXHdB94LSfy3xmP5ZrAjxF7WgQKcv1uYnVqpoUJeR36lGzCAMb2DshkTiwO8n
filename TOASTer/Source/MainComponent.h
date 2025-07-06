@@ -1,42 +1,24 @@
 #pragma once
-
 #include <juce_gui_basics/juce_gui_basics.h>
-#include <string>
-#include <chrono>
-#include <cstdint>
 
-// GPU-Native JAM Framework v2 includes
-#include "jam_core.h"
-#include "jam_gpu.h"
-#include "gpu_native/gpu_timebase.h"
-#include "gpu_native/gpu_shared_timeline.h"
-#include "jmid_gpu/gpu_jmid_framework.h"
-#include "jdat_gpu/gpu_jdat_framework.h"
-#include "jvid_gpu/gpu_jvid_framework.h"
+//==============================================================================
+class MainComponent : public juce::Component, private juce::Timer
+{
+public:
+    MainComponent();
+    ~MainComponent() override;
 
-// Forward declarations
-class GPUTransportController;   // GPU-native transport controller
-class JAMNetworkPanel;          // Using JAM Framework v2 panel
-class MIDITestingPanel;
-class PerformanceMonitorPanel;
-class ClockSyncPanel;
-class JMIDIntegrationPanel;
-class GPUMIDIManager;           // GPU-native MIDI manager
-class WiFiNetworkDiscovery;     // WiFi peer discovery component
+    void paint(juce::Graphics& g) override;
+    void resized() override;
+    void timerCallback() override;
 
-// GPU-Native Application State
-struct GPUAppState {
-    // Network state (GPU timeline synchronized)
-    bool isNetworkConnected = false;
-    int activeConnections = 0;
-    double networkLatency = 0.0;
-    std::string connectedIP = "";
-    int connectedPort = 0;
+private:
+    class BasicTransportPanel* transportPanel;
+    class BasicMIDIPanel* midiPanel;
+    class BasicNetworkPanel* networkPanel;
     
-    // GPU clock sync state
-    bool isClockSyncEnabled = false;
-    double clockAccuracy = 0.0;
-    double clockOffset = 0.0;
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)
+};
     uint64_t roundTripTime = 0;
     
     // GPU performance state

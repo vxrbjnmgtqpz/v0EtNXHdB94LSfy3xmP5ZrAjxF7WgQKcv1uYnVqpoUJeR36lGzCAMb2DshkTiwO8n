@@ -347,6 +347,17 @@ std::vector<ConnectionDiscovery::DiscoveredDevice> ConnectionDiscovery::getDisco
     return discoveredDevices;
 }
 
+std::vector<std::string> ConnectionDiscovery::getDiscoveredPeers() const
+{
+    std::vector<std::string> peers;
+    for (const auto& device : discoveredDevices) {
+        if (device.isAvailable) {
+            peers.push_back(device.name + " (" + device.ipAddress + ")");
+        }
+    }
+    return peers;
+}
+
 bool ConnectionDiscovery::connectToDevice(const std::string& deviceId)
 {
     // Find device and initiate connection

@@ -1,6 +1,6 @@
 #include "MainComponent.h"
-//#include "BasicMIDIPanel.h"
-//#include "BasicNetworkPanel.h"
+#include "BasicMIDIPanel.h"
+#include "BasicNetworkPanel.h"
 #include "BasicTransportPanel.h"
 
 //==============================================================================
@@ -8,12 +8,12 @@ MainComponent::MainComponent()
 {
     // Create simplified panels without heavy framework dependencies
     transportPanel = new BasicTransportPanel();
-    //midiPanel = new BasicMIDIPanel();
-    //networkPanel = new BasicNetworkPanel();
+    midiPanel = new BasicMIDIPanel();
+    networkPanel = new BasicNetworkPanel();
     
     addAndMakeVisible(transportPanel);
-    //addAndMakeVisible(midiPanel);
-    //addAndMakeVisible(networkPanel);
+    addAndMakeVisible(midiPanel);
+    addAndMakeVisible(networkPanel);
     
     setSize(800, 600);
     
@@ -25,8 +25,8 @@ MainComponent::~MainComponent()
 {
     stopTimer();
     delete transportPanel;
-    //delete midiPanel;
-    //delete networkPanel;
+    delete midiPanel;
+    delete networkPanel;
 }
 
 void MainComponent::paint(juce::Graphics& g)
@@ -48,14 +48,11 @@ void MainComponent::resized()
     auto bounds = getLocalBounds();
     bounds.removeFromTop(50); // Title area
     
-    transportPanel->setBounds(bounds.reduced(10));
-    /*
     auto panelHeight = bounds.getHeight() / 3;
     
     transportPanel->setBounds(bounds.removeFromTop(panelHeight).reduced(5));
     midiPanel->setBounds(bounds.removeFromTop(panelHeight).reduced(5));
     networkPanel->setBounds(bounds.reduced(5));
-    */
 }
 
 void MainComponent::timerCallback()
