@@ -1,5 +1,5 @@
 // TOAST Transport implementation
-// Phase 2.2: TCP Tunnel Implementation
+// Phase 2.2: UDP-ONLY Implementation - NO TCP
 
 #include "TOASTTransport.h"
 #include <cstring>
@@ -165,7 +165,7 @@ public:
             return false; // Already running
         }
         
-        serverSocket = socket(AF_INET, SOCK_STREAM, 0);
+        serverSocket = socket(AF_INET, SOCK_DGRAM, 0);
         if (serverSocket < 0) {
             std::cerr << "❌ Failed to create server socket" << std::endl;
             return false;
@@ -223,7 +223,7 @@ public:
     }
     
     bool connectToServer(const std::string& address, uint16_t port, const std::string& clientId) {
-        int sock = socket(AF_INET, SOCK_STREAM, 0);
+        int sock = socket(AF_INET, SOCK_DGRAM, 0);
         if (sock < 0) {
             return false;
         }

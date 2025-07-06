@@ -17,6 +17,14 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(JUCE)
 
+# Add nlohmann JSON library
+FetchContent_Declare(
+    nlohmann_json
+    GIT_REPOSITORY https://github.com/nlohmann/json.git
+    GIT_TAG v3.11.3
+)
+FetchContent_MakeAvailable(nlohmann_json)
+
 # Create the main application target
 juce_add_gui_app(TOASTer
     PRODUCT_NAME "TOASTer"
@@ -37,7 +45,6 @@ target_sources(TOASTer PRIVATE
     Source/JAMNetworkPanel.cpp              # Re-enabled JAM Framework v2 panel
     Source/JAMFrameworkIntegration.cpp      # Re-enabled JAM Framework v2 integration
     Source/PNBTRManager.cpp                 # PNBTR GPU-accelerated prediction system
-    Source/NetworkConnectionPanel.cpp       # Legacy TCP panel (for fallback)
     Source/ConnectionDiscovery.cpp
     Source/BonjourDiscovery.mm
     Source/ThunderboltNetworkDiscovery.cpp  # New Thunderbolt discovery

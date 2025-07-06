@@ -144,7 +144,7 @@ void BonjourDiscovery::startDiscovery()
     serviceBrowser.delegate = bonjourDelegate;
     
     // Search for TOAST services
-    [serviceBrowser searchForServicesOfType:@"_toast._tcp." inDomain:@""];
+    [serviceBrowser searchForServicesOfType:@"_toast._udp." inDomain:@""];
     
     isDiscovering = true;
     statusLabel.setText("🔍 Discovering TOAST devices...", juce::dontSendNotification);
@@ -242,7 +242,7 @@ void BonjourDiscovery::onServiceFound(const std::string& name, const std::string
     device.name = name;
     device.hostname = hostname;
     device.port = port;
-    device.serviceType = "_toast._tcp.";
+    device.serviceType = "_toast._udp.";
     device.isAvailable = true;
     
     // Classify connection type based on hostname/IP
@@ -339,7 +339,7 @@ void BonjourDiscovery::publishOurService()
 {
     // Create a service to publish ourselves as discoverable
     publishedService = [[NSNetService alloc] initWithDomain:@"" 
-                                                       type:@"_toast._tcp." 
+                                                       type:@"_toast._udp." 
                                                        name:@"TOASTer" 
                                                        port:8080];
     

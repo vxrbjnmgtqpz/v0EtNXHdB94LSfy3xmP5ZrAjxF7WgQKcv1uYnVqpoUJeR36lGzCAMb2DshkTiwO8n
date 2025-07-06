@@ -227,7 +227,7 @@ void ConnectionDiscovery::scanNetworkInterface(const NetworkInterface& iface)
         if (targetIP == iface.ipAddress) continue;
         
         // Quick TCP port check on 8080
-        int sock = socket(AF_INET, SOCK_STREAM, 0);
+        int sock = socket(AF_INET, SOCK_DGRAM, 0);
         if (sock < 0) continue;
         
         struct timeval timeout;

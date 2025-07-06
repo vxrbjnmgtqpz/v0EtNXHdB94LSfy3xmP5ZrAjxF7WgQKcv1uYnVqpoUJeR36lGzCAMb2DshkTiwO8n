@@ -22,7 +22,7 @@ class PerformanceMonitorPanel;
 class ClockSyncPanel;
 class JMIDIntegrationPanel;
 class GPUMIDIManager;           // GPU-native MIDI manager
-class JAMNetworkServer;         // Robust network server implementation
+class WiFiNetworkDiscovery;     // WiFi peer discovery component
 
 // GPU-Native Application State
 struct GPUAppState {
@@ -98,13 +98,11 @@ private:
     // UI Components (using GPU-native backends)
     std::unique_ptr<GPUTransportController> transportController;
     std::unique_ptr<JAMNetworkPanel> jamNetworkPanel;  // Using JAM Framework v2 panel
+    std::unique_ptr<WiFiNetworkDiscovery> wifiDiscovery;  // WiFi peer discovery panel
     std::unique_ptr<MIDITestingPanel> midiPanel;
     std::unique_ptr<PerformanceMonitorPanel> performancePanel;
     std::unique_ptr<ClockSyncPanel> clockSyncPanel;
     std::unique_ptr<JMIDIntegrationPanel> jmidPanel;
-    
-    // Network infrastructure (addressing audit concerns)
-    std::unique_ptr<JAMNetworkServer> networkServer;   // Always-listening server
     
     // GPU timeline synchronization
     uint64_t lastGPUFrame = 0;

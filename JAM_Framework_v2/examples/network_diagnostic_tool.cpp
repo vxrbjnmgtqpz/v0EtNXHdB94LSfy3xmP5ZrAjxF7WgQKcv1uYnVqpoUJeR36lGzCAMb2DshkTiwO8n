@@ -140,7 +140,7 @@ private:
         std::cout << "\n3. 🔌 Server/Client Socket Test (Fixing Race Conditions)" << std::endl;
         
         // Test server socket creation
-        int server_fd = socket(AF_INET, SOCK_STREAM, 0);
+        int server_fd = socket(AF_INET, SOCK_DGRAM, 0);
         if (server_fd < 0) {
             std::cout << "   ❌ ERROR: Server socket creation failed: " << strerror(errno) << std::endl;
             return;
@@ -174,7 +174,7 @@ private:
         std::thread client_thread([this]() {
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
             
-            int client_fd = socket(AF_INET, SOCK_STREAM, 0);
+            int client_fd = socket(AF_INET, SOCK_DGRAM, 0);
             if (client_fd < 0) {
                 std::cout << "   ❌ ERROR: Client socket creation failed: " << strerror(errno) << std::endl;
                 return;
@@ -232,7 +232,7 @@ private:
             std::cout << "   📍 Testing IP: " << ip << std::endl;
             
             for (int port : test_ports) {
-                int sock_fd = socket(AF_INET, SOCK_STREAM, 0);
+                int sock_fd = socket(AF_INET, SOCK_DGRAM, 0);
                 if (sock_fd < 0) {
                     std::cout << "      ❌ Socket creation failed for " << ip << ":" << port << " - " << strerror(errno) << std::endl;
                     continue;

@@ -242,7 +242,7 @@ bool WiFiNetworkDiscovery::pingDevice(const std::string& ip_address, int port)
     }
 #endif
     
-    int socket_fd = socket(AF_INET, SOCK_STREAM, 0);
+    int socket_fd = socket(AF_INET, SOCK_DGRAM, 0);
     if (socket_fd < 0) {
         std::cout << "❌ Socket creation failed for " << ip_address << ":" << port 
                   << " - " << strerror(errno) << std::endl;
@@ -258,25 +258,6 @@ bool WiFiNetworkDiscovery::pingDevice(const std::string& ip_address, int port)
         std::cout << "⚠️  SO_REUSEADDR failed for " << ip_address << ":" << port 
                   << " - " << strerror(errno) << std::endl;
     }
-    
-    // Set non-blocking mode for timeout
-#ifdef _WIN32
-    u_long mode = 1;
-    if (ioctlsocket(socket_fd, FIONBIO, &mode) != 0) {
-        std::cout << "❌ ioctlsocket failed for " << ip_address << ":" << port << std::endl;
-        closesocket(socket_fd);
-        WSACleanup();
-        return false;
-    }
-#else
-    int flags = fcntl(socket_fd, F_GETFL, 0);
-    if (flags < 0 || fcntl(socket_fd, F_SETFL, flags | O_NONBLOCK) < 0) {
-        std::cout << "❌ fcntl non-blocking failed for " << ip_address << ":" << port 
-                  << " - " << strerror(errno) << std::endl;
-        close(socket_fd);
-        return false;
-    }
-#endif
     
     struct sockaddr_in server_addr;
     memset(&server_addr, 0, sizeof(server_addr));
@@ -294,70 +275,43 @@ bool WiFiNetworkDiscovery::pingDevice(const std::string& ip_address, int port)
         return false;
     }
     
-    // Try to connect
-    int result = connect(socket_fd, (struct sockaddr*)&server_addr, sizeof(server_addr));
+    // Send UDP ping message
+    const char* ping_message = "TOAST_PING";
+    ssize_t bytes_sent = sendto(socket_fd, ping_message, strlen(ping_message), 0,
+                               (struct sockaddr*)&server_addr, sizeof(server_addr));
     
     bool connected = false;
-    if (result == 0) {
-        // Immediate connection
-        connected = true;
-        std::cout << "✅ Immediate connection to " << ip_address << ":" << port << std::endl;
-    } else {
-        // Check error code
-#ifdef _WIN32
-        int error = WSAGetLastError();
-        if (error == WSAEWOULDBLOCK || error == WSAEINPROGRESS) {
-#else
-        if (errno == EINPROGRESS) {
-#endif
-            // Connection in progress - check with select
-            fd_set write_fds, error_fds;
-            FD_ZERO(&write_fds);
-            FD_ZERO(&error_fds);
-            FD_SET(socket_fd, &write_fds);
-            FD_SET(socket_fd, &error_fds);
-            
-            struct timeval timeout;
-            timeout.tv_sec = 0;
-            timeout.tv_usec = 500000;  // 0.5 second timeout for Wi-Fi
-            
-            int select_result = select(socket_fd + 1, nullptr, &write_fds, &error_fds, &timeout);
-            if (select_result > 0) {
-                if (FD_ISSET(socket_fd, &error_fds)) {
-                    // Connection error
-                    int sock_error = 0;
-                    socklen_t len = sizeof(sock_error);
-                    getsockopt(socket_fd, SOL_SOCKET, SO_ERROR, &sock_error, &len);
-                    std::cout << "❌ Connection error to " << ip_address << ":" << port 
-                              << " - " << strerror(sock_error) << std::endl;
-                } else if (FD_ISSET(socket_fd, &write_fds)) {
-                    // Check if connection succeeded
-                    int sock_error = 0;
-                    socklen_t len = sizeof(sock_error);
-                    if (getsockopt(socket_fd, SOL_SOCKET, SO_ERROR, &sock_error, &len) == 0 && sock_error == 0) {
-                        connected = true;
-                        std::cout << "✅ Connected to " << ip_address << ":" << port << " after select" << std::endl;
-                    } else {
-                        std::cout << "❌ Connection failed to " << ip_address << ":" << port 
-                                  << " - " << strerror(sock_error) << std::endl;
-                    }
-                }
-            } else if (select_result == 0) {
-                std::cout << "⏱️  Timeout connecting to " << ip_address << ":" << port << std::endl;
+    if (bytes_sent > 0) {
+        // Try to receive response with timeout
+        char response_buffer[256];
+        struct sockaddr_in from_addr;
+        socklen_t from_len = sizeof(from_addr);
+        
+        // Set receive timeout
+        struct timeval timeout;
+        timeout.tv_sec = 0;
+        timeout.tv_usec = 500000;  // 0.5 second timeout
+        setsockopt(socket_fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
+        
+        ssize_t bytes_received = recvfrom(socket_fd, response_buffer, sizeof(response_buffer) - 1, 0,
+                                         (struct sockaddr*)&from_addr, &from_len);
+        
+        if (bytes_received > 0) {
+            response_buffer[bytes_received] = '\0';
+            if (strstr(response_buffer, "TOAST") != nullptr) {
+                connected = true;
+                std::cout << "✅ UDP ping successful to " << ip_address << ":" << port 
+                          << " - Response: " << response_buffer << std::endl;
             } else {
-                std::cout << "❌ Select failed for " << ip_address << ":" << port 
-                          << " - " << strerror(errno) << std::endl;
+                std::cout << "⚠️  UDP response from " << ip_address << ":" << port 
+                          << " but not TOAST protocol" << std::endl;
             }
         } else {
-            // Immediate error
-#ifdef _WIN32
-            std::cout << "❌ Connect failed immediately to " << ip_address << ":" << port 
-                      << " - WSA Error: " << error << std::endl;
-#else
-            std::cout << "❌ Connect failed immediately to " << ip_address << ":" << port 
-                      << " - " << strerror(errno) << std::endl;
-#endif
+            std::cout << "⏱️  UDP ping timeout to " << ip_address << ":" << port << std::endl;
         }
+    } else {
+        std::cout << "❌ UDP sendto failed for " << ip_address << ":" << port 
+                  << " - " << strerror(errno) << std::endl;
     }
     
 #ifdef _WIN32

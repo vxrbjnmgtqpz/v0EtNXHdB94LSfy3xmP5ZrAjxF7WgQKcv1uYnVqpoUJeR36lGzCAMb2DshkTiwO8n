@@ -202,7 +202,7 @@ bool ThunderboltNetworkDiscovery::testDirectConnection(const std::string& ip_add
     }
 #endif
     
-    int socket_fd = socket(AF_INET, SOCK_STREAM, 0);
+    int socket_fd = socket(AF_INET, SOCK_DGRAM, 0);
     if (socket_fd < 0) {
         std::cerr << "❌ Failed to create test socket" << std::endl;
 #ifdef _WIN32

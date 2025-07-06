@@ -12,7 +12,9 @@ set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 
 # Build options
 option(JAM_BUILD_TESTS "Build JAM Framework tests" OFF)   # Disable tests for now
-option(JAM_BUILD_EXAMPLES "Build JAM Framework examples" OFF) # Disable examples for now
+option(JAM_BUILD_EXAMPLES "Build JAM Framework examples" ON)  # Enable for cross-platform testing
+option(JAM_ENABLE_JACK "Enable JACK audio backend" ON)
+option(JAM_ENABLE_GPU "Enable GPU-native rendering" ON)
 option(JAM_GPU_BACKEND "GPU backend (metal, vulkan, opengl)" "auto")
 
 # Platform detection for GPU backend
@@ -26,12 +28,51 @@ if(JAM_GPU_BACKEND STREQUAL "auto")
     endif()
 endif()
 
-# Force Metal on macOS for GPU-native architecture
-if(APPLE AND NOT JAM_GPU_BACKEND)
-    set(JAM_GPU_BACKEND "metal")
+# Audio backend detection
+if(JAM_ENABLE_JACK)
+    # Try to find JACK
+    find_package(PkgConfig QUIET)
+    if(PkgConfig_FOUND)
+        pkg_check_modules(JACK jack)
+        if(JACK_FOUND)
+            add_compile_definitions(JAM_ENABLE_JACK=1)
+            message(STATUS "JACK Audio enabled")
+        else()
+            message(STATUS "JACK not found, disabling JACK support")
+            set(JAM_ENABLE_JACK OFF)
+        endif()
+    endif()
+endif()
+
+# GPU backend setup
+if(JAM_ENABLE_GPU)
+    if(APPLE AND JAM_GPU_BACKEND STREQUAL "metal")
+        find_library(METAL_FRAMEWORK Metal)
+        find_library(METALKIT_FRAMEWORK MetalKit)
+        if(METAL_FRAMEWORK AND METALKIT_FRAMEWORK)
+            set(GPU_LIBRARIES ${METAL_FRAMEWORK} ${METALKIT_FRAMEWORK})
+            add_compile_definitions(JAM_GPU_BACKEND_METAL=1)
+            message(STATUS "Metal GPU backend enabled")
+        else()
+            message(WARNING "Metal framework not found")
+            set(JAM_ENABLE_GPU OFF)
+        endif()
+    elseif(UNIX AND NOT APPLE AND JAM_GPU_BACKEND STREQUAL "vulkan")
+        find_package(Vulkan QUIET)
+        if(Vulkan_FOUND)
+            set(GPU_LIBRARIES ${Vulkan_LIBRARIES})
+            add_compile_definitions(JAM_GPU_BACKEND_VULKAN=1)
+            message(STATUS "Vulkan GPU backend enabled")
+        else()
+            message(WARNING "Vulkan not found")
+            set(JAM_ENABLE_GPU OFF)
+        endif()
+    endif()
 endif()
 
 message(STATUS "JAM GPU Backend: ${JAM_GPU_BACKEND}")
+message(STATUS "JAM GPU Enabled: ${JAM_ENABLE_GPU}")
+message(STATUS "JAM JACK Enabled: ${JAM_ENABLE_JACK}")
 
 # Compiler flags for performance
 if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
@@ -79,6 +120,11 @@ endif()
 
 # Core JAM Framework library with GPU-Native infrastructure
 set(JAM_SOURCES
+    # Cross-Platform Audio Engine (Phase E Implementation)
+    src/JamAudioFrame.cpp
+    src/GPURenderEngine.cpp
+    src/AudioOutputBackend.cpp
+    
     # GPU-Native Core (Phase 2 Implementation)
     src/gpu_native/gpu_shared_timeline.cpp
     
@@ -106,6 +152,26 @@ set(JAM_SOURCES
     src/gpu/gpu_manager.cpp
     src/gpu/memory_mapper.cpp
 )
+
+# Platform-specific GPU render engines
+if(JAM_ENABLE_GPU)
+    if(APPLE AND JAM_GPU_BACKEND STREQUAL "metal")
+        list(APPEND JAM_SOURCES src/MetalRenderEngine.mm)
+    endif()
+    if(UNIX AND NOT APPLE)
+        # Include Vulkan stub (to be implemented)
+        list(APPEND JAM_SOURCES src/VulkanRenderEngine.cpp)
+    endif()
+endif()
+
+# Platform-specific audio backends
+if(JAM_ENABLE_JACK)
+    list(APPEND JAM_SOURCES src/JackAudioBackend.cpp)
+endif()
+
+if(APPLE)
+    # list(APPEND JAM_SOURCES src/CoreAudioBackend.cpp)  # To be implemented
+endif()
 
 # Platform-specific GPU timebase and transport implementation
 if(JAM_GPU_BACKEND STREQUAL "metal")
@@ -148,10 +214,21 @@ target_include_directories(jam_framework_v2
 target_link_libraries(jam_framework_v2 
     PUBLIC 
         Threads::Threads
-        ${GPU_LIBRARIES}
     PRIVATE
         nlohmann_json::nlohmann_json
 )
+
+# Link GPU libraries if enabled
+if(JAM_ENABLE_GPU AND GPU_LIBRARIES)
+    target_link_libraries(jam_framework_v2 PUBLIC ${GPU_LIBRARIES})
+endif()
+
+# Link JACK libraries if enabled
+if(JAM_ENABLE_JACK AND JACK_FOUND)
+    target_link_libraries(jam_framework_v2 PUBLIC ${JACK_LDFLAGS})
+    target_include_directories(jam_framework_v2 PUBLIC ${JACK_INCLUDE_DIRS})
+    target_compile_options(jam_framework_v2 PUBLIC ${JACK_CFLAGS_OTHER})
+endif()
 
 # Compile definitions
 target_compile_definitions(jam_framework_v2 

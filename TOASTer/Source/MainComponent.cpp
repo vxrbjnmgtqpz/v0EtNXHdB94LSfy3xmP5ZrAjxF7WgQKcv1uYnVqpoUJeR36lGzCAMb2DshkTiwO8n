@@ -1,7 +1,7 @@
 #include "MainComponent.h"
 #include "GPUTransportController.h"  // GPU-native transport controller
 #include "JAMNetworkPanel.h"         // Using JAM Framework v2 panel
-#include "JAMNetworkServer.h"        // Robust network server (fixes audit issues)
+#include "WiFiNetworkDiscovery.h"    // WiFi peer discovery
 #include "MIDITestingPanel.h"
 #include "PerformanceMonitorPanel.h"
 #include "ClockSyncPanel.h"
@@ -64,6 +64,10 @@ MainComponent::MainComponent()
     jamNetworkPanel = std::make_unique<JAMNetworkPanel>();  // Using JAM Framework v2 panel
     addAndMakeVisible(jamNetworkPanel.get());
     
+    // Add WiFi network discovery panel
+    wifiDiscovery = std::make_unique<WiFiNetworkDiscovery>();
+    addAndMakeVisible(wifiDiscovery.get());
+    
     midiPanel = std::make_unique<MIDITestingPanel>();
     midiPanel->setGPUMIDIManager(midiManager.get()); // Connect GPU MIDI manager
     addAndMakeVisible(midiPanel.get());
@@ -86,64 +90,6 @@ MainComponent::MainComponent()
         updateNetworkState(connected, peers, address, port);
     });
     
-    // Initialize JAMNetworkServer (addresses audit's server socket issue)
-    // This ensures port 8888 is always listening for peer discovery
-    JAMNetworkServer::ServerConfig serverConfig;
-    serverConfig.port = 8888;
-    serverConfig.enable_tcp_server = true;
-    serverConfig.enable_udp_multicast = true;
-    serverConfig.verbose_logging = true;
-    
-    networkServer = std::make_unique<JAMNetworkServer>(serverConfig);
-    
-    // Set up server callbacks to integrate with UI
-    class MainComponentServerListener : public JAMNetworkServer::Listener {
-    public:
-        MainComponentServerListener(MainComponent* owner) : owner_(owner) {}
-        
-        void onClientConnected(const std::string& client_ip) override {
-            DBG("JAMNet: Client connected from " << client_ip);
-            if (owner_) {
-                owner_->updateNetworkState(true, 1, client_ip, 8888);
-            }
-        }
-        
-        void onClientDisconnected(const std::string& client_ip) override {
-            DBG("JAMNet: Client disconnected: " << client_ip);
-            if (owner_) {
-                owner_->updateNetworkState(false, 0, "", 0);
-            }
-        }
-        
-        void onMessageReceived(const std::string& message, const std::string& from_ip) override {
-            DBG("JAMNet: Message from " << from_ip << ": " << message);
-            // Forward to JAMNetworkPanel for processing
-        }
-        
-        void onMulticastMessageReceived(const std::string& message) override {
-            DBG("JAMNet: Multicast message: " << message);
-            // Handle discovery messages
-        }
-        
-    private:
-        MainComponent* owner_;
-    };
-    
-    auto serverListener = std::make_unique<MainComponentServerListener>(this);
-    networkServer->addListener(serverListener.get());
-    
-    // Start the network server
-    if (!networkServer->startServer()) {
-        juce::AlertWindow::showMessageBoxAsync(
-            juce::MessageBoxIconType::WarningIcon,
-            "Network Server Warning",
-            "Failed to start JAMNet server on port 8888.\n"
-            "Peer discovery may not work properly."
-        );
-    } else {
-        DBG("JAMNet: Server started successfully on port 8888");
-    }
-    
     // Connect ClockSyncPanel to get network status updates
     // Note: Will need to add callback in JAMNetworkPanel to notify ClockSyncPanel of connection changes
     
@@ -163,12 +109,6 @@ MainComponent::MainComponent()
 MainComponent::~MainComponent()
 {
     stopTimer();
-    
-    // Clean shutdown of network server
-    if (networkServer && networkServer->isRunning()) {
-        networkServer->stopServer();
-        DBG("JAMNet: Server stopped");
-    }
 }
 
 void MainComponent::paint (juce::Graphics& g)
@@ -183,20 +123,21 @@ void MainComponent::resized()
     // Transport bar at the top (fixed height)
     transportController.get()->setBounds(bounds.removeFromTop(50));
     
-    // Divide remaining space into panels
+    // Divide remaining space into panels (now 2x3 grid to accommodate WiFi discovery)
     auto remainingBounds = bounds.reduced(10);
     auto panelHeight = remainingBounds.getHeight() / 2;
     auto panelWidth = remainingBounds.getWidth() / 3;
     
-    // Top row - three panels
+    // Top row - three panels (Network-related panels together)
     auto topRow = remainingBounds.removeFromTop(panelHeight);
     jamNetworkPanel.get()->setBounds(topRow.removeFromLeft(panelWidth).reduced(5));  // JAM Framework v2 panel
-    midiPanel.get()->setBounds(topRow.removeFromLeft(panelWidth).reduced(5));
-    jmidPanel.get()->setBounds(topRow.reduced(5)); // JMID panel gets remaining space
+    wifiDiscovery.get()->setBounds(topRow.removeFromLeft(panelWidth).reduced(5));   // WiFi discovery panel
+    midiPanel.get()->setBounds(topRow.reduced(5));
     
-    // Bottom row - two panels  
+    // Bottom row - three panels  
     auto bottomRow = remainingBounds;
-    performancePanel.get()->setBounds(bottomRow.removeFromLeft(panelWidth * 1.5).reduced(5));
+    jmidPanel.get()->setBounds(bottomRow.removeFromLeft(panelWidth).reduced(5)); // JMID panel
+    performancePanel.get()->setBounds(bottomRow.removeFromLeft(panelWidth).reduced(5));
     clockSyncPanel.get()->setBounds(bottomRow.reduced(5));
 }
 
