@@ -5,10 +5,10 @@
  */
 
 #include "jam_core.h"
-// #include "udp_transport.h"  // TODO: Implement UDP transport
-// #include "gpu_backend.h"    // TODO: Implement GPU backend
+#include "message_router.h"
 #include <chrono>
 #include <thread>
+#include <iostream>
 
 namespace jam {
 
@@ -78,6 +78,21 @@ public:
         // TODO: Implement GPU pipeline flush
     }
     
+    void set_message_router(std::shared_ptr<JAMMessageRouter> router) override {
+        message_router_ = router;
+        
+        // Connect the router to our UDP transport
+        if (router && running_) {
+            router->setOutputHandler([this](const std::string& jsonl) {
+                send_jsonl(jsonl);
+            });
+        }
+    }
+    
+    std::shared_ptr<JAMMessageRouter> get_message_router() const override {
+        return message_router_;
+    }
+    
 private:
     std::string multicast_group_;
     uint16_t port_;
@@ -86,6 +101,9 @@ private:
     
     std::function<void(const std::string& jsonl)> message_callback_;
     std::function<void(const std::vector<uint8_t>& data, const std::string& format_type)> binary_callback_;
+    
+    // Universal message router for API elimination
+    std::shared_ptr<JAMMessageRouter> message_router_;
 };
 
 // Static factory method implementation

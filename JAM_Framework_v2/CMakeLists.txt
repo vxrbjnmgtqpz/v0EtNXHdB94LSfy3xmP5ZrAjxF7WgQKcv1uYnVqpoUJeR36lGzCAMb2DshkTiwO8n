@@ -7,6 +7,9 @@ project(JAMFrameworkV2 VERSION 2.0.0 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Set CMake policy version for nlohmann_json compatibility
+set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
+
 # Build options
 option(JAM_BUILD_TESTS "Build JAM Framework tests" OFF)   # Disable tests for now
 option(JAM_BUILD_EXAMPLES "Build JAM Framework examples" OFF) # Disable examples for now
@@ -41,6 +44,21 @@ endif()
 
 # Find dependencies (NO TCP/HTTP libraries)
 find_package(Threads REQUIRED)
+
+# JSON library for universal message routing
+find_package(nlohmann_json QUIET)
+if(NOT nlohmann_json_FOUND)
+    message(STATUS "nlohmann_json not found, using FetchContent")
+    include(FetchContent)
+    FetchContent_Declare(
+        nlohmann_json
+        GIT_REPOSITORY https://github.com/nlohmann/json.git
+        GIT_TAG v3.11.2
+    )
+    set(JSON_BuildTests OFF CACHE INTERNAL "")
+    set(JSON_Install OFF CACHE INTERNAL "")
+    FetchContent_MakeAvailable(nlohmann_json)
+endif()
 
 # GPU backend dependencies
 if(JAM_GPU_BACKEND STREQUAL "metal")
@@ -131,6 +149,8 @@ target_link_libraries(jam_framework_v2
     PUBLIC 
         Threads::Threads
         ${GPU_LIBRARIES}
+    PRIVATE
+        nlohmann_json::nlohmann_json
 )
 
 # Compile definitions

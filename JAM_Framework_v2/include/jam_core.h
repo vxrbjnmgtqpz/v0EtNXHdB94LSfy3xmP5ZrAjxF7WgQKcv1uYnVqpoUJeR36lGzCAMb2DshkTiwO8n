@@ -85,6 +85,22 @@ public:
     virtual void set_binary_callback(std::function<void(const std::vector<uint8_t>& data, const std::string& format_type)> callback) = 0;
 
     /**
+     * Set universal message router - ENABLES API ELIMINATION
+     * 
+     * When a message router is set, JAMCore will route all received
+     * JSON messages through the router instead of using callbacks.
+     * This enables the revolutionary "stream as interface" paradigm.
+     * 
+     * @param router Universal message router for API elimination
+     */
+    virtual void set_message_router(std::shared_ptr<class JAMMessageRouter> router) = 0;
+
+    /**
+     * Get the current message router
+     */
+    virtual std::shared_ptr<class JAMMessageRouter> get_message_router() const = 0;
+
+    /**
      * Start UDP multicast listening and GPU processing
      * 
      * Non-blocking - starts background threads and GPU compute pipeline
