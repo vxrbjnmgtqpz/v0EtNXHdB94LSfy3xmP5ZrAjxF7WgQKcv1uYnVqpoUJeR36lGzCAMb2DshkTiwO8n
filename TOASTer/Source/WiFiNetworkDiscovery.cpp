@@ -237,56 +237,126 @@ bool WiFiNetworkDiscovery::pingDevice(const std::string& ip_address, int port)
 #ifdef _WIN32
     WSADATA wsaData;
     if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
+        std::cout << "❌ WSAStartup failed for " << ip_address << ":" << port << std::endl;
         return false;
     }
 #endif
     
     int socket_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (socket_fd < 0) {
+        std::cout << "❌ Socket creation failed for " << ip_address << ":" << port 
+                  << " - " << strerror(errno) << std::endl;
 #ifdef _WIN32
         WSACleanup();
 #endif
         return false;
     }
     
+    // CRITICAL FIX: Set socket reuse options
+    int reuse = 1;
+    if (setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)) < 0) {
+        std::cout << "⚠️  SO_REUSEADDR failed for " << ip_address << ":" << port 
+                  << " - " << strerror(errno) << std::endl;
+    }
+    
     // Set non-blocking mode for timeout
 #ifdef _WIN32
     u_long mode = 1;
-    ioctlsocket(socket_fd, FIONBIO, &mode);
+    if (ioctlsocket(socket_fd, FIONBIO, &mode) != 0) {
+        std::cout << "❌ ioctlsocket failed for " << ip_address << ":" << port << std::endl;
+        closesocket(socket_fd);
+        WSACleanup();
+        return false;
+    }
 #else
     int flags = fcntl(socket_fd, F_GETFL, 0);
-    fcntl(socket_fd, F_SETFL, flags | O_NONBLOCK);
+    if (flags < 0 || fcntl(socket_fd, F_SETFL, flags | O_NONBLOCK) < 0) {
+        std::cout << "❌ fcntl non-blocking failed for " << ip_address << ":" << port 
+                  << " - " << strerror(errno) << std::endl;
+        close(socket_fd);
+        return false;
+    }
 #endif
     
     struct sockaddr_in server_addr;
     memset(&server_addr, 0, sizeof(server_addr));
     server_addr.sin_family = AF_INET;
     server_addr.sin_port = htons(port);
-    inet_pton(AF_INET, ip_address.c_str(), &server_addr.sin_addr);
+    
+    if (inet_pton(AF_INET, ip_address.c_str(), &server_addr.sin_addr) <= 0) {
+        std::cout << "❌ inet_pton failed for " << ip_address << ":" << port << std::endl;
+#ifdef _WIN32
+        closesocket(socket_fd);
+        WSACleanup();
+#else
+        close(socket_fd);
+#endif
+        return false;
+    }
     
     // Try to connect
     int result = connect(socket_fd, (struct sockaddr*)&server_addr, sizeof(server_addr));
     
     bool connected = false;
     if (result == 0) {
+        // Immediate connection
         connected = true;
+        std::cout << "✅ Immediate connection to " << ip_address << ":" << port << std::endl;
     } else {
-        // Check with select for very short timeout (Wi-Fi should be fast)
-        fd_set write_fds;
-        FD_ZERO(&write_fds);
-        FD_SET(socket_fd, &write_fds);
-        
-        struct timeval timeout;
-        timeout.tv_sec = 0;
-        timeout.tv_usec = 500000;  // 0.5 second timeout for Wi-Fi
-        
-        int select_result = select(socket_fd + 1, nullptr, &write_fds, nullptr, &timeout);
-        if (select_result > 0 && FD_ISSET(socket_fd, &write_fds)) {
-            int error = 0;
-            socklen_t len = sizeof(error);
-            if (getsockopt(socket_fd, SOL_SOCKET, SO_ERROR, &error, &len) == 0 && error == 0) {
-                connected = true;
+        // Check error code
+#ifdef _WIN32
+        int error = WSAGetLastError();
+        if (error == WSAEWOULDBLOCK || error == WSAEINPROGRESS) {
+#else
+        if (errno == EINPROGRESS) {
+#endif
+            // Connection in progress - check with select
+            fd_set write_fds, error_fds;
+            FD_ZERO(&write_fds);
+            FD_ZERO(&error_fds);
+            FD_SET(socket_fd, &write_fds);
+            FD_SET(socket_fd, &error_fds);
+            
+            struct timeval timeout;
+            timeout.tv_sec = 0;
+            timeout.tv_usec = 500000;  // 0.5 second timeout for Wi-Fi
+            
+            int select_result = select(socket_fd + 1, nullptr, &write_fds, &error_fds, &timeout);
+            if (select_result > 0) {
+                if (FD_ISSET(socket_fd, &error_fds)) {
+                    // Connection error
+                    int sock_error = 0;
+                    socklen_t len = sizeof(sock_error);
+                    getsockopt(socket_fd, SOL_SOCKET, SO_ERROR, &sock_error, &len);
+                    std::cout << "❌ Connection error to " << ip_address << ":" << port 
+                              << " - " << strerror(sock_error) << std::endl;
+                } else if (FD_ISSET(socket_fd, &write_fds)) {
+                    // Check if connection succeeded
+                    int sock_error = 0;
+                    socklen_t len = sizeof(sock_error);
+                    if (getsockopt(socket_fd, SOL_SOCKET, SO_ERROR, &sock_error, &len) == 0 && sock_error == 0) {
+                        connected = true;
+                        std::cout << "✅ Connected to " << ip_address << ":" << port << " after select" << std::endl;
+                    } else {
+                        std::cout << "❌ Connection failed to " << ip_address << ":" << port 
+                                  << " - " << strerror(sock_error) << std::endl;
+                    }
+                }
+            } else if (select_result == 0) {
+                std::cout << "⏱️  Timeout connecting to " << ip_address << ":" << port << std::endl;
+            } else {
+                std::cout << "❌ Select failed for " << ip_address << ":" << port 
+                          << " - " << strerror(errno) << std::endl;
             }
+        } else {
+            // Immediate error
+#ifdef _WIN32
+            std::cout << "❌ Connect failed immediately to " << ip_address << ":" << port 
+                      << " - WSA Error: " << error << std::endl;
+#else
+            std::cout << "❌ Connect failed immediately to " << ip_address << ":" << port 
+                      << " - " << strerror(errno) << std::endl;
+#endif
         }
     }
     

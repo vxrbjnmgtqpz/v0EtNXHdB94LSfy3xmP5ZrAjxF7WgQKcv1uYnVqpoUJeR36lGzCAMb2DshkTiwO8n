@@ -22,6 +22,7 @@ class PerformanceMonitorPanel;
 class ClockSyncPanel;
 class JMIDIntegrationPanel;
 class GPUMIDIManager;           // GPU-native MIDI manager
+class JAMNetworkServer;         // Robust network server implementation
 
 // GPU-Native Application State
 struct GPUAppState {
@@ -101,6 +102,9 @@ private:
     std::unique_ptr<PerformanceMonitorPanel> performancePanel;
     std::unique_ptr<ClockSyncPanel> clockSyncPanel;
     std::unique_ptr<JMIDIntegrationPanel> jmidPanel;
+    
+    // Network infrastructure (addressing audit concerns)
+    std::unique_ptr<JAMNetworkServer> networkServer;   // Always-listening server
     
     // GPU timeline synchronization
     uint64_t lastGPUFrame = 0;
