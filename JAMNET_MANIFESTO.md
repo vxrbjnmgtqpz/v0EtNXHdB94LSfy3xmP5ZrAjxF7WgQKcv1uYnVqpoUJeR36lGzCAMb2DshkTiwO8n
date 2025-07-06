@@ -11,7 +11,7 @@ For decades, we've been sold the same lie:
 - **Musicians**: "Play for exposure, maybe get paid"
 - **Developers**: "Build for free, hope for attribution" 
 - **Compute Owners**: "Burn electricity solving meaningless puzzles for imaginary money"
-- **Creators**: "Accept that technology extractsvalue from your work"
+- **Creators**: "Accept that technology extracts value from your work"
 
 **We reject this paradigm entirely.**
 
@@ -55,7 +55,7 @@ Network Grows → JAMBucks Value Increases → Everyone Benefits
 
 ### **Revenue Sources (JAMNet Studio LLC):**
 - Hardware sales (cost-neutral, entry points)
-- Subscription upgrades (JamPro, JELLIE AI Studio)
+- Subscription upgrades
 - Compute time resale (GPU node leasing)
 - Enterprise licensing
 - Conversion transaction fees
@@ -126,7 +126,7 @@ def distribute_epoch_rewards():
 ### **From Speculation to Utility**
 
 **Crypto Promise:** "Solve math, get tokens, hope they're worth something"
-**JAMNet Reality:** "Create music, earn credits, backed by real business value"
+**JAMNet Reality:** "Process music, earn credits, backed by real business value"
 
 ---
 
@@ -216,8 +216,7 @@ This is bigger than cryptocurrency.
 
 **Join us. Build with us. Create with us. Earn with us.**
 
-**Because this time, we all get paid.**
-
+**Everyone wins.**
 ---
 
 *JAMNet Studio LLC - Building the Future of Creative Collaboration*

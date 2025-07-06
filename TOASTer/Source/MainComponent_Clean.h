@@ -13,7 +13,7 @@ public:
     void timerCallback() override;
 
 private:
-    class ProfessionalTransportController* transportPanel;
+    class BasicTransportPanel* transportPanel;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)
 };

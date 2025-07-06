@@ -102,10 +102,11 @@ private:
                 juce::MidiMessage noteOn = juce::MidiMessage::noteOn(1, 60, (juce::uint8)100);
                 midiOut->sendMessageNow(noteOn);
                 
-                // Send Note Off after 500ms
-                juce::Timer::callAfterDelay(500, [midiOut]() mutable {
+                // Send Note Off after 500ms - use shared_ptr to avoid copy issues
+                std::shared_ptr<juce::MidiOutput> sharedMidiOut = std::move(midiOut);
+                juce::Timer::callAfterDelay(500, [sharedMidiOut]() {
                     juce::MidiMessage noteOff = juce::MidiMessage::noteOff(1, 60);
-                    midiOut->sendMessageNow(noteOff);
+                    sharedMidiOut->sendMessageNow(noteOff);
                 });
                 
                 statusLabel.setText("MIDI Status: Test note sent", juce::dontSendNotification);
