@@ -53,6 +53,18 @@ JAMNetworkPanel::JAMNetworkPanel()
     statusLabel.setColour(juce::Label::textColourId, juce::Colours::orange);
     addAndMakeVisible(statusLabel);
     
+    // Network mode selection
+    networkModeLabel.setText("Network Mode:", juce::dontSendNotification);
+    networkModeLabel.setFont(getEmojiCompatibleFont(10.0f));
+    addAndMakeVisible(networkModeLabel);
+    
+    networkModeCombo.addItem("📶 Wi-Fi (Recommended)", 1);
+    networkModeCombo.addItem("🔗 Thunderbolt Bridge", 2);
+    networkModeCombo.addItem("🌐 Bonjour/mDNS", 3);
+    networkModeCombo.setSelectedId(1); // Default to Wi-Fi
+    networkModeCombo.onChange = [this] { networkModeChanged(); };
+    addAndMakeVisible(networkModeCombo);
+    
     // Session configuration
     sessionLabel.setText("Session:", juce::dontSendNotification);
     sessionLabel.setFont(getEmojiCompatibleFont(10.0f));
@@ -166,6 +178,11 @@ JAMNetworkPanel::JAMNetworkPanel()
     thunderboltDiscovery->addListener(this);
     addAndMakeVisible(*thunderboltDiscovery);
     
+    // Wi-Fi discovery for local network scanning
+    wifiDiscovery = std::make_unique<WiFiNetworkDiscovery>();
+    wifiDiscovery->addListener(this);
+    addAndMakeVisible(*wifiDiscovery);
+    
     // Start 250ms update timer
     startTimer(250);
 }
@@ -177,6 +194,10 @@ JAMNetworkPanel::~JAMNetworkPanel() {
     
     if (thunderboltDiscovery) {
         thunderboltDiscovery->removeListener(this);
+    }
+    
+    if (wifiDiscovery) {
+        wifiDiscovery->removeListener(this);
     }
     
     if (jamFramework && networkConnected) {
@@ -200,6 +221,12 @@ void JAMNetworkPanel::resized() {
     // Title
     titleLabel.setBounds(bounds.removeFromTop(25));
     statusLabel.setBounds(bounds.removeFromTop(20));
+    bounds.removeFromTop(5);
+    
+    // Network mode selection
+    auto modeRow = bounds.removeFromTop(25);
+    networkModeLabel.setBounds(modeRow.removeFromLeft(90));
+    networkModeCombo.setBounds(modeRow.removeFromLeft(180));
     bounds.removeFromTop(5);
     
     // Configuration row 1: Session name
@@ -260,16 +287,20 @@ void JAMNetworkPanel::resized() {
     
     bounds.removeFromTop(5);
     
-    // Discovery sections (split remaining space)
-    if (bounds.getHeight() > 100) {
-        // Thunderbolt discovery gets top priority
-        thunderboltDiscovery->setBounds(bounds.removeFromTop(80));
-        bounds.removeFromTop(5);
+    // Discovery sections - only show the selected one
+    if (bounds.getHeight() > 80) {
+        int selectedMode = networkModeCombo.getSelectedId();
+        auto discoveryBounds = bounds.removeFromTop(120);
         
-        // Bonjour discovery gets remaining space
-        if (bounds.getHeight() > 50) {
-            bonjourDiscovery->setBounds(bounds.removeFromTop(60));
-        }
+        // Position all discovery panels but only make one visible
+        thunderboltDiscovery->setBounds(discoveryBounds);
+        wifiDiscovery->setBounds(discoveryBounds);
+        bonjourDiscovery->setBounds(discoveryBounds);
+        
+        // Set visibility based on selection
+        thunderboltDiscovery->setVisible(selectedMode == 2);
+        wifiDiscovery->setVisible(selectedMode == 1);
+        bonjourDiscovery->setVisible(selectedMode == 3);
     }
 }
 
@@ -607,4 +638,53 @@ void JAMNetworkPanel::onJAMTransportReceived(const std::string& command, uint64_
     if (transportController) {
         transportController->handleRemoteTransportCommand(command, timestamp);
     }
+}
+
+// Wi-Fi Discovery Listener Implementation
+void JAMNetworkPanel::deviceDiscovered(const WiFiPeer& device) {
+    juce::Logger::writeToLog("📶 Wi-Fi Device Discovered: " + juce::String(device.ip_address));
+    
+    // For now, just start direct network mode - in the future we could store discovered IPs
+    // and allow user to select which one to connect to
+    if (jamFramework) {
+        jamFramework->startNetworkDirect();
+    }
+}
+
+void JAMNetworkPanel::discoveryCompleted() {
+    juce::Logger::writeToLog("📶 Wi-Fi Discovery Completed");
+    updateUI();
+}
+
+// Network Mode Change Handler
+void JAMNetworkPanel::networkModeChanged() {
+    int selectedMode = networkModeCombo.getSelectedId();
+    
+    // Hide all discovery panels first
+    bonjourDiscovery->setVisible(false);
+    thunderboltDiscovery->setVisible(false);
+    wifiDiscovery->setVisible(false);
+    
+    // Show selected discovery panel
+    switch (selectedMode) {
+        case 1: // Wi-Fi
+            wifiDiscovery->setVisible(true);
+            statusLabel.setText("📶 Wi-Fi Mode - Scan your local network for TOASTer peers", juce::dontSendNotification);
+            statusLabel.setColour(juce::Label::textColourId, juce::Colours::lightgreen);
+            break;
+            
+        case 2: // Thunderbolt
+            thunderboltDiscovery->setVisible(true);
+            statusLabel.setText("🔗 Thunderbolt Mode - Direct USB4/TB connection", juce::dontSendNotification);
+            statusLabel.setColour(juce::Label::textColourId, juce::Colours::cyan);
+            break;
+            
+        case 3: // Bonjour
+            bonjourDiscovery->setVisible(true);
+            statusLabel.setText("🌐 Bonjour Mode - mDNS service discovery", juce::dontSendNotification);
+            statusLabel.setColour(juce::Label::textColourId, juce::Colours::orange);
+            break;
+    }
+    
+    resized(); // Trigger layout update
 }

@@ -41,6 +41,7 @@ target_sources(TOASTer PRIVATE
     Source/ConnectionDiscovery.cpp
     Source/BonjourDiscovery.mm
     Source/ThunderboltNetworkDiscovery.cpp  # New Thunderbolt discovery
+    Source/WiFiNetworkDiscovery.cpp         # New Wi-Fi discovery
     Source/MIDITestingPanel.cpp
     Source/PerformanceMonitorPanel.cpp
     Source/ClockSyncPanel.cpp

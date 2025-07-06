@@ -4,6 +4,7 @@
 #include "JAMFrameworkIntegration.h"
 #include "BonjourDiscovery.h"
 #include "ThunderboltNetworkDiscovery.h"
+#include "WiFiNetworkDiscovery.h"
 
 // Forward declarations
 class GPUTransportController;
@@ -17,7 +18,8 @@ class GPUTransportController;
 class JAMNetworkPanel : public juce::Component, 
                        public juce::Timer,
                        public BonjourDiscovery::Listener,
-                       public ThunderboltNetworkDiscovery::Listener {
+                       public ThunderboltNetworkDiscovery::Listener,
+                       public WiFiNetworkDiscovery::Listener {
 public:
     JAMNetworkPanel();
     ~JAMNetworkPanel() override;
@@ -70,6 +72,10 @@ private:
     juce::Label performanceLabel;
     juce::Label pnbtrStatusLabel;
     
+    // Network mode selection
+    juce::Label networkModeLabel;
+    juce::ComboBox networkModeCombo;
+    
     // Configuration controls
     juce::Label sessionLabel;
     juce::TextEditor sessionNameEditor;
@@ -91,6 +97,7 @@ private:
     // Discovery
     std::unique_ptr<BonjourDiscovery> bonjourDiscovery;
     std::unique_ptr<ThunderboltNetworkDiscovery> thunderboltDiscovery;
+    std::unique_ptr<WiFiNetworkDiscovery> wifiDiscovery;
     
     // Performance metrics display
     juce::Label latencyLabel;
@@ -131,12 +138,17 @@ private:
     void peerLost(const std::string& device_name) override;
     void connectionEstablished(const ThunderboltNetworkDiscovery::PeerDevice& device) override;
     
+    // WiFiNetworkDiscovery::Listener implementation
+    void deviceDiscovered(const WiFiPeer& device) override;
+    void discoveryCompleted() override;
+    
     // Timer callback
     void timerCallback() override;
     
     // Helper methods
     void updateUI();
     void updatePerformanceDisplay();
+    void networkModeChanged();
     juce::Font getEmojiCompatibleFont(float size = 12.0f);
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(JAMNetworkPanel)
