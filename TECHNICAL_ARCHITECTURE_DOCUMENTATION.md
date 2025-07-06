@@ -24,7 +24,7 @@ MIDIp2p/
 ### **Zero-API JSON Message Routing Paradigm**
 
 #### **Revolutionary Design Principle**
-The system employs a revolutionary "zero-API" approach where all inter-module communication occurs through structured JSON messages. This eliminates traditional API boundaries and creates a GPU-native, stream-oriented architecture.
+The system employs a revolutionary "zero-API" approach where all inter-module communication occurs through structured JSON messages. This eliminates traditional API boundaries and creates a **GPU NATIVE architecture** - a fundamental paradigm shift where the GPU is the primary compute environment, not an accelerator for CPU operations.
 
 #### **Before/After Comparison**
 ```cpp
@@ -47,7 +47,7 @@ AudioBuffer* result = processor.getBuffer();
 #### **Benefits**
 - **🚀 Performance**: 0.4μs JSON processing (154x faster than MIDI requirements)
 - **🔧 Flexibility**: Dynamic routing without recompilation
-- **🖥️ GPU-Native**: Direct GPU memory mapping of JSON structures
+- **🖥️ GPU NATIVE**: Direct GPU memory mapping of JSON structures - paradigm shift from CPU-centric to GPU-centric computing
 - **🌐 Network-Ready**: Natural serialization for peer-to-peer communication
 - **📊 Debuggable**: All data flow visible and loggable
 

@@ -97,27 +97,27 @@ pnbtr_module.predict(history, horizon);  // FORBIDDEN!
 auto result = other_module->directFunction();  // FORBIDDEN!
 ```
 
-### **2. GPU-Native Design**
-All computational components MUST be designed for GPU execution with CPU fallback.
+### **2. GPU NATIVE Design Paradigm**
+All computational components MUST be designed for GPU execution with CPU fallback. This represents a fundamental paradigm shift from CPU-centric to GPU-centric computing.
 
-#### **✅ GPU-Native Pattern**
+#### **✅ GPU NATIVE Pattern**
 ```cpp
 class GPUNativeProcessor {
 public:
     void processData(const std::vector<float>& input) {
         if (gpu_available_) {
-            processOnGPU(input);
+            processOnGPU(input);  // PRIMARY: GPU is the main compute environment
         } else {
-            processOnCPU(input);
+            processOnCPU(input);  // FALLBACK: CPU used only when GPU unavailable
         }
     }
     
 private:
     void processOnGPU(const std::vector<float>& input) {
-        // 1. Upload to GPU memory
+        // 1. Upload to GPU memory (primary compute environment)
         auto gpu_buffer = createGPUBuffer(input);
         
-        // 2. Execute compute shader
+        // 2. Execute compute shader (GPU NATIVE processing)
         executeComputeShader(gpu_buffer);
         
         // 3. Read results as JSON message
@@ -126,7 +126,7 @@ private:
     }
     
     void processOnCPU(const std::vector<float>& input) {
-        // Equivalent CPU implementation
+        // Equivalent CPU implementation (fallback only)
         auto result = computeOnCPU(input);
         sendJSONMessage(createResultMessage(result));
     }
