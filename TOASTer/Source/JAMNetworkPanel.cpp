@@ -58,10 +58,9 @@ JAMNetworkPanel::JAMNetworkPanel()
     networkModeLabel.setFont(getEmojiCompatibleFont(10.0f));
     addAndMakeVisible(networkModeLabel);
     
-    networkModeCombo.addItem("📶 Wi-Fi (Recommended)", 1);
-    networkModeCombo.addItem("🔗 Thunderbolt Bridge", 2);
-    networkModeCombo.addItem("🌐 Bonjour/mDNS", 3);
-    networkModeCombo.setSelectedId(1); // Default to Wi-Fi
+    networkModeCombo.addItem("🌐 UDP Multicast", 1);
+    networkModeCombo.addItem("🎯 UDP Direct", 2);
+    networkModeCombo.setSelectedId(1); // Default to UDP Multicast
     networkModeCombo.onChange = [this] { networkModeChanged(); };
     addAndMakeVisible(networkModeCombo);
     
@@ -168,38 +167,17 @@ JAMNetworkPanel::JAMNetworkPanel()
     pnbtrStatusLabel.setColour(juce::Label::textColourId, juce::Colours::cyan);
     addAndMakeVisible(pnbtrStatusLabel);
     
-    // Bonjour discovery for fallback
-    bonjourDiscovery = std::make_unique<BonjourDiscovery>();
-    bonjourDiscovery->addListener(this);
-    addAndMakeVisible(*bonjourDiscovery);
-    
-    // Thunderbolt discovery for direct connections
-    thunderboltDiscovery = std::make_unique<ThunderboltNetworkDiscovery>();
-    thunderboltDiscovery->addListener(this);
-    addAndMakeVisible(*thunderboltDiscovery);
-    
-    // Wi-Fi discovery for local network scanning
-    wifiDiscovery = std::make_unique<WiFiNetworkDiscovery>();
-    wifiDiscovery->addListener(this);
-    addAndMakeVisible(*wifiDiscovery);
+    // UDP-only real-time network status
+    udpStatusLabel.setText("🌐 UDP Multicast: Ready for real-time TOAST protocol", juce::dontSendNotification);
+    udpStatusLabel.setFont(getEmojiCompatibleFont(10.0f));
+    udpStatusLabel.setColour(juce::Label::textColourId, juce::Colours::lightgreen);
+    addAndMakeVisible(udpStatusLabel);
     
     // Start 250ms update timer
     startTimer(250);
 }
 
 JAMNetworkPanel::~JAMNetworkPanel() {
-    if (bonjourDiscovery) {
-        bonjourDiscovery->removeListener(this);
-    }
-    
-    if (thunderboltDiscovery) {
-        thunderboltDiscovery->removeListener(this);
-    }
-    
-    if (wifiDiscovery) {
-        wifiDiscovery->removeListener(this);
-    }
-    
     if (jamFramework && networkConnected) {
         jamFramework->stopNetwork();
     }
@@ -285,23 +263,10 @@ void JAMNetworkPanel::resized() {
     // PNBTR status
     pnbtrStatusLabel.setBounds(bounds.removeFromTop(15));
     
-    bounds.removeFromTop(5);
+    bounds.removeFromTop(3);
     
-    // Discovery sections - only show the selected one
-    if (bounds.getHeight() > 80) {
-        int selectedMode = networkModeCombo.getSelectedId();
-        auto discoveryBounds = bounds.removeFromTop(120);
-        
-        // Position all discovery panels but only make one visible
-        thunderboltDiscovery->setBounds(discoveryBounds);
-        wifiDiscovery->setBounds(discoveryBounds);
-        bonjourDiscovery->setBounds(discoveryBounds);
-        
-        // Set visibility based on selection
-        thunderboltDiscovery->setVisible(selectedMode == 2);
-        wifiDiscovery->setVisible(selectedMode == 1);
-        bonjourDiscovery->setVisible(selectedMode == 3);
-    }
+    // UDP status
+    udpStatusLabel.setBounds(bounds.removeFromTop(15));
 }
 
 bool JAMNetworkPanel::isConnected() const {
@@ -499,88 +464,7 @@ void JAMNetworkPanel::onJAMMIDIReceived(uint8_t status, uint8_t data1, uint8_t d
                            juce::String::toHexString(data2));
 }
 
-void JAMNetworkPanel::deviceDiscovered(const BonjourDiscovery::DiscoveredDevice& device) {
-    // Bonjour discovered a device - could auto-suggest connection
-    juce::Logger::writeToLog("Bonjour discovered device: " + juce::String(device.name) + " at " + juce::String(device.hostname));
-}
 
-void JAMNetworkPanel::deviceLost(const std::string& name) {
-    juce::Logger::writeToLog("Bonjour lost device: " + juce::String(name));
-}
-
-void JAMNetworkPanel::deviceConnected(const BonjourDiscovery::DiscoveredDevice& device) {
-    juce::Logger::writeToLog("Bonjour connected to device: " + juce::String(device.name));
-}
-
-// ThunderboltNetworkDiscovery::Listener implementation
-void JAMNetworkPanel::peerDiscovered(const ThunderboltNetworkDiscovery::PeerDevice& device) {
-    juce::Logger::writeToLog("Thunderbolt discovered peer: " + juce::String(device.name) + " at " + juce::String(device.ip_address));
-    
-    // Auto-suggest this device for connection since it's on Thunderbolt
-    if (device.is_thunderbolt) {
-        statusLabel.setText("🔗 Found Thunderbolt device: " + juce::String(device.name), juce::dontSendNotification);
-        statusLabel.setColour(juce::Label::textColourId, juce::Colours::lightgreen);
-    }
-}
-
-void JAMNetworkPanel::peerLost(const std::string& device_name) {
-    juce::Logger::writeToLog("Thunderbolt lost peer: " + juce::String(device_name));
-}
-
-void JAMNetworkPanel::connectionEstablished(const ThunderboltNetworkDiscovery::PeerDevice& device) {
-    juce::Logger::writeToLog("Thunderbolt connected to peer: " + juce::String(device.name));
-    
-    // Configure the JAM Framework to use this direct connection
-    // Bypass the multicast tests for direct Thunderbolt connections
-    if (jamFramework && device.is_thunderbolt) {
-        // Use the discovered IP for a direct connection
-        multicastAddressEditor.setText(device.ip_address);
-        portEditor.setText("7777"); // Standard port
-        
-        statusLabel.setText("🚀 Connecting via Thunderbolt to " + juce::String(device.ip_address) + "...", juce::dontSendNotification);
-        statusLabel.setColour(juce::Label::textColourId, juce::Colours::yellow);
-        
-        // Initialize with the direct IP
-        bool initSuccess = jamFramework->initialize(
-            device.ip_address,
-            7777,
-            currentSessionName.toStdString()
-        );
-        
-        if (initSuccess) {
-            // Use direct connection method that bypasses network tests
-            bool networkSuccess = jamFramework->startNetworkDirect();
-            
-            if (networkSuccess) {
-                networkConnected = true;
-                connectButton.setEnabled(false);
-                disconnectButton.setEnabled(true);
-                
-                statusLabel.setText("✅ Connected via Thunderbolt to " + juce::String(device.ip_address), juce::dontSendNotification);
-                statusLabel.setColour(juce::Label::textColourId, juce::Colours::green);
-                
-                // AUTO-ENABLE all optimal settings
-                jamFramework->setPNBTRAudioPrediction(true);
-                jamFramework->setPNBTRVideoPrediction(true);
-                jamFramework->setBurstConfig(3, 500, true);
-                
-                juce::Logger::writeToLog("🚀 Thunderbolt connection established with auto-config");
-                
-                // Notify network status callback if set
-                if (networkStatusCallback) {
-                    networkStatusCallback(true, 1, device.ip_address, 7777);
-                }
-                
-            } else {
-                statusLabel.setText("❌ Failed to start direct connection to " + juce::String(device.ip_address), juce::dontSendNotification);
-                statusLabel.setColour(juce::Label::textColourId, juce::Colours::red);
-            }
-        } else {
-            statusLabel.setText("❌ Failed to initialize for " + juce::String(device.ip_address), juce::dontSendNotification);
-            statusLabel.setColour(juce::Label::textColourId, juce::Colours::red);
-        }
-    }
-}
 
 void JAMNetworkPanel::timerCallback() {
     updateUI();
@@ -640,49 +524,32 @@ void JAMNetworkPanel::onJAMTransportReceived(const std::string& command, uint64_
     }
 }
 
-// Wi-Fi Discovery Listener Implementation
-void JAMNetworkPanel::deviceDiscovered(const WiFiPeer& device) {
-    juce::Logger::writeToLog("📶 Wi-Fi Device Discovered: " + juce::String(device.ip_address));
-    
-    // For now, just start direct network mode - in the future we could store discovered IPs
-    // and allow user to select which one to connect to
-    if (jamFramework) {
-        jamFramework->startNetworkDirect();
-    }
-}
 
-void JAMNetworkPanel::discoveryCompleted() {
-    juce::Logger::writeToLog("📶 Wi-Fi Discovery Completed");
-    updateUI();
-}
 
 // Network Mode Change Handler
 void JAMNetworkPanel::networkModeChanged() {
     int selectedMode = networkModeCombo.getSelectedId();
     
-    // Hide all discovery panels first
-    bonjourDiscovery->setVisible(false);
-    thunderboltDiscovery->setVisible(false);
-    wifiDiscovery->setVisible(false);
-    
-    // Show selected discovery panel
+    // Handle UDP-only modes
     switch (selectedMode) {
-        case 1: // Wi-Fi
-            wifiDiscovery->setVisible(true);
-            statusLabel.setText("📶 Wi-Fi Mode - Scan your local network for TOASTer peers", juce::dontSendNotification);
+        case 1: // UDP Multicast
+            statusLabel.setText("🌐 UDP Multicast Mode - Broadcast to multiple peers", juce::dontSendNotification);
             statusLabel.setColour(juce::Label::textColourId, juce::Colours::lightgreen);
+            udpStatusLabel.setText("🌐 UDP Multicast: Ready for real-time TOAST protocol", juce::dontSendNotification);
+            udpStatusLabel.setColour(juce::Label::textColourId, juce::Colours::lightgreen);
+            // Set default multicast settings
+            multicastAddressEditor.setText("239.255.77.77");
+            portEditor.setText("7777");
             break;
             
-        case 2: // Thunderbolt
-            thunderboltDiscovery->setVisible(true);
-            statusLabel.setText("🔗 Thunderbolt Mode - Direct USB4/TB connection", juce::dontSendNotification);
+        case 2: // UDP Direct
+            statusLabel.setText("🎯 UDP Direct Mode - Point-to-point connection", juce::dontSendNotification);
             statusLabel.setColour(juce::Label::textColourId, juce::Colours::cyan);
-            break;
-            
-        case 3: // Bonjour
-            bonjourDiscovery->setVisible(true);
-            statusLabel.setText("🌐 Bonjour Mode - mDNS service discovery", juce::dontSendNotification);
-            statusLabel.setColour(juce::Label::textColourId, juce::Colours::orange);
+            udpStatusLabel.setText("🎯 UDP Direct: Ready for peer-to-peer TOAST protocol", juce::dontSendNotification);
+            udpStatusLabel.setColour(juce::Label::textColourId, juce::Colours::cyan);
+            // Set default direct connection settings
+            multicastAddressEditor.setText("192.168.1.100");
+            portEditor.setText("7777");
             break;
     }
     

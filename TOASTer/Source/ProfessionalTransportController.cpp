@@ -49,8 +49,8 @@ ProfessionalTransportController::ProfessionalTransportController()
     recordButton->onClick = [this] { recordButtonClicked(); };
     bpmSlider->onValueChange = [this] { bpmSliderChanged(); };
     
-    // Start high-frequency timer for microsecond updates
-    startTimer(16); // ~60 FPS for smooth updates
+    // Start high-frequency timer for microsecond precision updates
+    startTimer(1); // 1000 Hz for true microsecond display updates
 }
 
 ProfessionalTransportController::~ProfessionalTransportController()
@@ -72,33 +72,36 @@ void ProfessionalTransportController::resized()
 {
     auto bounds = getLocalBounds().reduced(5);
     
-    // Top row: Transport buttons
-    auto buttonRow = bounds.removeFromTop(40);
+    // Single horizontal row: All components side by side
     int buttonWidth = 35;
     int buttonSpacing = 5;
+    int componentSpacing = 15;
     
-    playButton->setBounds(buttonRow.removeFromLeft(buttonWidth));
-    buttonRow.removeFromLeft(buttonSpacing);
-    stopButton->setBounds(buttonRow.removeFromLeft(buttonWidth));
-    buttonRow.removeFromLeft(buttonSpacing);
-    pauseButton->setBounds(buttonRow.removeFromLeft(buttonWidth));
-    buttonRow.removeFromLeft(buttonSpacing);
-    recordButton->setBounds(buttonRow.removeFromLeft(buttonWidth));
+    // Transport buttons (left side)
+    playButton->setBounds(bounds.removeFromLeft(buttonWidth));
+    bounds.removeFromLeft(buttonSpacing);
+    stopButton->setBounds(bounds.removeFromLeft(buttonWidth));
+    bounds.removeFromLeft(buttonSpacing);
+    pauseButton->setBounds(bounds.removeFromLeft(buttonWidth));
+    bounds.removeFromLeft(buttonSpacing);
+    recordButton->setBounds(bounds.removeFromLeft(buttonWidth));
     
-    bounds.removeFromTop(10);
+    bounds.removeFromLeft(componentSpacing);
     
-    // Second row: Session time and bars
-    auto timeRow = bounds.removeFromTop(25);
-    sessionTimeLabel->setBounds(timeRow.removeFromLeft(200));
-    timeRow.removeFromLeft(20);
-    barsBeatsLabel->setBounds(timeRow.removeFromLeft(100));
+    // Session time (middle-left)
+    sessionTimeLabel->setBounds(bounds.removeFromLeft(200));
     
-    bounds.removeFromTop(10);
+    bounds.removeFromLeft(componentSpacing);
     
-    // Third row: BPM controls
-    auto bpmRow = bounds.removeFromTop(25);
-    bpmLabel->setBounds(bpmRow.removeFromLeft(60));
-    bpmSlider->setBounds(bpmRow.removeFromLeft(150));
+    // Bars display (middle-right)
+    barsBeatsLabel->setBounds(bounds.removeFromLeft(100));
+    
+    bounds.removeFromLeft(componentSpacing);
+    
+    // BPM controls (right side)
+    bpmLabel->setBounds(bounds.removeFromLeft(60));
+    bounds.removeFromLeft(5);
+    bpmSlider->setBounds(bounds.removeFromLeft(150));
 }
 
 void ProfessionalTransportController::timerCallback()
@@ -170,21 +173,19 @@ void ProfessionalTransportController::updateSessionTimeDisplay()
     // Calculate current sample position
     currentSample = static_cast<uint64_t>((elapsed.count() / 1000000.0) * sampleRate);
     
-    // Convert to hours:minutes:seconds.milliseconds.microseconds
+    // Convert to hours:minutes:seconds.microseconds (6-digit precision)
     uint64_t totalMicroseconds = elapsed.count();
     uint64_t hours = totalMicroseconds / (1000000ULL * 60 * 60);
     uint64_t minutes = (totalMicroseconds / (1000000ULL * 60)) % 60;
     uint64_t seconds = (totalMicroseconds / 1000000ULL) % 60;
-    uint64_t milliseconds = (totalMicroseconds / 1000ULL) % 1000;
-    uint64_t microseconds = totalMicroseconds % 1000;
+    uint64_t microseconds = totalMicroseconds % 1000000; // Full 6-digit microseconds
     
     std::ostringstream oss;
     oss << "SESSION TIME: " 
         << std::setfill('0') << std::setw(2) << hours << ":"
         << std::setfill('0') << std::setw(2) << minutes << ":"
         << std::setfill('0') << std::setw(2) << seconds << "."
-        << std::setfill('0') << std::setw(3) << milliseconds << "."
-        << std::setfill('0') << std::setw(3) << microseconds;
+        << std::setfill('0') << std::setw(6) << microseconds; // 6-digit microsecond precision
     
     sessionTimeLabel->setText(oss.str(), juce::dontSendNotification);
 }

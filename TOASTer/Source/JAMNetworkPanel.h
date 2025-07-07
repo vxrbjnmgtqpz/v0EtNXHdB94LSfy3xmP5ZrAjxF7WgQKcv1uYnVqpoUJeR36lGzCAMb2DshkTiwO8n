@@ -2,9 +2,6 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 #include "JAMFrameworkIntegration.h"
-#include "BonjourDiscovery.h"
-#include "ThunderboltNetworkDiscovery.h"
-#include "WiFiNetworkDiscovery.h"
 
 // Forward declarations
 class GPUTransportController;
@@ -12,14 +9,12 @@ class GPUTransportController;
 /**
  * JAM Framework v2 Network Panel for TOASTer
  * 
- * Replaces the old TCP-based NetworkConnectionPanel with UDP multicast
- * using JAM Framework v2, including PNBTR prediction and GPU acceleration.
+ * Pure UDP-only network implementation using JAM Framework v2 TOAST protocol
+ * with real-time UDP multicast, PNBTR prediction, and GPU acceleration.
+ * No TCP, no Wi-Fi discovery, no Bonjour, no Thunderbolt - UDP multicast only.
  */
 class JAMNetworkPanel : public juce::Component, 
-                       public juce::Timer,
-                       public BonjourDiscovery::Listener,
-                       public ThunderboltNetworkDiscovery::Listener,
-                       public WiFiNetworkDiscovery::Listener {
+                       public juce::Timer {
 public:
     JAMNetworkPanel();
     ~JAMNetworkPanel() override;
@@ -71,6 +66,7 @@ private:
     juce::Label statusLabel;
     juce::Label performanceLabel;
     juce::Label pnbtrStatusLabel;
+    juce::Label udpStatusLabel;
     
     // Network mode selection
     juce::Label networkModeLabel;
@@ -93,11 +89,6 @@ private:
     juce::ToggleButton pnbtrVideoToggle;
     juce::ToggleButton burstTransmissionToggle;
     juce::ToggleButton gpuAccelerationToggle;
-    
-    // Discovery
-    std::unique_ptr<BonjourDiscovery> bonjourDiscovery;
-    std::unique_ptr<ThunderboltNetworkDiscovery> thunderboltDiscovery;
-    std::unique_ptr<WiFiNetworkDiscovery> wifiDiscovery;
     
     // Performance metrics display
     juce::Label latencyLabel;
@@ -128,20 +119,6 @@ private:
     void onJAMMIDIReceived(uint8_t status, uint8_t data1, uint8_t data2, uint32_t timestamp);
     void onJAMTransportReceived(const std::string& command, uint64_t timestamp, double position, double bpm);
 
-    // BonjourDiscovery::Listener implementation
-    void deviceDiscovered(const BonjourDiscovery::DiscoveredDevice& device) override;
-    void deviceLost(const std::string& deviceName) override;
-    void deviceConnected(const BonjourDiscovery::DiscoveredDevice& device) override;
-    
-    // ThunderboltNetworkDiscovery::Listener implementation
-    void peerDiscovered(const ThunderboltNetworkDiscovery::PeerDevice& device) override;
-    void peerLost(const std::string& device_name) override;
-    void connectionEstablished(const ThunderboltNetworkDiscovery::PeerDevice& device) override;
-    
-    // WiFiNetworkDiscovery::Listener implementation
-    void deviceDiscovered(const WiFiPeer& device) override;
-    void discoveryCompleted() override;
-    
     // Timer callback
     void timerCallback() override;
     

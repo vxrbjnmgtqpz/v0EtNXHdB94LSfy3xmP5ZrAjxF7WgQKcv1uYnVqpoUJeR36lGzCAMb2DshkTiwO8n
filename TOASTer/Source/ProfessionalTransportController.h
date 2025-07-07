@@ -4,9 +4,6 @@
 #include <chrono>
 #include <atomic>
 
-// Forward declaration
-class JAMNetworkPanel;
-
 //==============================================================================
 /**
  * Custom transport button that renders shapes via canvas instead of relying on emoji fonts

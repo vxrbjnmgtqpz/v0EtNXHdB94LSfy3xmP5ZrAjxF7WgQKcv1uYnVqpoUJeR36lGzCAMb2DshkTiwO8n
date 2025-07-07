@@ -1,6 +1,9 @@
+#include "JAMNetworkPanel.h"
+#include <string>
+
 void JAMNetworkPanel::deviceDiscovered(const BonjourDiscovery::DiscoveredDevice& device) {
     // Bonjour discovered a device - could auto-suggest connection
-    juce::Logger::writeToLog("Bonjour discovered device: " + juce::String(device.name) + " at " + juce::String(device.ipAddress));
+    juce::Logger::writeToLog("Bonjour discovered device: " + juce::String(device.name) + " at " + juce::String(device.hostname));
 }
 
 void JAMNetworkPanel::deviceLost(const std::string& deviceName) {
