@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleExecutable</key>
+    <string>${MACOSX_BUNDLE_EXECUTABLE_NAME}</string>
+    <key>CFBundleIdentifier</key>
+    <string>${MACOSX_BUNDLE_GUI_IDENTIFIER}</string>
+    <key>CFBundleName</key>
+    <string>${MACOSX_BUNDLE_BUNDLE_NAME}</string>
+    <key>CFBundleVersion</key>
+    <string>${MACOSX_BUNDLE_BUNDLE_VERSION}</string>
+    <key>CFBundleShortVersionString</key>
+    <string>${MACOSX_BUNDLE_SHORT_VERSION_STRING}</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    
+    <!-- MICROPHONE PERMISSION - Required for Core Audio input -->
+    <key>NSMicrophoneUsageDescription</key>
+    <string>PNBTR+JELLIE processes real-time audio input for revolutionary JELLIE encoding and PNBTR neural reconstruction. Your microphone input is used for live audio processing and oscilloscope display.</string>
+    
+    <!-- Optional: Camera permission if needed later -->
+    <key>NSCameraUsageDescription</key>
+    <string>PNBTR+JELLIE may use camera for future JAMCam video processing features.</string>
+    
+    <!-- High Performance Audio -->
+    <key>NSSupportsAutomaticTermination</key>
+    <false/>
+    <key>NSSupportsSuddenTermination</key>
+    <false/>
+    
+    <!-- App Category -->
+    <key>LSApplicationCategoryType</key>
+    <string>public.app-category.music</string>
+    
+    <!-- Minimum macOS Version -->
+    <key>LSMinimumSystemVersion</key>
+    <string>10.15</string>
+</dict>
+</plist> 
