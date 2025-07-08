@@ -102,6 +102,8 @@ set(JMID_SOURCES
     src/ConnectionManager.cpp
     src/ProtocolHandler.cpp
     src/SessionManager.cpp
+    src/CompactJMIDFormat.cpp
+    src/SIMDJMIDParser.cpp
 )
 
 # Header files
@@ -112,6 +114,8 @@ set(JMID_HEADERS
     include/TOASTTransport.h
     include/ClockDriftArbiter.h
     include/LockFreeQueue.h
+    include/CompactJMIDFormat.h
+    include/SIMDJMIDParser.h
 )
 
 # Create the main library
