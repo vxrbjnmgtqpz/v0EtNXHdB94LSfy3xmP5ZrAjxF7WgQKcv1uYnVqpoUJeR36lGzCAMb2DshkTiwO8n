@@ -1,35 +1,29 @@
-#include "JELLIEEncoder.h"
-#include "WaveformPredictor.h"
+#include "../include/JELLIEEncoder.h"
+#include "../include/WaveformPredictor.h"
 #include <cstring>
 #include <algorithm>
 #include <random>
+#include <iostream>
+#include <chrono>
 
 namespace jdat {
 
 JELLIEEncoder::JELLIEEncoder(const Config& config) 
     : config_(config)
-    , is_running_(false)
-    , frame_counter_(0)
-    , timestamp_offset_(0) {
+    , start_time_us_(JDATMessage::getCurrentTimestamp()) {
     
     // Initialize buffer manager
     AudioBufferManager::Config buffer_config;
     buffer_config.sample_rate = static_cast<uint32_t>(config_.sample_rate);
     buffer_config.buffer_size_ms = config_.buffer_size_ms;
-    buffer_config.frame_size_samples = config_.frame_size_samples;
     
     buffer_manager_ = std::make_unique<AudioBufferManager>(buffer_config);
     
-    // Initialize ADAT simulator for 4-stream redundancy
-    adat_simulator_ = std::make_unique<ADATSimulator>(config_.redundancy_level);
-    
     // Generate session UUID if not provided
     if (config_.session_id.empty()) {
-        generateSessionId();
+        // Use const_cast to modify the config - this is safe in constructor
+        const_cast<Config&>(config_).session_id = JDATMessage::generateMessageId();
     }
-    
-    // Initialize timing
-    resetTiming();
     
     std::cout << "JELLIE Encoder initialized:\n";
     std::cout << "  Sample Rate: " << static_cast<uint32_t>(config_.sample_rate) << " Hz\n";
@@ -49,9 +43,9 @@ bool JELLIEEncoder::start() {
     
     is_running_ = true;
     
-    // Start real-time processing thread
-    processing_thread_ = std::thread([this]() {
-        processingLoop();
+    // Start encoding thread using the header-defined member name
+    encoding_thread_ = std::thread([this]() {
+        encodingThreadFunction();
     });
     
     return true;
@@ -64,86 +58,44 @@ void JELLIEEncoder::stop() {
     
     is_running_ = false;
     
-    if (processing_thread_.joinable()) {
-        processing_thread_.join();
+    if (encoding_thread_.joinable()) {
+        encoding_thread_.join();
     }
 }
 
-std::vector<JDATMessage> JELLIEEncoder::encodeFrame(const std::vector<float>& audio_samples) {
-    if (audio_samples.size() != config_.frame_size_samples) {
-        throw std::invalid_argument("Audio frame size mismatch");
+bool JELLIEEncoder::processAudio(const std::vector<float>& samples, uint64_t timestamp_us) {
+    if (!is_running_) {
+        return false;
     }
     
-    std::vector<JDATMessage> messages;
-    messages.reserve(4); // ADAT-inspired 4 streams
-    
-    // Get current timestamp
-    uint64_t timestamp = getCurrentTimestamp();
-    
-    // Split audio into ADAT-inspired streams
-    auto streams = adat_simulator_->splitToStreams(audio_samples);
-    
-    // Create JDAT messages for each stream
-    for (size_t stream_idx = 0; stream_idx < streams.size(); ++stream_idx) {
-        JDATMessage message;
-        message.header.version = 2;
-        message.header.message_type = MessageType::AUDIO_DATA;
-        message.header.stream_id = static_cast<uint8_t>(stream_idx);
-        message.header.frame_number = frame_counter_;
-        message.header.timestamp_us = timestamp;
-        message.header.sample_rate = config_.sample_rate;
-        message.header.quality = config_.quality;
-        message.header.redundancy = config_.redundancy_level;
-        
-        // Session identification
-        std::strncpy(message.header.session_id, config_.session_id.c_str(), 
-                    sizeof(message.header.session_id) - 1);
-        
-        // Encode audio data
-        encodeAudioData(streams[stream_idx], message);
-        
-        // Calculate checksum
-        message.header.checksum = calculateChecksum(message);
-        
-        messages.push_back(std::move(message));
+    if (samples.size() != config_.frame_size_samples) {
+        return false; // Frame size mismatch
     }
     
-    frame_counter_++;
-    
-    // Call output callback if set
-    if (message_callback_) {
-        for (const auto& msg : messages) {
-            message_callback_(msg);
-        }
-    }
-    
-    return messages;
+    // Store samples in buffer manager for processing
+    return buffer_manager_->writeSamples(samples, timestamp_us);
 }
 
-void JELLIEEncoder::setAudioCallback(AudioCallback callback) {
-    audio_callback_ = std::move(callback);
+bool JELLIEEncoder::processAudio(const std::vector<float>& samples) {
+    return processAudio(samples, JDATMessage::getCurrentTimestamp());
 }
 
 void JELLIEEncoder::setMessageCallback(MessageCallback callback) {
     message_callback_ = std::move(callback);
 }
 
-void JELLIEEncoder::enableReferenceRecording(bool enable) {
-    reference_recording_enabled_ = enable;
-    if (enable) {
-        reference_samples_.clear();
-        reference_samples_.reserve(static_cast<uint32_t>(config_.sample_rate) * 60); // 1 minute buffer
-    }
+JDATMessage JELLIEEncoder::createStreamInfoMessage() const {
+    return JDATMessage::createStreamInfoMessage(
+        0, // stream_id
+        config_.sample_rate,
+        config_.quality,
+        config_.redundancy_level,
+        config_.enable_adat_mapping,
+        config_.buffer_size_ms
+    );
 }
 
-bool JELLIEEncoder::enableGPUAcceleration(const std::string& shader_path) {
-    // GPU acceleration implementation would go here
-    // For now, return false to indicate CPU processing
-    gpu_enabled_ = false;
-    return false;
-}
-
-void JELLIEEncoder::processingLoop() {
+void JELLIEEncoder::encodingThreadFunction() {
     const auto frame_duration = std::chrono::microseconds(
         (config_.frame_size_samples * 1000000) / static_cast<uint32_t>(config_.sample_rate)
     );
@@ -151,23 +103,36 @@ void JELLIEEncoder::processingLoop() {
     while (is_running_) {
         auto start_time = std::chrono::high_resolution_clock::now();
         
-        // Get audio from buffer manager
-        auto audio_data = buffer_manager_->getNextFrame();
-        if (!audio_data.empty()) {
-            // Call audio callback if set
-            if (audio_callback_) {
-                audio_callback_(audio_data, getCurrentTimestamp());
-            }
-            
-            // Encode frame
+        // Try to read audio from buffer manager
+        std::vector<float> samples;
+        uint64_t timestamp_us;
+        uint8_t channel;
+        
+        if (buffer_manager_->readSamples(samples, timestamp_us, channel)) {
             try {
-                auto messages = encodeFrame(audio_data);
+                // Generate ADAT-inspired streams for redundancy
+                auto streams = generateRedundantStreams(samples, config_.redundancy_level);
                 
-                // Store reference data if enabled
-                if (reference_recording_enabled_) {
-                    std::lock_guard<std::mutex> lock(reference_mutex_);
-                    reference_samples_.insert(reference_samples_.end(), 
-                                            audio_data.begin(), audio_data.end());
+                // Create JDAT messages for each stream
+                for (size_t stream_idx = 0; stream_idx < streams.size(); ++stream_idx) {
+                    JDATMessage message = JDATMessage::createAudioMessage(
+                        streams[stream_idx],
+                        static_cast<uint32_t>(config_.sample_rate),
+                        static_cast<uint8_t>(stream_idx),
+                        config_.redundancy_level,
+                        stream_idx % 2 == 1,  // is_interleaved for odd streams
+                        stream_idx * config_.frame_size_samples / 4  // offset for ADAT strategy
+                    );
+                    
+                    // Set sequence number and session
+                    message.setSequenceNumber(sequence_number_.fetch_add(1));
+                    message.setSessionId(config_.session_id);
+                    message.setTimestamp(timestamp_us);
+                    
+                    // Send message via callback
+                    if (message_callback_) {
+                        message_callback_(message);
+                    }
                 }
                 
             } catch (const std::exception& e) {
@@ -185,75 +150,102 @@ void JELLIEEncoder::processingLoop() {
     }
 }
 
-void JELLIEEncoder::encodeAudioData(const std::vector<float>& samples, JDATMessage& message) {
-    // Clear previous data
-    message.audio_data.samples.clear();
-    message.audio_data.samples.reserve(samples.size());
+std::vector<std::vector<float>> JELLIEEncoder::generateRedundantStreams(
+    const std::vector<float>& primary_samples,
+    uint8_t redundancy_level) {
     
-    // Convert float samples to 24-bit integers for transmission
-    for (float sample : samples) {
-        // Clamp to [-1.0, 1.0] range
-        sample = std::max(-1.0f, std::min(1.0f, sample));
-        
-        // Convert to 24-bit integer
-        int32_t sample_24bit = static_cast<int32_t>(sample * 8388607.0f); // 2^23 - 1
-        
-        // Ensure 24-bit range
-        sample_24bit = std::max(-8388608, std::min(8388607, sample_24bit));
-        
-        message.audio_data.samples.push_back(sample_24bit);
+    std::vector<std::vector<float>> streams;
+    
+    // ADAT-inspired 4-stream strategy
+    const size_t samples_per_stream = primary_samples.size() / 2;
+    
+    // Stream 0: Even samples (0, 2, 4, ...)
+    std::vector<float> stream0;
+    stream0.reserve(samples_per_stream);
+    for (size_t i = 0; i < primary_samples.size(); i += 2) {
+        stream0.push_back(primary_samples[i]);
     }
+    streams.push_back(stream0);
     
-    // Set metadata
-    message.audio_data.num_samples = static_cast<uint32_t>(samples.size());
-    message.audio_data.bit_depth = 24;
-    message.audio_data.is_compressed = false;
-    message.audio_data.compression_ratio = 1.0f;
-}
-
-uint32_t JELLIEEncoder::calculateChecksum(const JDATMessage& message) const {
-    // Simple CRC32-like checksum
-    uint32_t checksum = 0;
-    
-    // Include header data (excluding checksum field)
-    const uint8_t* header_data = reinterpret_cast<const uint8_t*>(&message.header);
-    for (size_t i = 0; i < sizeof(JDATHeader) - sizeof(uint32_t); ++i) {
-        checksum = ((checksum << 1) | (checksum >> 31)) ^ header_data[i];
+    // Stream 1: Odd samples (1, 3, 5, ...)
+    std::vector<float> stream1;
+    stream1.reserve(samples_per_stream);
+    for (size_t i = 1; i < primary_samples.size(); i += 2) {
+        stream1.push_back(primary_samples[i]);
     }
+    streams.push_back(stream1);
     
-    // Include audio data
-    for (int32_t sample : message.audio_data.samples) {
-        const uint8_t* sample_data = reinterpret_cast<const uint8_t*>(&sample);
-        for (size_t i = 0; i < sizeof(int32_t); ++i) {
-            checksum = ((checksum << 1) | (checksum >> 31)) ^ sample_data[i];
+    // Generate redundancy streams if requested
+    if (redundancy_level >= 2) {
+        // Stream 2: Redundancy A (weighted combination)
+        std::vector<float> stream2;
+        stream2.reserve(samples_per_stream);
+        for (size_t i = 0; i < std::min(stream0.size(), stream1.size()); ++i) {
+            float redundancy_sample = (stream0[i] + stream1[i]) * 0.5f + (stream0[i] - stream1[i]) * 0.3f;
+            stream2.push_back(redundancy_sample);
         }
+        streams.push_back(stream2);
     }
     
-    return checksum;
-}
-
-uint64_t JELLIEEncoder::getCurrentTimestamp() const {
-    auto now = std::chrono::high_resolution_clock::now();
-    auto duration = now.time_since_epoch();
-    return std::chrono::duration_cast<std::chrono::microseconds>(duration).count() + timestamp_offset_;
-}
-
-void JELLIEEncoder::generateSessionId() {
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_int_distribution<> dis(0, 15);
-    
-    std::string session_id = "jellie-";
-    for (int i = 0; i < 8; ++i) {
-        session_id += "0123456789abcdef"[dis(gen)];
+    if (redundancy_level >= 3) {
+        // Stream 3: Redundancy B (alternative parity)
+        std::vector<float> stream3;
+        stream3.reserve(samples_per_stream);
+        for (size_t i = 0; i < std::min(stream0.size(), stream1.size()); ++i) {
+            float redundancy_sample = (stream0[i] - stream1[i]) * 0.7f + (stream0[i] + stream1[i]) * 0.1f;
+            stream3.push_back(redundancy_sample);
+        }
+        streams.push_back(stream3);
     }
     
-    config_.session_id = session_id;
+    return streams;
 }
 
-void JELLIEEncoder::resetTiming() {
-    frame_counter_ = 0;
-    timestamp_offset_ = 0;
+JELLIEEncoder::Statistics JELLIEEncoder::getStatistics() const {
+    Statistics stats;
+    stats.messages_sent = sequence_number_.load();
+    stats.samples_processed = stats.messages_sent * config_.frame_size_samples;
+    // Additional statistics would be calculated here
+    return stats;
+}
+
+void JELLIEEncoder::resetStatistics() {
+    sequence_number_.store(0);
+}
+
+bool JELLIEEncoder::updateConfig(const Config& config) {
+    // For now, require restart to change config
+    if (is_running_) {
+        return false;
+    }
+    
+    config_ = config;
+    return true;
+}
+
+bool JELLIEEncoder::set192kMode(bool enable) {
+    config_.enable_192k_mode = enable;
+    return true;
+}
+
+bool JELLIEEncoder::setADATMapping(bool enable) {
+    config_.enable_adat_mapping = enable;
+    return true;
+}
+
+bool JELLIEEncoder::setRedundancyLevel(uint8_t level) {
+    if (level > 4) level = 4; // Clamp to maximum
+    config_.redundancy_level = level;
+    return true;
+}
+
+void JELLIEEncoder::flush() {
+    // Force processing of any pending audio data
+    if (buffer_manager_) {
+        // This would flush the buffer manager if it had that capability
+        // For now, just wait a short time for pending data to process
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
 }
 
 } // namespace jdat
