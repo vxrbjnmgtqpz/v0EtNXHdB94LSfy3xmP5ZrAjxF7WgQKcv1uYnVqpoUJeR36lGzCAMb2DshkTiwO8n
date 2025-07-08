@@ -31,3 +31,21 @@ target_link_libraries(simple_demo
     nlohmann_json::nlohmann_json
     Threads::Threads
 )
+
+# SIMD Parser Test - Phase 4 performance validation
+add_executable(simd_parser_test simd_parser_test.cpp)
+target_link_libraries(simd_parser_test
+    PRIVATE 
+    jmid_framework
+    nlohmann_json::nlohmann_json
+    Threads::Threads
+)
+
+# Performance Validation Test - Phase 5 end-to-end validation
+add_executable(performance_validation_test performance_validation_test.cpp)
+target_link_libraries(performance_validation_test
+    PRIVATE 
+    jmid_framework
+    nlohmann_json::nlohmann_json
+    Threads::Threads
+)
