@@ -155,3 +155,7 @@ JSONMIDI_Framework/build_phase12/
 JSONMIDI_Framework/build_phase2/
 JSONMIDI_Framework/build_standalone/
 JSONMIDI_Framework/.cache/
+
+# Worktree management files (local tools)
+WORKTREE_WORKFLOW.md
+sync_worktrees.sh
