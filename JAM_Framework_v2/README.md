@@ -1,8 +1,8 @@
 # JAM Framework v2: Pure UDP GPU Architecture
 
-**The UDP-Native, GPU-Accelerated Core of JAMNet**
+**The UDP-Native, GPU NATIVE Core of JAMNet**
 
-JAM Framework v2 is the complete rewrite that eliminates all TCP/HTTP dependencies and implements the revolutionary UDP-native, GPU-accelerated architecture.
+JAM Framework v2 is the complete rewrite that eliminates all TCP/HTTP dependencies and implements the revolutionary UDP-native, GPU NATIVE architecture.
 
 ## 🚀 Revolutionary Architecture
 

@@ -2,7 +2,7 @@
 
 **Predictive Neural Buffered Transient Recovery - Revolutionary Audiovisual Continuity System**
 
-PNBTR completely eliminates network dropout artifacts by predicting missing content using GPU-accelerated algorithms, maintaining seamless audiovisual continuity without retransmission delays.
+PNBTR completely eliminates network dropout artifacts by predicting missing content using GPU NATIVE algorithms, maintaining seamless audiovisual continuity without retransmission delays.
 
 ## Overview
 
@@ -39,7 +39,7 @@ PNBTR completely eliminates network dropout artifacts by predicting missing cont
 - **Multicast Optimization**: Single PNBTR-enhanced stream serves unlimited listeners simultaneously
 - **Prediction-Based Recovery**: Neural networks predict missing audio content rather than requesting retransmission
 
-### **GPU-Accelerated Architecture**
+### **GPU NATIVE Architecture**
 - **Parallel Reconstruction**: Thousands of GPU threads process audio prediction simultaneously
 - **Real-Time Neural Inference**: <1ms processing time via compute shaders
 - **Memory-Mapped Processing**: Zero-copy audio reconstruction from network buffers to GPU
@@ -62,7 +62,7 @@ PNBTR completely eliminates network dropout artifacts by predicting missing cont
 - **Neural Inference Modules**: Lightweight RNNs/CNNs for non-linear patterns
 - **Phase Alignment & Spectral Shaping**: FFT-based frequency domain reconstruction
 
-### 🔥 GPU-Accelerated Processing
+### 🔥 GPU NATIVE Processing
 - **24-bit Default Operation**: Predictive LSB modeling extends perceived resolution
 - **50ms Contextual Extrapolation**: Neural waveform prediction with musical awareness
 - **Zero-Noise Audio**: No random noise added - ever
@@ -81,7 +81,7 @@ PNBTR completely eliminates network dropout artifacts by predicting missing cont
 
 ### 1. Neural Prediction Engine (`pnbtr_engine.cpp`)
 - Hybrid waveform modeling methodologies
-- GPU-accelerated neural inference
+- GPU NATIVE neural inference
 - Mathematical LSB reconstruction
 - 50ms contextual extrapolation
 
@@ -160,7 +160,7 @@ PNBTR completely eliminates network dropout artifacts by predicting missing cont
 PNBTR serves as the core audio intelligence for:
 
 - **JDAT Framework** → Audio stream processing and reconstruction
-- **JAM Framework** → GPU-accelerated JSONL parsing with prediction
+- **JAM Framework** → GPU NATIVE JSONL parsing with prediction
 - **JMID Framework** → MIDI event prediction and reconstruction
 - **JVID Framework** → Video motion prediction and reconstruction
 

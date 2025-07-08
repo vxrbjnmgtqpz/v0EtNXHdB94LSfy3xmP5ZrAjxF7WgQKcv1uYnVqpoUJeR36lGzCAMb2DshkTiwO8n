@@ -216,7 +216,7 @@ kernel void detect_motion(
 
 /**
  * GPU JAMCam Video Encoding Kernel
- * Hardware-accelerated JAMCam encoding
+ * Hardware NATIVE JAMCam encoding
  */
 kernel void encode_jamcam_frame(
     texture2d<float, access::read> input_frame [[texture(0)]],
@@ -256,7 +256,7 @@ kernel void encode_jamcam_frame(
 
 /**
  * GPU JAMCam Video Decoding Kernel
- * Hardware-accelerated JAMCam decoding
+ * Hardware NATIVE JAMCam decoding
  */
 kernel void decode_jamcam_frame(
     device const uint8_t* encoded_input [[buffer(0)]],

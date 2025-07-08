@@ -3,7 +3,7 @@
  * 
  * Features:
  * - Multiple send/receive worker threads
- * - GPU-accelerated burst processing
+ * - GPU NATIVE burst processing
  * - Redundant transmission paths
  * - Automatic load balancing
  */

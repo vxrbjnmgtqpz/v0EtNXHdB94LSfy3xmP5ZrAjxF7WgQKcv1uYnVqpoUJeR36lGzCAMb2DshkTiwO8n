@@ -404,7 +404,7 @@ PNBTREngine::Impl::MethodologyWeights PNBTREngine::Impl::calculate_adaptive_weig
 AudioContext PNBTREngine::Impl::analyze_audio_context_gpu(const AudioBuffer& audio) {
     AudioContext context;
     
-    // GPU-accelerated audio analysis
+    // GPU NATIVE audio analysis
     if (gpu.is_available()) {
         auto gpu_context = gpu.analyze_audio_context(audio.samples, audio.sample_rate);
         context = gpu_context;

@@ -42,7 +42,7 @@ struct JDATConfig {
     
     // PNBTR settings
     bool enable_audio_prediction = true;
-    bool enable_gpu_acceleration = true;
+    bool enable_gpu_native = true;
     uint8_t redundancy_level = 2;
     
     // Multi-threading
@@ -130,9 +130,9 @@ public:
     void enableAudioPrediction(bool enable);
     
     /**
-     * Enable/disable GPU acceleration
+     * Enable/disable GPU NATIVE processing
      */
-    void enableGPUAcceleration(bool enable);
+    void enableGPUNative(bool enable);
     
     /**
      * Set audio quality level

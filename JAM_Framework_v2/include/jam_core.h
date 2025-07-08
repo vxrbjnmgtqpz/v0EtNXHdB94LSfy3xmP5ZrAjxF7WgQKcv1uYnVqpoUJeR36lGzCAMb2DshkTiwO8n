@@ -3,7 +3,7 @@
 /**
  * JAM Framework v2: Core UDP GPU Architecture
  * 
- * Pure UDP, GPU-accelerated, stateless multimedia streaming
+ * Pure UDP, GPU NATIVE, stateless multimedia streaming
  * NO TCP/HTTP DEPENDENCIES - UDP multicast only
  */
 

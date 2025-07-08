@@ -4,7 +4,7 @@ Title:  JAMNet: A Real-Time JSONL-Based Multimedia Framework Using Multicast T
 Inventor(s):  Timothy Robert Dowler  5 Apple Ridge Road, Unit 3, Maynard, MA 01754  timothydowler@yahoo.com  Filed: July 3, 2025
 
 1. Field of the Invention
-This invention relates to minimal latency, digital multimedia transport systems over computer networks. Specifically, it discloses a complete distributed framework—JAMNet—for ultra-low, GPU accelerated latency transmission of audio, MIDI, and video data using a custom fork of Bassoon.js that uses a truly Universal JSONL format: JAM.js (the JSON Audio Multicast framework) -  This enables encoded formats to stream to, over, and through any device that can parse json, using the same unified, universal stream, over a multicast-capable UDP protocol known as TOAST. The system includes dedicated encoders (JELLIE), prediction and recovery systems (PNBTR), and format architectures for synchronized routing and interoperability.
+This invention relates to minimal latency, digital multimedia transport systems over computer networks. Specifically, it discloses a complete distributed framework—JAMNet—for ultra-low, GPU NATIVE latency transmission of audio, MIDI, and video data using a custom fork of Bassoon.js that uses a truly Universal JSONL format: JAM.js (the JSON Audio Multicast framework) -  This enables encoded formats to stream to, over, and through any device that can parse json, using the same unified, universal stream, over a multicast-capable UDP protocol known as TOAST. The system includes dedicated encoders (JELLIE), prediction and recovery systems (PNBTR), and format architectures for synchronized routing and interoperability.
 
 2. Background of the Invention
 Traditional network-based multimedia systems rely heavily on binary encoding, TCP retransmission protocols, platform-specific codecs, and heavyweight packet orchestration layers. These introduce latency bottlenecks, limit cross-platform portability, and complicate distributed real-time collaboration.
@@ -25,10 +25,10 @@ Key components include:
 	•	JELLIE: JAM Embedded Low Latency Instrument Encoding — a stream encoder that divides mono audio into 4 simultaneous PCM JSONL streams over JDAT (even/odd sample interleaving plus redundancy) modeled after ADAT protocol behavior.  
 	•	PNBTR: Predictive Neural Buffered Transient Recovery — an adaptive audio, MIDI, and video prediction layer that prioritizes throttling while continuously predicting the next 50ms of packets based on neural reconstruction of analog waveform characteristics, constantly running but used only when all redundancy fails to smooth out the signal.
 
-JAMNet parsing speeds (GPU-Accelerated):
-	•	MIDI latency <10μs (GPU-accelerated, 66% improvement over CPU)
-	•	Audio latency <30μs (GPU-accelerated, 80% improvement over CPU)
-	•	Video latency <50μs (GPU-accelerated, 80% improvement over CPU)
+JAMNet parsing speeds (GPU NATIVE):
+	•	MIDI latency <10μs (GPU NATIVE, 66% improvement over CPU)
+	•	Audio latency <30μs (GPU NATIVE, 80% improvement over CPU)
+	•	Video latency <50μs (GPU NATIVE, 80% improvement over CPU)
 	•	Sub-5μs cross-device sync (local connection; GPU-optimized)
 	•	Fire-and-forget, zero-retransmit recovery strategy
 	•	AI-native, Cross-platform JSON-based payloads with GPU parallel processing
@@ -629,7 +629,7 @@ Figure 8: Network Layer Stack & Protocol Encapsulation
 │ │                        ETHERNET / WIFI / USB4                                       │   │
 │ │                                                                                     │   │
 │ │  Supported Media: 1000Base-T, 802.11ac/ax, USB4 Thunderbolt                         │   │
-│ │  Performance: Gigabit+ bandwidth, <100μs switching latency (GPU-accelerated)                            │   │
+│ │  Performance: Gigabit+ bandwidth, <100μs switching latency (GPU NATIVE)                            │   │
 │ │  Redundancy: Link aggregation, automatic failover                                   │   │
 │ └─────────────────────────────────────────────────────────────────────────────────────┘   │
 │                                                                                           │
@@ -733,7 +733,7 @@ Technical Implementation Summary for Patent Documentation
 Core Innovation Claims:
 
 1. PNTBTR Algorithm: Novel three-tier error recovery prioritizing high sample rates with redundancy over prediction
-2. TOAST Protocol: Fire-and-forget UDP transport optimized for multimedia streaming with <50μs total latency (GPU-accelerated)
+2. TOAST Protocol: Fire-and-forget UDP transport optimized for multimedia streaming with <50μs total latency (GPU NATIVE)
 3. Triple-Domain Architecture: Parallel processing of MIDI (JMID), audio (JDAT), and video (JVID) streams with unified clock synchronization
 4. Dynamic Quality Control: Real-time adaptive throttling maintaining quality while preserving ultra-low latency
 5. Hierarchical Session Management: Distributed client architecture with automatic failover and load balancing

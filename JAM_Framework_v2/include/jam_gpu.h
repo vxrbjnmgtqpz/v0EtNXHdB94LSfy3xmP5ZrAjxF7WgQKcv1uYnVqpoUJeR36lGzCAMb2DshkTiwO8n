@@ -3,7 +3,7 @@
 /**
  * JAM Framework v2: GPU Compute Interface
  * 
- * GPU-accelerated message processing pipeline
+ * GPU NATIVE message processing pipeline
  * All parsing and processing on GPU compute shaders
  */
 

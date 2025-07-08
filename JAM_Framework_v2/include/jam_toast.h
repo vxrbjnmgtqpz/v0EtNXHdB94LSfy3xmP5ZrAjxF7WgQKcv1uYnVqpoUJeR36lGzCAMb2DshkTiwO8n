@@ -4,7 +4,7 @@
  * JAM Framework v2: TOAST v2 Protocol
  * 
  * Transport Oriented Audio Sync Tunnel v2
- * Pure UDP implementation with GPU acceleration
+ * Pure UDP implementation with GPU NATIVE processing
  */
 
 #include <cstdint>
@@ -83,7 +83,7 @@ struct BurstConfig {
 /**
  * TOAST v2 Protocol Handler
  * 
- * Pure UDP implementation with GPU acceleration support
+ * Pure UDP implementation with GPU NATIVE processing support
  */
 class TOASTv2Protocol {
 public:

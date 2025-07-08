@@ -6,6 +6,8 @@
 #include <map>
 
 // Forward declarations
+class AudioQualityAnalyzer;
+
 namespace pnbtr {
     class PNBTRFramework;
     struct AudioBuffer;
@@ -115,6 +117,7 @@ public:
 
 private:
     Config config_;
+    std::unique_ptr<AudioQualityAnalyzer> quality_analyzer_;
     
     // Test statistics
     struct TestStats {

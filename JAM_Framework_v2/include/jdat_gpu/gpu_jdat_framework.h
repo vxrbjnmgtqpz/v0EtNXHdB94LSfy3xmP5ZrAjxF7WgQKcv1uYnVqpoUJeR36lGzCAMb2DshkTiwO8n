@@ -143,7 +143,7 @@ public:
 /**
  * @brief GPU-Native JELLIE Audio Encoder
  * 
- * Hardware-accelerated audio encoding using GPU compute shaders
+ * Hardware NATIVE audio encoding using GPU compute shaders
  */
 class GPUJELLIEEncoder {
 public:
@@ -177,7 +177,7 @@ public:
 /**
  * @brief GPU-Native JELLIE Audio Decoder
  * 
- * Hardware-accelerated audio decoding using GPU compute shaders
+ * Hardware NATIVE audio decoding using GPU compute shaders
  */
 class GPUJELLIEDecoder {
 public:

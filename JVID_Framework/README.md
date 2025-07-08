@@ -49,7 +49,7 @@ JVID is the video counterpart to JDAT, designed for streaming **direct pixel dat
 - **No Retransmission**: Lost packets are never requested again - the show must go on
 - **Multicast Efficiency**: Single video transmission reaches unlimited receivers simultaneously
 
-#### **GPU-Accelerated Processing**
+#### **GPU NATIVE Processing**
 - **Memory-Mapped Framebuffers**: Zero-copy video frame processing from GPU to network
 - **Parallel Pixel Processing**: GPU threads handle direct pixel extraction and JSONL encoding simultaneously
 - **Vulkan/Metal/CUDA Acceleration**: Leverages unified GPU pipeline across all platforms
@@ -111,7 +111,7 @@ _Compare to traditional video streaming: 500ms-3000ms typical latency_
 For a comprehensive, step-by-step guide to implementing JVID's stateless UDP GPU fundamentals, see **[adapt.md](adapt.md)** - it provides detailed instructions for:
 
 - **Live Camera Streaming**: Complete implementation of 300×400 color feed over JVID
-- **GPU Optimization**: Memory-mapped buffers and GPU-accelerated processing
+- **GPU Optimization**: Memory-mapped buffers and GPU NATIVE processing
 - **Fire-and-Forget UDP**: Detailed explanation of stateless multicast transmission
 - **JSON Frame Encoding**: Frame-by-frame JSON structure and packetization
 - **Real-Time Performance**: Achieving <300μs latency with practical optimizations

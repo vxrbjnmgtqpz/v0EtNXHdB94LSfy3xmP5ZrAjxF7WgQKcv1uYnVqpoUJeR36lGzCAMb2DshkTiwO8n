@@ -212,7 +212,7 @@ Target Memory Usage: <20MB (memory-mapped)
 - **Parallel Message Processing**: Thousands of GPU threads handle TOAST frames
 - **Memory-Mapped Buffers**: Zero-copy data flow from network to GPU
 - **Burst Deduplication**: GPU compute shaders remove duplicate MIDI events
-- **Real-Time Clock Sync**: Hardware-accelerated timestamp processing
+- **Real-Time Clock Sync**: Hardware NATIVE timestamp processing
 
 ## 🤝 Contributing
 

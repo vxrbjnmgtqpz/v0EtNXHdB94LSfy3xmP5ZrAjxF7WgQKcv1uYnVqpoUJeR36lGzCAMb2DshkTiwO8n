@@ -57,7 +57,7 @@ bool JDATBridge::initialize() {
             transport_config.send_threads = config_.send_threads;
             transport_config.recv_threads = config_.recv_threads;
             transport_config.enable_redundancy = config_.redundancy_level > 1;
-            transport_config.enable_gpu_burst = config_.enable_gpu_acceleration;
+            transport_config.enable_gpu_burst = config_.enable_gpu_native;
             
             transport_ = std::make_unique<MultiThreadedUDPTransport>(
                 config_.multicast_address, config_.udp_port, "0.0.0.0", transport_config);
@@ -106,15 +106,15 @@ bool JDATBridge::initialize() {
         });
         
         // Initialize GPU pipeline if requested
-        if (config_.enable_gpu_acceleration) {
+        if (config_.enable_gpu_native) {
             gpu_pipeline_ = std::make_unique<ComputePipeline>();
             if (gpu_pipeline_->initialize()) {
                 if (transport_) {
                     transport_->initialize_gpu_backend(gpu_pipeline_);
                 }
-                notifyStatus("GPU acceleration enabled for JDAT", false);
+                notifyStatus("GPU NATIVE processing enabled for JDAT", false);
             } else {
-                notifyError("Failed to initialize GPU acceleration");
+                notifyError("Failed to initialize GPU NATIVE processing");
             }
         }
         
@@ -294,8 +294,8 @@ void JDATBridge::enableAudioPrediction(bool enable) {
     }
 }
 
-void JDATBridge::enableGPUAcceleration(bool enable) {
-    config_.enable_gpu_acceleration = enable;
+void JDATBridge::enableGPUNative(bool enable) {
+    config_.enable_gpu_native = enable;
     if (transport_) {
         transport_->enable_gpu_processing(enable);
     }
@@ -327,7 +327,7 @@ TOASTerJDATIntegration::TOASTerJDATIntegration() {
     default_config_.frame_size_samples = 480; // 10ms at 48kHz
     default_config_.buffer_size_ms = 20;
     default_config_.enable_audio_prediction = true;
-    default_config_.enable_gpu_acceleration = true;
+    default_config_.enable_gpu_native = true;
     default_config_.redundancy_level = 2;
     default_config_.enable_multithreaded_transport = true;
     default_config_.send_threads = 2;

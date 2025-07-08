@@ -156,7 +156,7 @@ kernel void mix_audio_channels(
 
 /**
  * GPU JELLIE Audio Encoding Kernel
- * Hardware-accelerated JELLIE encoding
+ * Hardware NATIVE JELLIE encoding
  */
 kernel void encode_jellie_audio(
     device const float* audio_samples [[buffer(0)]],
@@ -186,7 +186,7 @@ kernel void encode_jellie_audio(
 
 /**
  * GPU JELLIE Audio Decoding Kernel
- * Hardware-accelerated JELLIE decoding
+ * Hardware NATIVE JELLIE decoding
  */
 kernel void decode_jellie_audio(
     device const uint8_t* encoded_input [[buffer(0)]],

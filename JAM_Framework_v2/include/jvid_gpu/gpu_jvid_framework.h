@@ -172,7 +172,7 @@ public:
 /**
  * @brief GPU-Native JAMCam Video Encoder
  * 
- * Hardware-accelerated video encoding using GPU compute shaders
+ * Hardware NATIVE video encoding using GPU compute shaders
  */
 class GPUJAMCamEncoder {
 public:
@@ -210,7 +210,7 @@ public:
 /**
  * @brief GPU-Native JAMCam Video Decoder
  * 
- * Hardware-accelerated video decoding using GPU compute shaders
+ * Hardware NATIVE video decoding using GPU compute shaders
  */
 class GPUJAMCamDecoder {
 public:

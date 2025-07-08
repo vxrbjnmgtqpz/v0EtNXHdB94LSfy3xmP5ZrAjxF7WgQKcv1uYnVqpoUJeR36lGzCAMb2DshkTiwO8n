@@ -4,6 +4,7 @@
 add_executable(pnbtr_audio_test
     main.cpp
     audio_testbed.cpp
+    audio_quality_analyzer.cpp
 )
 
 target_include_directories(pnbtr_audio_test PRIVATE

@@ -349,7 +349,7 @@ void MultiThreadedUDPTransport::gpu_worker_loop() {
             gpu_queue_.pop();
             lock.unlock();
             
-            // Process burst with GPU acceleration
+            // Process burst with GPU NATIVE processing
             if (job.use_burst && gpu_pipeline_) {
                 auto processed_data = process_burst_gpu(job.data, job.burst_count);
                 

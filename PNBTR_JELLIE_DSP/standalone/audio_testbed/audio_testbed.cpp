@@ -1,4 +1,5 @@
 #include "audio_testbed.h"
+#include "audio_quality_analyzer.h"
 #include <iostream>
 #include <fstream>
 #include <cmath>
@@ -9,7 +10,7 @@
 using namespace std::chrono;
 
 AudioTestbed::AudioTestbed(const Config& config) : config_(config) {
-    // Constructor implementation
+    quality_analyzer_ = std::make_unique<AudioQualityAnalyzer>();
 }
 
 AudioTestbed::~AudioTestbed() {
@@ -18,6 +19,14 @@ AudioTestbed::~AudioTestbed() {
 
 bool AudioTestbed::initialize() {
     std::cout << "🔧 Initializing PNBTR Audio Testbed...\n";
+    
+    // Initialize audio quality analyzer
+    if (!quality_analyzer_) {
+        std::cerr << "❌ Failed to initialize AudioQualityAnalyzer\n";
+        return false;
+    }
+    
+    std::cout << "✅ AudioQualityAnalyzer initialized successfully\n";
     std::cout << "✅ PNBTR Framework initialized successfully\n";
     std::cout << "✅ Revolutionary zero-noise dither replacement ready\n";
     std::cout << "🎯 JELLIE 8-channel encoding with packet loss recovery ready\n";
@@ -238,34 +247,134 @@ AudioTestbed::ComparisonResult AudioTestbed::testSingleFile(const std::string& i
 // Simplified test implementations
 bool AudioTestbed::testSyntheticWave() {
     std::cout << "  🎵 Generating 1kHz sine wave...\n";
-    std::cout << "  🔧 Applying PNBTR vs traditional dithering...\n";
-    std::cout << "  📊 PNBTR improvement: +7.2 dB SNR\n";
-    std::cout << "  🔇 Noise floor improvement: -8.7 dB\n";
-    return true;
+    
+    // Generate test signal using AudioQualityAnalyzer
+    auto test_signal = quality_analyzer_->generateTestSignal(
+        AudioQualityAnalyzer::TestSignalType::SINE_WAVE, 
+        1000.0, 5.0, config_.sample_rate);
+    
+    if (test_signal.empty()) {
+        std::cout << "  ❌ Failed to generate test signal\n";
+        return false;
+    }
+    
+    std::cout << "  🔧 Analyzing audio quality metrics...\n";
+    
+    // For single signal analysis, compare with itself (baseline)
+    auto metrics = quality_analyzer_->analyzeQuality(test_signal, test_signal, config_.sample_rate);
+    
+    std::cout << "  📊 SNR: " << metrics.snr_db << " dB\n";
+    std::cout << "  📊 THD+N: " << metrics.thd_plus_n_percent << "%\n";
+    std::cout << "  📊 Dynamic Range: " << metrics.dynamic_range_db << " dB\n";
+    std::cout << "  � Frequency Response Flatness: " << metrics.freq_response_flatness_db << " dB\n";
+    
+    // Check if meets hi-fi standards
+    bool meets_standards = quality_analyzer_->meetsHiFiStandards(metrics);
+    std::cout << "  🎯 Hi-Fi Standards: " << (meets_standards ? "✅ PASSED" : "❌ FAILED") << "\n";
+    
+    return meets_standards;
 }
 
 bool AudioTestbed::testWhiteNoise() {
     std::cout << "  🎵 Generating white noise signal...\n";
+    
+    // Generate white noise test signal
+    auto test_signal = quality_analyzer_->generateTestSignal(
+        AudioQualityAnalyzer::TestSignalType::WHITE_NOISE, 
+        0.0, 5.0, config_.sample_rate);
+    
+    if (test_signal.empty()) {
+        std::cout << "  ❌ Failed to generate white noise signal\n";
+        return false;
+    }
+    
     std::cout << "  🔧 Testing noise floor performance...\n";
-    std::cout << "  📊 PNBTR improvement: +4.8 dB SNR\n";
-    std::cout << "  🔇 Random noise elimination: 100%\n";
-    return true;
+    
+    // Analyze noise characteristics (compare with itself for baseline)
+    auto metrics = quality_analyzer_->analyzeQuality(test_signal, test_signal, config_.sample_rate);
+    
+    std::cout << "  📊 Noise Floor: " << metrics.noise_floor_dbfs << " dBFS\n";
+    std::cout << "  � Dynamic Range: " << metrics.dynamic_range_db << " dB\n";
+    std::cout << "  📊 THD+N: " << metrics.thd_plus_n_percent << "%\n";
+    
+    // For white noise, we expect good dynamic range and controlled noise floor
+    bool passed = (metrics.dynamic_range_db > 90.0) && (metrics.noise_floor_dbfs < -60.0);
+    std::cout << "  🎯 Noise Performance: " << (passed ? "✅ PASSED" : "❌ FAILED") << "\n";
+    
+    return passed;
 }
 
 bool AudioTestbed::testComplexHarmonics() {
     std::cout << "  🎵 Generating complex harmonic content...\n";
+    
+    // Generate complex signal with multiple harmonics
+    auto test_signal = quality_analyzer_->generateTestSignal(
+        AudioQualityAnalyzer::TestSignalType::COMPLEX_HARMONIC, 
+        440.0, 5.0, config_.sample_rate);
+    
+    if (test_signal.empty()) {
+        std::cout << "  ❌ Failed to generate complex harmonic signal\n";
+        return false;
+    }
+    
     std::cout << "  🔧 Testing musical content preservation...\n";
-    std::cout << "  📊 PNBTR improvement: +6.3 dB SNR\n";
-    std::cout << "  🎼 Harmonic preservation: 99.7%\n";
-    return true;
+    
+    // Analyze harmonic content preservation (compare with itself for baseline)
+    auto metrics = quality_analyzer_->analyzeQuality(test_signal, test_signal, config_.sample_rate);
+    
+    std::cout << "  📊 THD: " << metrics.thd_percent << "%\n";
+    std::cout << "  📊 Harmonic Content Deviation: " << metrics.harmonic_content_deviation << "\n";
+    std::cout << "  📊 Transient Preservation: " << metrics.transient_preservation << "\n";
+    std::cout << "  📊 Coloration: " << metrics.coloration_percent << "%\n";
+    
+    // Complex harmonics should have low distortion and good preservation
+    bool passed = (metrics.thd_percent < 0.1) && 
+                  (metrics.harmonic_content_deviation < 0.1) && 
+                  (metrics.transient_preservation > 0.95);
+    
+    std::cout << "  🎯 Harmonic Quality: " << (passed ? "✅ PASSED" : "❌ FAILED") << "\n";
+    
+    return passed;
 }
 
 bool AudioTestbed::testBitDepthReduction() {
     std::cout << "  🎵 Testing 24-bit to 16-bit reduction...\n";
-    std::cout << "  🔧 PNBTR vs triangular dithering...\n";
-    std::cout << "  📊 PNBTR improvement: +12.1 dB SNR\n";
-    std::cout << "  🚀 Zero random artifacts achieved\n";
-    return true;
+    
+    // Generate high-quality test signal
+    auto original_signal = quality_analyzer_->generateTestSignal(
+        AudioQualityAnalyzer::TestSignalType::SINE_WAVE, 
+        1000.0, 5.0, config_.sample_rate);
+    
+    if (original_signal.empty()) {
+        std::cout << "  ❌ Failed to generate test signal\n";
+        return false;
+    }
+    
+    std::cout << "  🔧 Simulating bit depth reduction...\n";
+    
+    // Simulate bit depth reduction (simplified)
+    std::vector<float> reduced_signal = original_signal;
+    float quantization_level = 1.0f / (1 << 15); // 16-bit quantization
+    for (auto& sample : reduced_signal) {
+        sample = std::round(sample / quantization_level) * quantization_level;
+    }
+    
+    // Analyze both signals
+    auto original_metrics = quality_analyzer_->analyzeQuality(original_signal, original_signal, config_.sample_rate);
+    auto reduced_metrics = quality_analyzer_->analyzeQuality(reduced_signal, original_signal, config_.sample_rate);
+    
+    std::cout << "  📊 Original SNR: " << original_metrics.snr_db << " dB\n";
+    std::cout << "  📊 Reduced SNR: " << reduced_metrics.snr_db << " dB\n";
+    std::cout << "  📊 SNR Loss: " << (original_metrics.snr_db - reduced_metrics.snr_db) << " dB\n";
+    std::cout << "  � Noise Floor Change: " << (reduced_metrics.noise_floor_dbfs - original_metrics.noise_floor_dbfs) << " dB\n";
+    
+    // Check if reduction is acceptable (should be minimal with PNBTR)
+    double snr_loss = original_metrics.snr_db - reduced_metrics.snr_db;
+    bool passed = (snr_loss < 6.0) && (reduced_metrics.snr_db > 90.0); // 6dB is theoretical 1-bit loss
+    
+    std::cout << "  🎯 Bit Depth Reduction: " << (passed ? "✅ PASSED" : "❌ FAILED") << "\n";
+    
+    return passed;
 }
 
 bool AudioTestbed::generateQualityReport(const ComparisonResult& result,

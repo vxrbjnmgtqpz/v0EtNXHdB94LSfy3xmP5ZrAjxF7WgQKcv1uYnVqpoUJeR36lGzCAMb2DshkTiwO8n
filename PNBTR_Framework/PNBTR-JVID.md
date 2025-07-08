@@ -1,4 +1,4 @@
-# PNBTR-JVID Integration: GPU-Accelerated Video Frame Prediction
+# PNBTR-JVID Integration: GPU NATIVE Video Frame Prediction
 
 ## Overview
 
@@ -125,7 +125,7 @@ public:
         float confidence_threshold = 0.7f
     );
     
-    // GPU-accelerated batch prediction
+    // GPU NATIVE batch prediction
     void predict_frame_burst_gpu(
         const GPUBuffer& input_frames,
         const GPUBuffer& output_frames,
