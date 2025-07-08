@@ -1,0 +1,211 @@
+# PNBTR Training Parameters Configuration
+# Model training settings, architectures, and optimization parameters
+
+# Model Architecture Settings
+model:
+  type: "mlp" # "mlp", "conv1d", "hybrid", "transformer"
+
+  # MLP (Multi-Layer Perceptron) Configuration
+  mlp:
+    hidden_layers: [512, 256, 128, 64] # Layer sizes
+    activation: "relu" # "relu", "leaky_relu", "tanh", "gelu"
+    dropout: 0.1 # Dropout rate for regularization
+    batch_norm: true # Use batch normalization
+
+  # Conv1D Configuration
+  conv1d:
+    channels: [64, 128, 256, 128, 64] # Channel progression
+    kernel_sizes: [7, 5, 3, 3, 7] # Kernel sizes per layer
+    stride: 1 # Convolution stride
+    padding: "same" # Padding mode
+    activation: "relu"
+    dropout: 0.15
+
+  # Hybrid MLP + Conv1D
+  hybrid:
+    conv_layers: 3 # Number of conv layers
+    conv_channels: [32, 64, 32]
+    conv_kernels: [5, 3, 5]
+    mlp_layers: [256, 128] # MLP after conv
+
+  # Transformer Configuration (experimental)
+  transformer:
+    d_model: 256 # Model dimension
+    nhead: 8 # Number of attention heads
+    num_layers: 4 # Number of transformer layers
+    dim_feedforward: 1024 # Feedforward dimension
+
+# Training Optimization
+optimization:
+  optimizer: "adam" # "adam", "sgd", "rmsprop", "adamw"
+
+  # Learning Rate Settings
+  learning_rate:
+    initial: 0.001 # Starting learning rate
+    scheduler: "step" # "step", "cosine", "exponential", "plateau"
+    step_size: 100 # Iterations between LR steps
+    gamma: 0.95 # LR decay factor
+    min_lr: 0.00001 # Minimum learning rate
+
+  # Regularization
+  weight_decay: 0.0001 # L2 regularization
+  gradient_clipping: 1.0 # Gradient clipping threshold
+
+  # Loss Function Weights
+  loss_weights:
+    mse_loss: 0.40 # Time-domain reconstruction
+    spectral_loss: 0.35 # Frequency-domain accuracy
+    envelope_loss: 0.25 # Envelope preservation
+
+# Training Data Configuration
+data:
+  # Input/Output Window Settings
+  window_size_samples: 1024 # Input window size (192kHz: ~5.3ms)
+  hop_size_samples: 512 # Overlap between windows
+
+  # Data Augmentation
+  augmentation:
+    enabled: true
+    noise_level: 0.01 # Add random noise (1% of signal)
+    time_stretch: [0.95, 1.05] # Time stretching range
+    pitch_shift: [-0.5, 0.5] # Pitch shift (semitones)
+    volume_range: [0.8, 1.2] # Volume scaling range
+
+  # Dataset Splits
+  train_split: 0.8 # 80% for training
+  validation_split: 0.15 # 15% for validation
+  test_split: 0.05 # 5% for final testing
+
+  # Batch Processing
+  batch_size: 32 # Training batch size
+  num_workers: 4 # Data loading workers
+  pin_memory: true # GPU memory optimization
+
+# Training Loop Configuration
+training_loop:
+  # Iterations and Epochs
+  max_epochs: 1000 # Maximum training epochs
+  patience: 50 # Early stopping patience
+
+  # Validation and Checkpointing
+  validation_interval: 10 # Validate every N epochs
+  checkpoint_interval: 25 # Save checkpoint every N epochs
+  save_best_only: true # Only save best performing models
+
+  # Monitoring
+  log_interval: 10 # Log metrics every N batches
+  plot_interval: 100 # Generate plots every N epochs
+
+# Hardware Configuration
+hardware:
+  device: "auto" # "cpu", "cuda", "mps", "auto"
+  mixed_precision: true # Use automatic mixed precision
+  compile_model: false # PyTorch 2.0 model compilation
+
+  # Memory Management
+  max_memory_gb: 16 # Maximum memory usage
+  gradient_accumulation_steps: 1 # Accumulate gradients over N steps
+
+# Field Deployment Preparation
+field_export:
+  target_format: "metal" # "metal", "coreml", "onnx", "pytorch"
+  quantization: "int8" # "none", "int8", "fp16"
+  optimization_level: "aggressive" # "conservative", "balanced", "aggressive"
+
+  # Performance Constraints
+  max_latency_ms: 0.8 # Maximum processing latency
+  max_memory_mb: 128 # Maximum memory footprint
+
+# Specialized Training Modes
+training_modes:
+  # Standard Mode
+  standard:
+    description: "Balanced training for general reconstruction"
+    focus: "balanced"
+
+  # Real-time Optimized
+  realtime:
+    description: "Optimized for <1ms field processing"
+    model_type: "mlp"
+    max_layers: 3
+    max_parameters: 100000 # Parameter count limit
+
+  # Quality Maximized
+  quality:
+    description: "Maximum reconstruction quality"
+    model_type: "hybrid"
+    training_time_multiplier: 3.0 # Allow 3x longer training
+
+  # Transient Focused
+  transient:
+    description: "Optimized for preserving sharp transients"
+    loss_weights:
+      mse_loss: 0.30
+      spectral_loss: 0.30
+      envelope_loss: 0.40 # Higher envelope weight
+
+# JELLIE/JDAT Specific Settings
+jellie_jdat:
+  # Sample Rate Handling
+  native_sample_rate: 192000 # Native JELLIE sample rate
+  training_sample_rate: 192000 # Training sample rate (no downsampling)
+
+  # Bit Depth Settings
+  input_bit_depth: 24 # JELLIE/JDAT bit depth
+  training_precision: "float64" # Training data type
+
+  # Channel Configuration
+  stereo_processing: true # Process stereo signals
+  channel_coupling: 0.1 # Cross-channel influence weight
+
+# JVID (Video) Specific Settings
+jvid:
+  enabled: false # Enable JVID training
+  frame_chunk_size: 256 # Pixels per processing chunk
+  color_space: "rgb" # "rgb", "yuv", "lab"
+  temporal_context: 3 # Number of frame contexts
+
+# Monitoring and Logging
+monitoring:
+  # Metrics to Track
+  track_metrics:
+    - "loss"
+    - "sdr"
+    - "spectral_loss"
+    - "envelope_loss"
+    - "validation_accuracy"
+    - "learning_rate"
+
+  # Logging Backends
+  logging:
+    console: true # Console output
+    file: true # File logging
+    tensorboard: false # TensorBoard integration
+    wandb: false # Weights & Biases integration
+
+  # Alert Thresholds
+  alerts:
+    loss_plateau_patience: 20 # Epochs without improvement
+    memory_usage_threshold: 0.9 # Alert at 90% memory usage
+    training_time_limit_hours: 48 # Maximum training time
+
+# Reproducibility
+reproducibility:
+  random_seed: 42 # Random seed for reproducibility
+  deterministic: true # Enable deterministic training
+
+# Experimental Features
+experimental:
+  attention_mechanism: false # Add attention to models
+  adversarial_training: false # GAN-style training
+  self_supervised: false # Self-supervised pre-training
+  knowledge_distillation: false # Teacher-student training
+
+# Version and Metadata
+version: "1.0"
+created_date: "2025-01-08"
+description: "PNBTR training parameters optimized for 24-bit, 192kHz audio reconstruction"
+compatibility:
+  python_version: ">=3.8"
+  pytorch_version: ">=2.0"
+  numpy_version: ">=1.21"

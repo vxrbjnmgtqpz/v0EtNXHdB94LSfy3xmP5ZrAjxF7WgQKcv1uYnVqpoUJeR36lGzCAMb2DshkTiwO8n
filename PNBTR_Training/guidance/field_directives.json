@@ -1,0 +1,201 @@
+{
+  "version": "1.0",
+  "created_date": "2025-01-08T00:00:00Z",
+  "description": "Initial field directives for PNBTR deployment",
+  "philosophy": "Muscle memory execution in field, analytical learning in office",
+
+  "field_directives": [
+    {
+      "directive_id": "INIT_001",
+      "type": "general_guidance",
+      "action": "initialize_baseline_processing",
+      "condition": "all_signals",
+      "parameters": {
+        "prediction_aggression": 1.0,
+        "spectral_smoothing": 0.1,
+        "temporal_window_ms": 1.0,
+        "confidence_threshold": 0.8
+      },
+      "reason": "Baseline conservative processing for initial deployment",
+      "priority": "HIGH"
+    },
+
+    {
+      "directive_id": "INIT_002",
+      "type": "signal_conditioning",
+      "action": "apply_noise_gate",
+      "condition": "when signal_level < -40dB",
+      "parameters": {
+        "gate_threshold": -40,
+        "gate_ratio": 0.1,
+        "attack_ms": 0.1,
+        "release_ms": 10.0
+      },
+      "reason": "Prevent processing noise floor as signal content",
+      "priority": "MEDIUM"
+    },
+
+    {
+      "directive_id": "INIT_003",
+      "type": "frequency_correction",
+      "action": "preserve_transients",
+      "condition": "when transient_detected",
+      "parameters": {
+        "transient_threshold": 0.05,
+        "bypass_duration_ms": 2.0,
+        "attack_preservation": true
+      },
+      "reason": "Maintain sharp attack characteristics in percussion and speech",
+      "priority": "HIGH"
+    },
+
+    {
+      "directive_id": "INIT_004",
+      "type": "adaptive_processing",
+      "action": "adjust_prediction_window",
+      "condition": "based_on_signal_complexity",
+      "parameters": {
+        "simple_signal_window_ms": 0.5,
+        "complex_signal_window_ms": 1.5,
+        "complexity_threshold": 0.3,
+        "adaptation_rate": 0.1
+      },
+      "reason": "Optimize processing window based on signal characteristics",
+      "priority": "MEDIUM"
+    }
+  ],
+
+  "model_adjustments": {
+    "global_settings": {
+      "predictor_aggression": 1.0,
+      "spectral_emphasis": {
+        "low_freq": 1.0,
+        "mid_freq": 1.0,
+        "high_freq": 1.0
+      },
+      "temporal_smoothing": 0.2,
+      "envelope_tracking": 0.8
+    },
+
+    "signal_type_overrides": {
+      "voice": {
+        "predictor_aggression": 1.1,
+        "spectral_emphasis": {
+          "low_freq": 0.9,
+          "mid_freq": 1.2,
+          "high_freq": 0.8
+        },
+        "envelope_tracking": 1.0
+      },
+
+      "music": {
+        "predictor_aggression": 0.9,
+        "spectral_emphasis": {
+          "low_freq": 1.1,
+          "mid_freq": 1.0,
+          "high_freq": 1.1
+        },
+        "envelope_tracking": 0.9
+      },
+
+      "transient": {
+        "predictor_aggression": 0.7,
+        "temporal_smoothing": 0.1,
+        "envelope_tracking": 1.2
+      }
+    }
+  },
+
+  "confidence_hints": {
+    "high_confidence_conditions": [
+      "signal_level > -20dB",
+      "spectral_stability > 0.8",
+      "low_network_jitter < 2ms",
+      "signal_type_certainty > 0.9"
+    ],
+
+    "low_confidence_conditions": [
+      "signal_level < -60dB",
+      "high_frequency_noise > 0.3",
+      "network_jitter > 10ms",
+      "signal_corruption_detected"
+    ],
+
+    "confidence_actions": {
+      "high_confidence": {
+        "prediction_aggression": 1.2,
+        "processing_depth": "full",
+        "fallback_mode": "disabled"
+      },
+
+      "medium_confidence": {
+        "prediction_aggression": 1.0,
+        "processing_depth": "standard",
+        "fallback_mode": "conservative"
+      },
+
+      "low_confidence": {
+        "prediction_aggression": 0.7,
+        "processing_depth": "minimal",
+        "fallback_mode": "passthrough"
+      }
+    }
+  },
+
+  "performance_targets": {
+    "latency_budget_ms": 0.8,
+    "memory_budget_mb": 64,
+    "cpu_usage_percent": 15,
+    "accuracy_minimum": 0.85
+  },
+
+  "fallback_strategies": {
+    "overload_protection": {
+      "cpu_threshold": 80,
+      "memory_threshold": 90,
+      "action": "reduce_processing_complexity"
+    },
+
+    "quality_degradation": {
+      "accuracy_threshold": 0.7,
+      "action": "request_office_retraining",
+      "emergency_mode": "simple_interpolation"
+    },
+
+    "network_instability": {
+      "jitter_threshold": 15,
+      "packet_loss_threshold": 0.05,
+      "action": "increase_prediction_aggression"
+    }
+  },
+
+  "learning_feedback": {
+    "success_patterns": [
+      "Baseline processing established successfully",
+      "No critical failures in initial deployment"
+    ],
+
+    "areas_for_improvement": [
+      "Gather real-world signal samples for training",
+      "Monitor performance under various network conditions",
+      "Collect user feedback on perceived quality"
+    ],
+
+    "next_training_focus": [
+      "Real-time performance optimization",
+      "Transient preservation enhancement",
+      "Network adaptation strategies"
+    ]
+  },
+
+  "deployment_metadata": {
+    "field_version": "1.0.0",
+    "office_version": "1.0.0",
+    "deployment_date": "2025-01-08T00:00:00Z",
+    "expected_update_interval": "weekly",
+    "compatibility": {
+      "minimum_field_version": "1.0.0",
+      "api_version": "1.0"
+    }
+  }
+}
