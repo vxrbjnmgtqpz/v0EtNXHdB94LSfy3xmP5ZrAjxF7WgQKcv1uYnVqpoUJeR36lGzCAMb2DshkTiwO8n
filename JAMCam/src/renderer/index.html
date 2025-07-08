@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>JAMCam - JVID 60fps RGB Matrix Streaming</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
+        color: #ffffff;
+        height: 100vh;
+        overflow: hidden;
+      }
+
+      .header {
+        background: #0f0f0f;
+        padding: 20px;
+        border-bottom: 2px solid #333;
+        text-align: center;
+      }
+
+      .header h1 {
+        color: #00ff88;
+        font-size: 28px;
+        margin-bottom: 10px;
+      }
+
+      .header .subtitle {
+        color: #888;
+        font-size: 14px;
+      }
+
+      .main-container {
+        display: flex;
+        height: calc(100vh - 100px);
+      }
+
+      .control-panel {
+        width: 300px;
+        background: #222;
+        padding: 20px;
+        border-right: 2px solid #333;
+        overflow-y: auto;
+      }
+
+      .video-display {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #111;
+        position: relative;
+      }
+
+      .mode-selector {
+        margin-bottom: 30px;
+      }
+
+      .mode-selector h3 {
+        color: #00ff88;
+        margin-bottom: 15px;
+        font-size: 18px;
+      }
+
+      .toggle-container {
+        display: flex;
+        gap: 10px;
+      }
+
+      .toggle-btn {
+        flex: 1;
+        padding: 12px;
+        border: 2px solid #555;
+        background: #333;
+        color: white;
+        cursor: pointer;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        font-weight: bold;
+      }
+
+      .toggle-btn.active {
+        background: #00ff88;
+        color: #000;
+        border-color: #00ff88;
+      }
+
+      .toggle-btn:hover:not(.active) {
+        background: #444;
+        border-color: #666;
+      }
+
+      .config-section {
+        margin-bottom: 25px;
+        padding: 15px;
+        background: #2a2a2a;
+        border-radius: 8px;
+        border: 1px solid #444;
+      }
+
+      .config-section h4 {
+        color: #00ff88;
+        margin-bottom: 10px;
+        font-size: 14px;
+        text-transform: uppercase;
+      }
+
+      .input-group {
+        margin-bottom: 10px;
+      }
+
+      .input-group label {
+        display: block;
+        margin-bottom: 5px;
+        color: #ccc;
+        font-size: 12px;
+      }
+
+      .input-group input {
+        width: 100%;
+        padding: 8px;
+        background: #1a1a1a;
+        border: 1px solid #555;
+        border-radius: 4px;
+        color: white;
+        font-size: 14px;
+      }
+
+      .input-group select {
+        width: 100%;
+        padding: 8px;
+        background: #1a1a1a;
+        border: 1px solid #555;
+        border-radius: 4px;
+        color: white;
+        font-size: 14px;
+      }
+
+      .input-group input[type="checkbox"] {
+        width: auto;
+        margin-right: 8px;
+      }
+
+      .input-group input:focus,
+      .input-group select:focus {
+        outline: none;
+        border-color: #00ff88;
+      }
+
+      .control-btn {
+        width: 100%;
+        padding: 15px;
+        margin: 10px 0;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .start-btn {
+        background: #00ff88;
+        color: #000;
+      }
+
+      .start-btn:hover {
+        background: #00cc6a;
+      }
+
+      .stop-btn {
+        background: #ff4444;
+        color: white;
+      }
+
+      .stop-btn:hover {
+        background: #cc3333;
+      }
+
+      .control-btn:disabled {
+        background: #555;
+        color: #888;
+        cursor: not-allowed;
+      }
+
+      .stats-panel {
+        background: #2a2a2a;
+        border-radius: 8px;
+        padding: 15px;
+        margin-top: 20px;
+      }
+
+      .stats-panel h4 {
+        color: #00ff88;
+        margin-bottom: 10px;
+        font-size: 14px;
+      }
+
+      .stat-item {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 8px;
+        font-size: 12px;
+      }
+
+      .stat-label {
+        color: #ccc;
+      }
+
+      .stat-value {
+        color: #fff;
+        font-weight: bold;
+      }
+
+      .video-frame {
+        max-width: 90%;
+        max-height: 90%;
+        border: 2px solid #00ff88;
+        border-radius: 8px;
+        background: #000;
+      }
+
+      .no-video {
+        text-align: center;
+        color: #666;
+        font-size: 18px;
+      }
+
+      .status-indicator {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        padding: 10px 15px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: bold;
+      }
+
+      .status-connected {
+        background: #00ff88;
+        color: #000;
+      }
+
+      .status-disconnected {
+        background: #ff4444;
+        color: white;
+      }
+
+      .status-transmitting {
+        background: #0088ff;
+        color: white;
+      }
+
+      .frame-info {
+        position: absolute;
+        bottom: 20px;
+        left: 20px;
+        background: rgba(0, 0, 0, 0.7);
+        padding: 10px;
+        border-radius: 5px;
+        font-size: 12px;
+        color: #ccc;
+      }
+
+      .latency-display {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        background: rgba(0, 255, 136, 0.9);
+        color: #000;
+        padding: 8px 12px;
+        border-radius: 5px;
+        font-weight: bold;
+        font-size: 14px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <h1>JAMCam</h1>
+      <div class="subtitle">
+        JVID 60fps RAW PCM RGB Matrix - Timing Accuracy & Low Latency
+      </div>
+    </div>
+
+    <div class="main-container">
+      <div class="control-panel">
+        <!-- Mode Selection -->
+        <div class="mode-selector">
+          <h3>Operation Mode</h3>
+          <div class="toggle-container">
+            <button class="toggle-btn active" id="transmit-mode">
+              Transmit
+            </button>
+            <button class="toggle-btn" id="receive-mode">Receive</button>
+          </div>
+        </div>
+
+        <!-- Transmit Configuration -->
+        <div class="config-section" id="transmit-config">
+          <h4>JVID RAW PCM Transmitter</h4>
+          <div class="input-group">
+            <label>Input Source</label>
+            <select id="input-source">
+              <option value="">Loading sources...</option>
+            </select>
+          </div>
+          <div class="input-group" id="source-details" style="display: none">
+            <label>Available Sources</label>
+            <select id="source-list">
+              <option value="">Loading sources...</option>
+            </select>
+          </div>
+          <div class="input-group">
+            <label>Multicast Address</label>
+            <input type="text" id="tx-multicast" value="239.255.77.77" />
+          </div>
+          <div class="input-group">
+            <label>UDP Port</label>
+            <input
+              type="number"
+              id="tx-port"
+              value="7777"
+              min="1024"
+              max="65535"
+            />
+          </div>
+          <div class="input-group">
+            <label>Session ID</label>
+            <input
+              type="text"
+              id="tx-session"
+              value=""
+              placeholder="Auto-generated"
+            />
+          </div>
+          <div class="input-group">
+            <label>Target FPS</label>
+            <input type="number" id="tx-fps" value="60" min="1" max="120" />
+          </div>
+          <div class="input-group">
+            <label>Resolution (JVID Optimized)</label>
+            <select id="tx-resolution">
+              <option value="LOW_144P" selected>
+                144p (256x144) - JVID Fast Processing
+              </option>
+            </select>
+          </div>
+          <div class="input-group">
+            <label>JVID Encoding</label>
+            <select id="tx-codec">
+              <option value="raw" selected>RAW PCM RGB Matrix Slices</option>
+            </select>
+          </div>
+          <div class="input-group">
+            <label>
+              <input type="checkbox" id="tx-burst" checked /> Enable Burst
+              Transmission
+            </label>
+          </div>
+          <div class="input-group">
+            <label>
+              <input type="checkbox" id="tx-discovery" checked /> Auto-Discovery
+            </label>
+          </div>
+          <button class="control-btn start-btn" id="start-transmit">
+            Start Transmitting
+          </button>
+          <button class="control-btn stop-btn" id="stop-transmit" disabled>
+            Stop Transmitting
+          </button>
+        </div>
+
+        <!-- Receive Configuration -->
+        <div class="config-section" id="receive-config" style="display: none">
+          <h4>TOAST UDP Receiver</h4>
+          <div class="input-group">
+            <label>Multicast Address</label>
+            <input type="text" id="rx-multicast" value="239.255.77.77" />
+          </div>
+          <div class="input-group">
+            <label>UDP Port</label>
+            <input
+              type="number"
+              id="rx-port"
+              value="7777"
+              min="1024"
+              max="65535"
+            />
+          </div>
+          <div class="input-group">
+            <label>
+              <input type="checkbox" id="rx-discovery" checked /> Auto-Discovery
+            </label>
+          </div>
+          <div class="input-group">
+            <label>Peer Filter</label>
+            <select id="rx-peer-filter">
+              <option value="ALL">All Peers</option>
+              <option value="SPECIFIC">Specific Session ID</option>
+            </select>
+          </div>
+          <div class="input-group" id="rx-session-group" style="display: none">
+            <label>Session ID Filter</label>
+            <input
+              type="text"
+              id="rx-session"
+              value=""
+              placeholder="Session ID to receive"
+            />
+          </div>
+          <button class="control-btn start-btn" id="start-receive">
+            Start Receiving
+          </button>
+          <button class="control-btn stop-btn" id="stop-receive" disabled>
+            Stop Receiving
+          </button>
+        </div>
+
+        <!-- Discovery Panel -->
+        <div class="config-section" id="discovery-panel">
+          <h4>Peer Discovery</h4>
+          <div class="input-group">
+            <label>Discovered Peers</label>
+            <select id="discovered-peers" size="4">
+              <option value="">No peers discovered yet</option>
+            </select>
+          </div>
+          <button class="control-btn" id="refresh-discovery">
+            Refresh Discovery
+          </button>
+          <button class="control-btn" id="connect-peer" disabled>
+            Connect to Selected Peer
+          </button>
+        </div>
+
+        <!-- Protocol Stats -->
+        <div class="stats-panel">
+          <h4>TOAST Protocol Stats</h4>
+          <div class="stat-item">
+            <span class="stat-label">Status:</span>
+            <span class="stat-value" id="protocol-status">Disconnected</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Active Peers:</span>
+            <span class="stat-value" id="active-peers">0</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Frames Sent:</span>
+            <span class="stat-value" id="frames-sent">0</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Frames Received:</span>
+            <span class="stat-value" id="frames-received">0</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Bytes Sent:</span>
+            <span class="stat-value" id="bytes-sent">0</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Bytes Received:</span>
+            <span class="stat-value" id="bytes-received">0</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Packet Loss:</span>
+            <span class="stat-value" id="packet-loss">0.0%</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Average Latency:</span>
+            <span class="stat-value" id="avg-latency">0.0ms</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Burst Packets:</span>
+            <span class="stat-value" id="burst-packets">0</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Current FPS:</span>
+            <span class="stat-value" id="current-fps">0</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="video-display">
+        <div class="no-video" id="no-video">
+          <h3>No Video Stream</h3>
+          <p>Select Transmit or Receive mode to begin</p>
+        </div>
+        <video
+          class="video-frame"
+          id="video-frame"
+          style="display: none"
+          autoplay
+          playsinline
+          muted
+        ></video>
+
+        <div class="status-indicator status-disconnected" id="status">
+          Disconnected
+        </div>
+        <div class="latency-display" id="latency" style="display: none">
+          0 ms
+        </div>
+        <div class="frame-info" id="frame-info" style="display: none">
+          Frame: 0 | Size: 0 KB | Seq: 0
+        </div>
+      </div>
+    </div>
+
+    <script src="jvid-processor.js"></script>
+    <script src="renderer.js"></script>
+  </body>
+</html>
