@@ -1,0 +1,161 @@
+{
+  "session_info": {
+    "timestamp": 1751973341.1922822,
+    "baseline_memory_mb": 1.5488204956054688,
+    "current_memory_mb": 1.5488204956054688,
+    "memory_increase_mb": 0.0,
+    "psutil_available": false,
+    "torch_available": true
+  },
+  "training_profiles": [
+    {
+      "timestamp": 1751973340.462278,
+      "metrics": "PerformanceMetrics(execution_time_ms=32.18820800248068, memory_usage_mb=0.0, peak_memory_mb=1.5488204956054688, cpu_percent=0.0, model_size_mb=0.0, parameters_count=0, inference_time_ms=None, throughput_samples_per_sec=None)"
+    }
+  ],
+  "inference_profiles": [],
+  "memory_timeline": [
+    {
+      "timestamp": 1751973340.255114,
+      "operation": "test_operation",
+      "memory_mb": 1.5488204956054688,
+      "memory_delta_mb": 0.0
+    },
+    {
+      "timestamp": 1751973340.462271,
+      "operation": "training_step",
+      "memory_mb": 1.5488204956054688,
+      "memory_delta_mb": 0.0
+    },
+    {
+      "timestamp": 1751973340.5022368,
+      "operation": "inference_run_0",
+      "memory_mb": 1.5488204956054688,
+      "memory_delta_mb": 0.0
+    },
+    {
+      "timestamp": 1751973340.538976,
+      "operation": "inference_run_1",
+      "memory_mb": 1.5488204956054688,
+      "memory_delta_mb": 0.0
+    },
+    {
+      "timestamp": 1751973340.574904,
+      "operation": "inference_run_2",
+      "memory_mb": 1.5488204956054688,
+      "memory_delta_mb": 0.0
+    },
+    {
+      "timestamp": 1751973340.611968,
+      "operation": "inference_run_3",
+      "memory_mb": 1.5488204956054688,
+      "memory_delta_mb": 0.0
+    },
+    {
+      "timestamp": 1751973340.648035,
+      "operation": "inference_run_4",
+      "memory_mb": 1.5488204956054688,
+      "memory_delta_mb": 0.0
+    },
+    {
+      "timestamp": 1751973340.685358,
+      "operation": "inference_run_5",
+      "memory_mb": 1.5488204956054688,
+      "memory_delta_mb": 0.0
+    },
+    {
+      "timestamp": 1751973340.721885,
+      "operation": "inference_run_6",
+      "memory_mb": 1.5488204956054688,
+      "memory_delta_mb": 0.0
+    },
+    {
+      "timestamp": 1751973340.75761,
+      "operation": "inference_run_7",
+      "memory_mb": 1.5488204956054688,
+      "memory_delta_mb": 0.0
+    },
+    {
+      "timestamp": 1751973340.793328,
+      "operation": "inference_run_8",
+      "memory_mb": 1.5488204956054688,
+      "memory_delta_mb": 0.0
+    },
+    {
+      "timestamp": 1751973340.829522,
+      "operation": "inference_run_9",
+      "memory_mb": 1.5488204956054688,
+      "memory_delta_mb": 0.0
+    },
+    {
+      "timestamp": 1751973340.865547,
+      "operation": "inference_run_10",
+      "memory_mb": 1.5488204956054688,
+      "memory_delta_mb": 0.0
+    },
+    {
+      "timestamp": 1751973340.901246,
+      "operation": "inference_run_11",
+      "memory_mb": 1.5488204956054688,
+      "memory_delta_mb": 0.0
+    },
+    {
+      "timestamp": 1751973340.9371462,
+      "operation": "inference_run_12",
+      "memory_mb": 1.5488204956054688,
+      "memory_delta_mb": 0.0
+    },
+    {
+      "timestamp": 1751973340.972679,
+      "operation": "inference_run_13",
+      "memory_mb": 1.5488204956054688,
+      "memory_delta_mb": 0.0
+    },
+    {
+      "timestamp": 1751973341.008279,
+      "operation": "inference_run_14",
+      "memory_mb": 1.5488204956054688,
+      "memory_delta_mb": 0.0
+    },
+    {
+      "timestamp": 1751973341.0439749,
+      "operation": "inference_run_15",
+      "memory_mb": 1.5488204956054688,
+      "memory_delta_mb": 0.0
+    },
+    {
+      "timestamp": 1751973341.079433,
+      "operation": "inference_run_16",
+      "memory_mb": 1.5488204956054688,
+      "memory_delta_mb": 0.0
+    },
+    {
+      "timestamp": 1751973341.114945,
+      "operation": "inference_run_17",
+      "memory_mb": 1.5488204956054688,
+      "memory_delta_mb": 0.0
+    },
+    {
+      "timestamp": 1751973341.150506,
+      "operation": "inference_run_18",
+      "memory_mb": 1.5488204956054688,
+      "memory_delta_mb": 0.0
+    },
+    {
+      "timestamp": 1751973341.185945,
+      "operation": "inference_run_19",
+      "memory_mb": 1.5488204956054688,
+      "memory_delta_mb": 0.0
+    }
+  ],
+  "constraints": {
+    "realtime_threshold_ms": 1.0,
+    "memory_limit_mb": 1024
+  },
+  "training_summary": {
+    "mean_time_per_step_ms": 32.18820800248068,
+    "min_time_ms": 32.18820800248068,
+    "max_time_ms": 32.18820800248068,
+    "total_steps": 1
+  }
+}
