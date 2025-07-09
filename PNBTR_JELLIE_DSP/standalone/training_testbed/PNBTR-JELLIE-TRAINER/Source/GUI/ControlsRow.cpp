@@ -134,19 +134,57 @@ void ControlsRow::updateNetworkParameters(float packetLoss, float jitter, float 
 //==============================================================================
 void ControlsRow::startProcessing()
 {
-    if (trainer != nullptr)
+    if (trainer != nullptr) {
         trainer->startTraining();
+        // If "Record" is armed, enable recording
+        trainer->recordingActive.store(true);
+    }
 }
 
 void ControlsRow::stopProcessing()
 {
-    if (trainer != nullptr)
+    if (trainer != nullptr) {
         trainer->stopTraining();
+        trainer->recordingActive.store(false);
+    }
 }
 
 void ControlsRow::exportSession()
 {
-    // TODO: Implement export logic for PNBTRTrainer if needed
+    // Export the recorded buffer to a WAV file
+    if (trainer == nullptr)
+        return;
+
+    // Get the recorded buffer (entire buffer)
+    constexpr int numChannels = 2;
+    constexpr double sampleRate = 48000.0; // TODO: get from trainer if dynamic
+    const size_t bufferLength = 48000 * 10; // 10 seconds, stereo interleaved
+    std::vector<float> exportBuffer(bufferLength * numChannels);
+    trainer->getRecordedBuffer(exportBuffer.data(), (int)bufferLength, 0);
+
+    // Create a JUCE AudioBuffer for writing
+    juce::AudioBuffer<float> audioBuffer(numChannels, (int)bufferLength);
+    for (int i = 0; i < (int)bufferLength; ++i) {
+        audioBuffer.setSample(0, i, exportBuffer[i * 2]);
+        audioBuffer.setSample(1, i, exportBuffer[i * 2 + 1]);
+    }
+
+    // Prompt user for file location
+    juce::FileChooser chooser("Export Recorded Audio as WAV", juce::File::getSpecialLocation(juce::File::userDesktopDirectory), "*.wav");
+    chooser.launchAsync(juce::FileBrowserComponent::saveMode, [audioBuffer = std::move(audioBuffer), sampleRate, numChannels, bufferLength](const juce::FileChooser& fc) mutable {
+        auto file = fc.getResult();
+        if (file != juce::File{}) {
+            juce::WavAudioFormat wavFormat;
+            std::unique_ptr<juce::FileOutputStream> stream(file.createOutputStream());
+            if (stream != nullptr) {
+                std::unique_ptr<juce::AudioFormatWriter> writer(wavFormat.createWriterFor(stream.get(), sampleRate, numChannels, 16, {}, 0));
+                if (writer != nullptr) {
+                    stream.release(); // Writer now owns the stream
+                    writer->writeFromAudioSampleBuffer(audioBuffer, 0, (int)bufferLength);
+                }
+            }
+        }
+    });
 }
 
 void ControlsRow::onPacketLossChanged()

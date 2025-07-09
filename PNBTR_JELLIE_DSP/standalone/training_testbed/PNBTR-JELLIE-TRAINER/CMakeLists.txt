@@ -69,10 +69,13 @@ target_sources(PnbtrJellieTrainer PRIVATE
     Source/GPU/MetalBridge.mm
 )
 
-# Set include directory (prioritize our Source directory)
+
+# Set include directory (prioritize our Source directory and JUCE modules)
 target_include_directories(PnbtrJellieTrainer PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/Source
     ${CMAKE_CURRENT_SOURCE_DIR}
+    ${JUCE_SOURCE_DIR}/modules
+    ${CMAKE_CURRENT_SOURCE_DIR}/_deps/juce-src/modules
 )
 
 # Link required JUCE modules

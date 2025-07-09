@@ -15,19 +15,22 @@
   ==============================================================================
 */
 
-// SLOP-FIXED: All rows are explicit children, no overlays, no floating windows
+
 #include "MainComponent.h"
-#include "ProfessionalTransportController.h"
-#include "TitleComponent.h"
-#include "OscilloscopeRow.h"
-#include "WaveformAnalysisRow.h"
-#include "AudioTracksRow.h"
-#include "MetricsDashboard.h"
-#include "ControlsRow.h"
-#include <cstdio>
-#include "../DSP/PNBTRTrainer.h"
+// JUCE module includes (must be first)
+#include <juce_gui_basics/juce_gui_basics.h>
+#include <juce_audio_basics/juce_audio_basics.h>
+#include <juce_audio_devices/juce_audio_devices.h>
+#include <juce_audio_processors/juce_audio_processors.h>
+#include <juce_audio_formats/juce_audio_formats.h>
+#include <juce_audio_utils/juce_audio_utils.h>
+
+#include "MainComponent.h"
+
+using namespace juce;
 
 //==============================================================================
+
 
 MainComponent::MainComponent()
 {
@@ -40,20 +43,19 @@ MainComponent::MainComponent()
     controlsRow = std::make_unique<ControlsRow>();
     pnbtrTrainer = std::make_unique<PNBTRTrainer>();
 
-    addAndMakeVisible(*title);
-    addAndMakeVisible(*transportBar);
-    addAndMakeVisible(*oscilloscopeRow);
-    addAndMakeVisible(*waveformAnalysisRow);
-    addAndMakeVisible(*audioTracksRow);
-    addAndMakeVisible(*metricsDashboard);
-    addAndMakeVisible(*controlsRow);
-
+    addAndMakeVisible(title.get());
+    addAndMakeVisible(transportBar.get());
+    addAndMakeVisible(oscilloscopeRow.get());
+    addAndMakeVisible(waveformAnalysisRow.get());
+    addAndMakeVisible(audioTracksRow.get());
+    addAndMakeVisible(metricsDashboard.get());
+    addAndMakeVisible(controlsRow.get());
 
     // Audio device dropdowns
     inputDeviceBox = std::make_unique<juce::ComboBox>("InputDevice");
     outputDeviceBox = std::make_unique<juce::ComboBox>("OutputDevice");
-    addAndMakeVisible(*inputDeviceBox);
-    addAndMakeVisible(*outputDeviceBox);
+    addAndMakeVisible(inputDeviceBox.get());
+    addAndMakeVisible(outputDeviceBox.get());
     inputDeviceBox->onChange = [this] { inputDeviceChanged(); };
     outputDeviceBox->onChange = [this] { outputDeviceChanged(); };
 
@@ -61,31 +63,6 @@ MainComponent::MainComponent()
     transportBar->onPlay = [this] { handleTransportPlay(); };
     transportBar->onStop = [this] { handleTransportStop(); };
     transportBar->onRecord = [this] { handleTransportRecord(); };
-// Transport control wiring
-void MainComponent::handleTransportPlay()
-{
-    // Start audio device if not running
-    auto* device = deviceManager.getCurrentAudioDevice();
-    if (!device || !device->isOpen()) {
-        deviceManager.restartLastAudioDevice();
-    }
-    if (pnbtrTrainer)
-        pnbtrTrainer->startTraining();
-}
-
-void MainComponent::handleTransportStop()
-{
-    // Stop audio device
-    deviceManager.closeAudioDevice();
-    if (pnbtrTrainer)
-        pnbtrTrainer->stopTraining();
-}
-
-void MainComponent::handleTransportRecord()
-{
-    // For now, treat as play
-    handleTransportPlay();
-}
 
     // Set up device manager (2 ins, 2 outs by default)
     deviceManager.initialise(2, 2, nullptr, true);
@@ -101,34 +78,64 @@ void MainComponent::handleTransportRecord()
     audioTracksRow->setTrainer(pnbtrTrainer.get());
     setSize(1280, 720);
 }
+
+void MainComponent::handleTransportPlay()
+{
+    // Start audio device if not running
+    auto* device = deviceManager.getCurrentAudioDevice();
+    if (!device || !device->isOpen()) {
+        juce::Logger::writeToLog("[TRANSPORT] Restarting audio device");
+        deviceManager.restartLastAudioDevice();
+    }
+    if (pnbtrTrainer)
+        pnbtrTrainer->startTraining();
+    juce::Logger::writeToLog("[TRANSPORT] Play pressed, training started");
+}
+
+void MainComponent::handleTransportStop()
+{
+    // Stop audio device
+    juce::Logger::writeToLog("[TRANSPORT] Stop pressed, closing audio device");
+    deviceManager.closeAudioDevice();
+    if (pnbtrTrainer)
+        pnbtrTrainer->stopTraining();
+}
+
+void MainComponent::handleTransportRecord()
+{
+    // Start recording (set recordingActive)
+    if (pnbtrTrainer)
+        pnbtrTrainer->recordingActive.store(true);
+    handleTransportPlay();
+}
 // Audio device management
 void MainComponent::updateDeviceLists()
 {
     inputDeviceBox->clear();
     outputDeviceBox->clear();
-    auto* setup = deviceManager.getAudioDeviceSetup();
+    auto setup = deviceManager.getAudioDeviceSetup();
     juce::StringArray inputNames = deviceManager.getAvailableDeviceTypes()[0]->getDeviceNames(true);
     juce::StringArray outputNames = deviceManager.getAvailableDeviceTypes()[0]->getDeviceNames(false);
     for (int i = 0; i < inputNames.size(); ++i)
         inputDeviceBox->addItem(inputNames[i], i + 1);
     for (int i = 0; i < outputNames.size(); ++i)
         outputDeviceBox->addItem(outputNames[i], i + 1);
-    inputDeviceBox->setSelectedId(inputNames.indexOf(setup->inputDeviceName) + 1, juce::dontSendNotification);
-    outputDeviceBox->setSelectedId(outputNames.indexOf(setup->outputDeviceName) + 1, juce::dontSendNotification);
+    inputDeviceBox->setSelectedId(inputNames.indexOf(setup.inputDeviceName) + 1, juce::dontSendNotification);
+    outputDeviceBox->setSelectedId(outputNames.indexOf(setup.outputDeviceName) + 1, juce::dontSendNotification);
 }
 
 void MainComponent::inputDeviceChanged()
 {
-    auto* setup = deviceManager.getAudioDeviceSetup();
-    setup->inputDeviceName = inputDeviceBox->getText();
-    deviceManager.setAudioDeviceSetup(*setup, true);
+    auto setup = deviceManager.getAudioDeviceSetup();
+    setup.inputDeviceName = inputDeviceBox->getText();
+    deviceManager.setAudioDeviceSetup(setup, true);
 }
 
 void MainComponent::outputDeviceChanged()
 {
-    auto* setup = deviceManager.getAudioDeviceSetup();
-    setup->outputDeviceName = outputDeviceBox->getText();
-    deviceManager.setAudioDeviceSetup(*setup, true);
+    auto setup = deviceManager.getAudioDeviceSetup();
+    setup.outputDeviceName = outputDeviceBox->getText();
+    deviceManager.setAudioDeviceSetup(setup, true);
 }
 
 void MainComponent::audioDeviceAboutToStart(juce::AudioIODevice* device)
@@ -146,17 +153,33 @@ void MainComponent::audioDeviceStopped()
 void MainComponent::audioDeviceIOCallback(const float** inputChannelData, int numInputChannels,
                                           float** outputChannelData, int numOutputChannels, int numSamples)
 {
+    static int callbackCount = 0;
+    if (++callbackCount % 100 == 0) {
+        juce::Logger::writeToLog("[AUDIO CALLBACK] Running (" + juce::String(callbackCount) + ")");
+    }
+    // Defensive: zero output in case of crash or uninitialized buffer
+    for (int ch = 0; ch < numOutputChannels; ++ch)
+        std::memset(outputChannelData[ch], 0, sizeof(float) * numSamples);
+
+    // Thread-safe audio buffer copy and processing
     juce::AudioBuffer<float> buffer(const_cast<float**>(inputChannelData), numInputChannels, numSamples);
-    juce::MidiBuffer midi;
     if (pnbtrTrainer)
-        pnbtrTrainer->processBlock(buffer, midi);
-    // Copy processed buffer to output
+    {
+        // Try/catch to prevent any crash from killing the audio thread
+        try {
+            juce::MidiBuffer midi;
+            pnbtrTrainer->processBlock(buffer, midi);
+        } catch (const std::exception& e) {
+            juce::Logger::writeToLog("[AUDIO CALLBACK] Exception: " + juce::String(e.what()));
+        } catch (...) {
+            juce::Logger::writeToLog("[AUDIO CALLBACK] Unknown exception");
+        }
+    }
+    // Copy processed buffer to output (thread-safe)
     for (int ch = 0; ch < numOutputChannels; ++ch)
     {
         if (ch < buffer.getNumChannels())
             std::memcpy(outputChannelData[ch], buffer.getReadPointer(ch), sizeof(float) * numSamples);
-        else
-            std::memset(outputChannelData[ch], 0, sizeof(float) * numSamples);
     }
 }
 

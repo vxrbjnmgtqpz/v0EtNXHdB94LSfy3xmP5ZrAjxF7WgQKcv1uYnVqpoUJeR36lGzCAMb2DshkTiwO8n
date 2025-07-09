@@ -14,40 +14,36 @@ MetalBridge& MetalBridge::getInstance() {
 
 bool MetalBridge::initialize() {
     @autoreleasepool {
+        NSLog(@"[MetalBridge::initialize] Called");
         // Create Metal device
         device = MTLCreateSystemDefaultDevice();
         if (!device) {
             std::cerr << "Metal device creation failed" << std::endl;
             return false;
         }
-        
         // Create command queue
         commandQueue = [device newCommandQueue];
         if (!commandQueue) {
             std::cerr << "Command queue creation failed" << std::endl;
             return false;
         }
-        
         // Load default library
         library = [device newDefaultLibrary];
         if (!library) {
             std::cerr << "Metal library loading failed" << std::endl;
             return false;
         }
-        
         // Create compute pipeline states
         if (!createComputePipelines()) {
             std::cerr << "Pipeline creation failed" << std::endl;
             return false;
         }
-        
         // Initialize buffer properties
         currentBufferSize = 0;
         currentNumChannels = 0;
-        
         // Initialize metrics
         latestMetrics = {0.0f, 0.0f, 0.0f, 0.0f};
-        
+        NSLog(@"[MetalBridge::initialize] Success");
         return true;
     }
 }

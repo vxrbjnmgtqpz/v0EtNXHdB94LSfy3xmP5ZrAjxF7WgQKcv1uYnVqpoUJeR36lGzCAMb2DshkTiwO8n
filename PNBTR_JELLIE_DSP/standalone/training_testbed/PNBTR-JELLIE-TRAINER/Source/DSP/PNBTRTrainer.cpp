@@ -18,6 +18,14 @@
 //==============================================================================
 PNBTRTrainer::PNBTRTrainer()
 {
+    // Preallocate double buffers for oscilloscope (2x block size, stereo)
+    oscInputBufferA.resize(2048 * 2, 0.0f);
+    oscInputBufferB.resize(2048 * 2, 0.0f);
+    oscOutputBufferA.resize(2048 * 2, 0.0f);
+    oscOutputBufferB.resize(2048 * 2, 0.0f);
+    // Preallocate recording buffer (e.g. 10 seconds at 48kHz stereo)
+    recordBuffer.resize(48000 * 10 * 2, 0.0f);
+
     // Use singleton MetalBridge
     // All access to MetalBridge is via MetalBridge::getInstance()
     metrics = std::make_unique<TrainingMetrics>();
@@ -70,46 +78,108 @@ void PNBTRTrainer::releaseResources()
 void PNBTRTrainer::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
     juce::ScopedNoDenormals noDenormals;
-    
+    static int blockCount = 0;
+    if (++blockCount % 100 == 0) {
+        juce::Logger::writeToLog("[PNBTRTrainer::processBlock] Called (" + juce::String(blockCount) + ")");
+    }
     if (!trainingActive.load() || !MetalBridge::getInstance().isInitialized()) {
         // Pass through audio unchanged if training is inactive
         return;
     }
-    
     const int numSamples = buffer.getNumSamples();
     const int numChannels = buffer.getNumChannels();
-    
     // Ensure we have stereo input
     if (numChannels < 2) {
         buffer.setSize(2, numSamples, true, true, true);
     }
-    
+
+    // --- Thread-safe oscilloscope and recording buffer updates ---
+
+    updateOscilloscopeBuffers(buffer);
+    if (recordingActive.load())
+        updateRecordingBuffer(buffer);
+
     // **REAL PROCESSING PIPELINE - GPU KERNELS**
-    
     // 1. Copy input samples into shared Metal input buffer (zero-copy)
     copyInputToGPU(buffer);
-    
     // 2. Generate packet loss map for this block
     packetLossSimulator->generateLossMap(packetLossPercentage.load(), 
                                         jitterAmount.load());
-    
     // 3. Encode with JELLIE (Metal kernel: 48kHz→192kHz + 8-channel distribution)
     runJellieEncode();
-    
     // 4. Apply simulated packet loss/jitter (Metal kernel)
     runNetworkSimulation();
-    
     // 5. Reconstruct via PNBTR (Metal kernel: neural gap filling)
     runPNBTRReconstruction();
-    
     // 6. Copy reconstructed buffer back to CPU output (zero-copy)
     copyOutputFromGPU(buffer);
-    
     // 7. Update shared metrics/log buffers (part of core loop)
     updateMetrics();
-    
     // Clear unused MIDI
     midiMessages.clear();
+}
+
+// Thread-safe oscilloscope buffer update (call in processBlock)
+void PNBTRTrainer::updateOscilloscopeBuffers(const juce::AudioBuffer<float>& buffer)
+{
+    // Interleave stereo for oscilloscope
+    const float* left = buffer.getReadPointer(0);
+    const float* right = buffer.getReadPointer(1);
+    const int n = buffer.getNumSamples();
+    bool toggle = !oscBufferToggle.load(std::memory_order_relaxed);
+    std::vector<float>& oscIn = toggle ? oscInputBufferA : oscInputBufferB;
+    std::vector<float>& oscOut = toggle ? oscOutputBufferA : oscOutputBufferB;
+    for (int i = 0; i < n; ++i) {
+        oscIn[i * 2] = left[i];
+        oscIn[i * 2 + 1] = right[i];
+    }
+    // For output oscilloscope, use output buffer (after processing)
+    // Here, just copy input as placeholder; replace with actual output if needed
+    for (int i = 0; i < n; ++i) {
+        oscOut[i * 2] = left[i];
+        oscOut[i * 2 + 1] = right[i];
+    }
+    oscBufferToggle.store(toggle, std::memory_order_release);
+}
+
+// Thread-safe recording buffer update (call in processBlock)
+void PNBTRTrainer::updateRecordingBuffer(const juce::AudioBuffer<float>& buffer)
+{
+    const float* left = buffer.getReadPointer(0);
+    const float* right = buffer.getReadPointer(1);
+    const int n = buffer.getNumSamples();
+    size_t pos = recordWritePos.load(std::memory_order_relaxed);
+    for (int i = 0; i < n; ++i) {
+        recordBuffer[(pos + i) * 2] = left[i];
+        recordBuffer[(pos + i) * 2 + 1] = right[i];
+    }
+    recordWritePos.store((pos + n) % (recordBuffer.size() / 2), std::memory_order_release);
+}
+
+// GUI thread: get latest oscilloscope input buffer (thread-safe)
+void PNBTRTrainer::getLatestOscInput(float* dest, int numSamples)
+{
+    bool toggle = oscBufferToggle.load(std::memory_order_acquire);
+    const std::vector<float>& oscIn = toggle ? oscInputBufferA : oscInputBufferB;
+    std::memcpy(dest, oscIn.data(), sizeof(float) * numSamples * 2);
+}
+
+// GUI thread: get latest oscilloscope output buffer (thread-safe)
+void PNBTRTrainer::getLatestOscOutput(float* dest, int numSamples)
+{
+    bool toggle = oscBufferToggle.load(std::memory_order_acquire);
+    const std::vector<float>& oscOut = toggle ? oscOutputBufferA : oscOutputBufferB;
+    std::memcpy(dest, oscOut.data(), sizeof(float) * numSamples * 2);
+}
+
+// GUI thread: get latest recorded buffer (thread-safe)
+void PNBTRTrainer::getRecordedBuffer(float* dest, int numSamples, size_t offset)
+{
+    size_t pos = (recordWritePos.load(std::memory_order_acquire) + offset) % (recordBuffer.size() / 2);
+    for (int i = 0; i < numSamples; ++i) {
+        dest[i * 2] = recordBuffer[(pos + i) * 2];
+        dest[i * 2 + 1] = recordBuffer[(pos + i) * 2 + 1];
+    }
 }
 
 //==============================================================================

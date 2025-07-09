@@ -1,22 +1,16 @@
-/*
-  ==============================================================================
-
-    PNBTRTrainer.h
-    Created: Real GPU-native training harness
-
-    JUCE AudioProcessor that dispatches Metal kernels for:
-    Input → JELLIE Encode → Network Simulation → PNBTR Reconstruction → Output
-
-  ==============================================================================
-*/
-
-
+//
+//
 #pragma once
 
-#include <juce_audio_processors/juce_audio_processors.h>
 #include <juce_audio_basics/juce_audio_basics.h>
-#include <memory>
+#include <juce_audio_processors/juce_audio_processors.h>
+#include <juce_audio_devices/juce_audio_devices.h>
+#include <juce_audio_formats/juce_audio_formats.h>
+#include <juce_audio_utils/juce_audio_utils.h>
+#include <vector>
 #include <atomic>
+#include <cstddef>
+#include <memory>
 
 // Forward declarations
 class MetalBridge;
@@ -29,6 +23,28 @@ class PNBTRTrainer : public juce::AudioProcessor
 public:
     PNBTRTrainer();
     ~PNBTRTrainer() override;
+
+    // Recording state (atomic, public for GUI control)
+    std::atomic<bool> recordingActive{false};
+
+    // Double buffers for oscilloscope/waveform (thread-safe swap)
+    std::vector<float> oscInputBufferA, oscInputBufferB;
+    std::vector<float> oscOutputBufferA, oscOutputBufferB;
+    std::atomic<bool> oscBufferToggle{false};
+
+    // Lock-free circular buffer for recording (JELLIE track)
+    std::vector<float> recordBuffer;
+    std::atomic<size_t> recordWritePos{0};
+
+    // Thread-safe oscilloscope buffer update (call in processBlock)
+    void updateOscilloscopeBuffers(const juce::AudioBuffer<float>& buffer);
+    // Thread-safe recording buffer update (call in processBlock)
+    void updateRecordingBuffer(const juce::AudioBuffer<float>& buffer);
+    // GUI thread: get latest oscilloscope input/output buffer (thread-safe)
+    void getLatestOscInput(float* dest, int numSamples);
+    void getLatestOscOutput(float* dest, int numSamples);
+    // GUI thread: get latest recorded buffer (thread-safe)
+    void getRecordedBuffer(float* dest, int numSamples, size_t offset);
 
     //==============================================================================
     // AudioProcessor interface
@@ -109,6 +125,7 @@ private:
     void initializeGPUBuffers();
     void copyInputToGPU(const juce::AudioBuffer<float>& buffer);
     void copyOutputFromGPU(juce::AudioBuffer<float>& buffer);
+
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PNBTRTrainer)
 };

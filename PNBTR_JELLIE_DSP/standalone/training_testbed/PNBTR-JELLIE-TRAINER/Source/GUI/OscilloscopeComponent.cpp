@@ -77,14 +77,14 @@ void OscilloscopeComponent::timerCallback()
 void OscilloscopeComponent::updateFromMetalBuffer()
 {
     if (trainer) {
-        // Use real DSP buffers if trainer is set
+        // Use thread-safe double-buffered access for oscilloscope
         switch (bufferType) {
             case BufferType::AudioInput:
-                trainer->getInputBuffer(displayBuffer.data(), (int)displayBuffer.size());
+                trainer->getLatestOscInput(displayBuffer.data(), (int)displayBuffer.size() / 2);
                 isActive = true;
                 break;
             case BufferType::Reconstructed:
-                trainer->getOutputBuffer(displayBuffer.data(), (int)displayBuffer.size());
+                trainer->getLatestOscOutput(displayBuffer.data(), (int)displayBuffer.size() / 2);
                 isActive = true;
                 break;
             default:
