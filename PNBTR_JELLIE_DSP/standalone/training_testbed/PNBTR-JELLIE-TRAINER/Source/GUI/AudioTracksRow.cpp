@@ -13,7 +13,7 @@ void AudioTracksRow::setTrainer(PNBTRTrainer* trainerPtr)
 {
     trainer = trainerPtr;
     if (trainer)
-        startTimerHz(15); // update thumbnails at 15 Hz
+        startTimerHz(2); // update thumbnails at 2 Hz - much more reasonable for thumbnails
     else
         stopTimer();
 }

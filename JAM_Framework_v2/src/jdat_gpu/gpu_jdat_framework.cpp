@@ -428,7 +428,7 @@ GPUJELLIEEncoder::GPUJELLIEEncoder(
         params_.sample_rate = 96000;
         params_.num_channels = 2;
         params_.bit_depth = 24;
-        params_.enable_gpu_native = true;
+        params_.enable_gpu_acceleration = true;
         params_.enable_realtime_encode = true;
         params_.quality_factor = 0.9f;
     }
@@ -495,7 +495,7 @@ GPUJELLIEDecoder::GPUJELLIEDecoder(
     if (params_.expected_sample_rate == 0) {
         params_.expected_sample_rate = 96000;
         params_.expected_channels = 2;
-        params_.enable_gpu_native = true;
+        params_.enable_gpu_acceleration = true;
         params_.enable_realtime_decode = true;
         params_.max_decode_latency_ms = 5;
     }

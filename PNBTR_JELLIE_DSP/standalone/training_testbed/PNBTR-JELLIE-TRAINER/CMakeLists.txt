@@ -23,6 +23,21 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(JUCE)
 
 # ==============================================================================
+# JAM Framework v2 Integration (for TOAST protocol)
+# ==============================================================================
+
+# Add JAM Framework v2 as subdirectory (ENABLED FOR REAL TOAST INTEGRATION)
+set(JAM_FRAMEWORK_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../../../JAM_Framework_v2")
+if(EXISTS "${JAM_FRAMEWORK_DIR}/CMakeLists.txt")
+    add_subdirectory("${JAM_FRAMEWORK_DIR}" jam_framework_v2 EXCLUDE_FROM_ALL)
+    message(STATUS "JAM Framework v2 found and added - REAL TOAST PROTOCOL ACTIVE")
+    set(JAM_FRAMEWORK_AVAILABLE TRUE)
+else()
+    message(STATUS "JAM Framework v2 NOT FOUND - using TOAST stubs")
+    set(JAM_FRAMEWORK_AVAILABLE FALSE)
+endif()
+
+# ==============================================================================
 # Project Structure
 # ==============================================================================
 
@@ -78,6 +93,14 @@ target_include_directories(PnbtrJellieTrainer PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/_deps/juce-src/modules
 )
 
+# Add JAM Framework v2 includes if available
+if(JAM_FRAMEWORK_AVAILABLE)
+    target_include_directories(PnbtrJellieTrainer PRIVATE
+        "${JAM_FRAMEWORK_DIR}/include"
+        "${JAM_FRAMEWORK_DIR}/src"
+    )
+endif()
+
 # Link required JUCE modules
 target_link_libraries(PnbtrJellieTrainer PRIVATE
     juce::juce_gui_basics
@@ -90,6 +113,11 @@ target_link_libraries(PnbtrJellieTrainer PRIVATE
     juce::juce_recommended_lto_flags
     juce::juce_recommended_warning_flags
 )
+
+# Link JAM Framework v2 if available
+if(JAM_FRAMEWORK_AVAILABLE)
+    target_link_libraries(PnbtrJellieTrainer PRIVATE jam_framework_v2)
+endif()
 
 # ==============================================================================
 # Metal Integration

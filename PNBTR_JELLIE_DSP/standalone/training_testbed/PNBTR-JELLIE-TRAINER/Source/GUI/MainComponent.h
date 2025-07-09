@@ -48,7 +48,7 @@
 #include <juce_audio_processors/juce_audio_processors.h>
 #include <juce_audio_utils/juce_audio_utils.h>
 
-class MainComponent : public juce::Component, public juce::AudioIODeviceCallback
+class MainComponent : public juce::Component, public juce::AudioIODeviceCallback, public juce::Timer
 {
 public:
     MainComponent();
@@ -56,6 +56,9 @@ public:
 
     void paint(juce::Graphics&) override;
     void resized() override;
+
+    // Timer callback for progressive loading (video game engine style)
+    void timerCallback() override;
 
     // Audio callback
     void audioDeviceIOCallback(const float** inputChannelData, int numInputChannels,
@@ -69,6 +72,12 @@ public:
     void handleTransportRecord();
 
 private:
+    // Progressive loading (video game engine style)
+    std::unique_ptr<juce::Label> loadingLabel;
+    int initializationStep = 0;
+    bool isFullyLoaded = false;
+    
+    // GUI components (lazy loaded)
     std::unique_ptr<ProfessionalTransportController> transportBar;
     std::unique_ptr<TitleComponent> title;
     std::unique_ptr<OscilloscopeRow> oscilloscopeRow;
@@ -77,7 +86,7 @@ private:
     std::unique_ptr<MetricsDashboard> metricsDashboard;
     std::unique_ptr<ControlsRow> controlsRow;
 
-    // DSP pipeline
+    // DSP pipeline (loaded in background)
     std::unique_ptr<class PNBTRTrainer> pnbtrTrainer;
 
     // Audio device manager and device selectors
@@ -87,6 +96,10 @@ private:
     void updateDeviceLists();
     void inputDeviceChanged();
     void outputDeviceChanged();
+    
+    // Audio engine integration
+    void initializeAudioEngine();
+    void shutdownAudioEngine();
 
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)

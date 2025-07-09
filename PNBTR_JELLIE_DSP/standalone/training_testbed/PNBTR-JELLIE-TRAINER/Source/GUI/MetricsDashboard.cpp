@@ -78,8 +78,26 @@ void MetricsDashboard::resized()
 
 void MetricsDashboard::timerCallback()
 {
+    // Store previous metrics to detect changes
+    std::vector<float> oldValues;
+    for (const auto& metric : metrics) {
+        oldValues.push_back(metric->currentValue);
+    }
+    
     updateMetrics();
-    repaint();
+    
+    // Only repaint if metrics actually changed (massive performance improvement)
+    bool valuesChanged = false;
+    for (size_t i = 0; i < metrics.size() && i < oldValues.size(); ++i) {
+        if (std::abs(metrics[i]->currentValue - oldValues[i]) > 0.01f) {
+            valuesChanged = true;
+            break;
+        }
+    }
+    
+    if (valuesChanged) {
+        repaint();
+    }
 }
 
 //==============================================================================

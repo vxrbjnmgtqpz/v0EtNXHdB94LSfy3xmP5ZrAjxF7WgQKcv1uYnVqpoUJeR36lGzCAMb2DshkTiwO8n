@@ -71,8 +71,8 @@ ProfessionalTransportController::ProfessionalTransportController()
     recordButton->onClick = [this] { recordButtonClicked(); };
     bpmSlider->onValueChange = [this] { bpmSliderChanged(); };
     
-    // Start high-frequency timer for microsecond precision updates
-    startTimer(1); // 1000 Hz for true microsecond display updates
+    // Start reasonable timer for transport display updates
+    startTimer(50); // 20 Hz - perfectly smooth for human perception
 }
 
 ProfessionalTransportController::~ProfessionalTransportController()

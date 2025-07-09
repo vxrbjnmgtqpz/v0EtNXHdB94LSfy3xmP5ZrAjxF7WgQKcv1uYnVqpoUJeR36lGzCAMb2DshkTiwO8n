@@ -7,7 +7,7 @@ void WaveformAnalysisRow::setTrainer(PNBTRTrainer* trainerPtr)
     reconOsc.setTrainer(trainerPtr);
     trainer = trainerPtr;
     if (trainer)
-        startTimerHz(15);
+        startTimerHz(2); // update thumbnail at 2 Hz - much more reasonable
     else
         stopTimer();
 }

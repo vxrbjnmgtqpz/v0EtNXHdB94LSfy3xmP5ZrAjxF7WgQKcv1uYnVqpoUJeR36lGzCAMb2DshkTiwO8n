@@ -48,7 +48,13 @@ void AudioThumbnailComponent::loadFromBuffer(const float* data, int numSamples, 
     if (numSamples <= 0 || data == nullptr)
         return;
 
-    liveBuffer.assign(data, data + numSamples);
+    // Check if data actually changed to avoid expensive thumbnail recalculation
+    std::vector<float> newBuffer(data, data + numSamples);
+    if (newBuffer == liveBuffer && sampleRate == liveSampleRate) {
+        return; // No change, skip expensive thumbnail rebuild
+    }
+
+    liveBuffer = std::move(newBuffer);
     liveSampleRate = sampleRate;
     usingLiveBuffer = true;
 

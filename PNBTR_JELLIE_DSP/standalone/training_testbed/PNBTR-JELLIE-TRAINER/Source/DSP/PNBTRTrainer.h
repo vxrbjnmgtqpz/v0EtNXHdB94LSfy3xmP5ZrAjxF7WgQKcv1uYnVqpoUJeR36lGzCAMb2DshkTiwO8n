@@ -16,6 +16,7 @@
 class MetalBridge;
 class TrainingMetrics;
 class PacketLossSimulator;
+class AudioScheduler;
 
 //==============================================================================
 class PNBTRTrainer : public juce::AudioProcessor
@@ -107,11 +108,21 @@ private:
     double currentSampleRate = 48000.0;
     int currentBlockSize = 512;
 
-    // Training parameters (atomic for thread safety)
+    // Game Engine-style parameters (atomic for sub-ms latency)
     std::atomic<float> packetLossPercentage{2.0f};
     std::atomic<float> jitterAmount{1.0f};
     std::atomic<float> gainDb{0.0f};
     std::atomic<bool> trainingActive{false};
+    
+    // Command buffer pattern for UI→Audio thread communication
+    enum class AudioCommand { SetPacketLoss, SetJitter, SetGain, StartTraining, StopTraining };
+    struct CommandData { AudioCommand cmd; float value; uint64_t timestamp_us; };
+    
+    // Lock-free command queue (like FMOD's command buffer)
+    static constexpr size_t MAX_COMMANDS = 256;
+    std::array<CommandData, MAX_COMMANDS> commandBuffer;
+    std::atomic<size_t> commandWriteIndex{0};
+    std::atomic<size_t> commandReadIndex{0};
 
     //==============================================================================
     // GPU processing stages

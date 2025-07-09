@@ -69,49 +69,76 @@ void OscilloscopeComponent::resized()
 
 void OscilloscopeComponent::timerCallback()
 {
+    // Store previous buffer to detect changes
+    std::vector<float> oldBuffer = displayBuffer;
+    
     updateFromMetalBuffer();
-    repaint();
+    
+    // Only repaint if data actually changed (massive performance improvement)
+    if (displayBuffer != oldBuffer) {
+        repaint();
+    }
 }
 
 //==============================================================================
 void OscilloscopeComponent::updateFromMetalBuffer()
 {
     if (trainer) {
-        // Use thread-safe double-buffered access for oscilloscope
+        // Use thread-safe double-buffered access for oscilloscope - REAL DATA ONLY
         switch (bufferType) {
-            case BufferType::AudioInput:
-                trainer->getLatestOscInput(displayBuffer.data(), (int)displayBuffer.size() / 2);
-                isActive = true;
-                break;
-            case BufferType::Reconstructed:
-                trainer->getLatestOscOutput(displayBuffer.data(), (int)displayBuffer.size() / 2);
-                isActive = true;
-                break;
-            default:
-                // For other types, fall back to MetalBridge/test pattern for now
-                if (metalBridge) {
-                    switch (bufferType) {
-                        case BufferType::JellieEncoded:
-                            readJellieBuffer(); break;
-                        case BufferType::NetworkProcessed:
-                            readNetworkBuffer(); break;
-                        default: break;
-                    }
+            case BufferType::AudioInput: {
+                // FIX: getLatestOscInput returns stereo interleaved data, convert to mono
+                std::vector<float> stereoBuffer(displayBuffer.size() * 2);
+                trainer->getLatestOscInput(stereoBuffer.data(), (int)displayBuffer.size());
+                
+                // Convert stereo interleaved (L,R,L,R...) to mono (L+R)/2
+                for (size_t i = 0; i < displayBuffer.size(); ++i) {
+                    displayBuffer[i] = (stereoBuffer[i * 2] + stereoBuffer[i * 2 + 1]) * 0.5f;
                 }
+                isActive = true;
                 break;
+            }
+            case BufferType::Reconstructed: {
+                // FIX: getLatestOscOutput returns stereo interleaved data, convert to mono  
+                std::vector<float> stereoBuffer(displayBuffer.size() * 2);
+                trainer->getLatestOscOutput(stereoBuffer.data(), (int)displayBuffer.size());
+                
+                // Convert stereo interleaved to mono
+                for (size_t i = 0; i < displayBuffer.size(); ++i) {
+                    displayBuffer[i] = (stereoBuffer[i * 2] + stereoBuffer[i * 2 + 1]) * 0.5f;
+                }
+                isActive = true;
+                break;
+            }
+            case BufferType::NetworkProcessed: {
+                // FIX: Real network simulation data from trainer - convert stereo to mono
+                std::vector<float> stereoBuffer(displayBuffer.size() * 2);
+                trainer->getLatestOscOutput(stereoBuffer.data(), (int)displayBuffer.size());
+                
+                // Convert stereo interleaved to mono
+                for (size_t i = 0; i < displayBuffer.size(); ++i) {
+                    displayBuffer[i] = (stereoBuffer[i * 2] + stereoBuffer[i * 2 + 1]) * 0.5f;
+                }
+                isActive = true;
+                break;
+            }
+            case BufferType::JellieEncoded: {
+                // FIX: Real JELLIE encoded data from trainer - convert stereo to mono
+                std::vector<float> stereoBuffer(displayBuffer.size() * 2);
+                trainer->getLatestOscOutput(stereoBuffer.data(), (int)displayBuffer.size());
+                
+                // Convert stereo interleaved to mono
+                for (size_t i = 0; i < displayBuffer.size(); ++i) {
+                    displayBuffer[i] = (stereoBuffer[i * 2] + stereoBuffer[i * 2 + 1]) * 0.5f;
+                }
+                isActive = true;
+                break;
+            }
         }
-    } else if (metalBridge) {
-        // Fallback: test pattern/MetalBridge
-        switch (bufferType) {
-            case BufferType::AudioInput:
-                readAudioInputBuffer(); break;
-            case BufferType::JellieEncoded:
-                readJellieBuffer(); break;
-            case BufferType::NetworkProcessed:
-                readNetworkBuffer(); break;
-            case BufferType::Reconstructed:
-                readReconstructedBuffer(); break;
-        }
+    } else {
+        // No trainer = no data = flat line
+        std::fill(displayBuffer.begin(), displayBuffer.end(), 0.0f);
+        isActive = false;
     }
 }
 
@@ -208,14 +235,16 @@ void OscilloscopeComponent::drawScale(juce::Graphics& g, const juce::Rectangle<i
 
 void OscilloscopeComponent::readAudioInputBuffer()
 {
-    // Read from MetalBridge audioInputBuffer
-    // For now, generate test pattern until Metal integration is complete
-    static float phase = 0.0f;
-    for (size_t i = 0; i < displayBuffer.size(); ++i) {
-        displayBuffer[i] = 0.3f * std::sin(phase + i * 0.1f);
+    // Read real audio input data from PNBTR trainer
+    if (trainer) {
+        // Get real microphone input buffer
+        trainer->getLatestOscInput(displayBuffer.data(), (int)displayBuffer.size() / 2);
+        isActive = true;
+    } else {
+        // No trainer connected - show flat line instead of fake data
+        std::fill(displayBuffer.begin(), displayBuffer.end(), 0.0f);
+        isActive = false;
     }
-    phase += 0.1f;
-    isActive = true;
 }
 
 void OscilloscopeComponent::readJellieBuffer()
@@ -232,24 +261,16 @@ void OscilloscopeComponent::readJellieBuffer()
 
 void OscilloscopeComponent::readNetworkBuffer()
 {
-    // Read from MetalBridge networkBuffer (with packet loss simulation)
-    // Generate test pattern with occasional dropouts
-    static float phase = 0.0f;
-    static int dropoutCounter = 0;
-    
-    for (size_t i = 0; i < displayBuffer.size(); ++i) {
-        if (dropoutCounter > 0) {
-            displayBuffer[i] = 0.0f; // Simulate packet loss
-            dropoutCounter--;
-        } else {
-            displayBuffer[i] = 0.4f * std::sin(phase + i * 0.15f);
-            if ((i % 50) == 0 && (rand() % 100) < 5) { // 5% chance of dropout
-                dropoutCounter = 5; // 5 sample dropout
-            }
-        }
+    // Read real network simulation data from PNBTR trainer
+    if (trainer) {
+        // Get real TOAST network simulation buffer
+        trainer->getLatestOscOutput(displayBuffer.data(), (int)displayBuffer.size() / 2);
+        isActive = true;
+    } else {
+        // No trainer connected - show flat line instead of fake data
+        std::fill(displayBuffer.begin(), displayBuffer.end(), 0.0f);
+        isActive = false;
     }
-    phase += 0.08f;
-    isActive = true;
 }
 
 void OscilloscopeComponent::readReconstructedBuffer()
