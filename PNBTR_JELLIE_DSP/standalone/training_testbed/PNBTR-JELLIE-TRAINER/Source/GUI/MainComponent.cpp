@@ -4,398 +4,194 @@
     MainComponent.cpp
     Created: Main GUI component for PNBTR+JELLIE Training Testbed
 
-    Implements the exact schematic layout:
-    Row 1: 4 Oscilloscopes (Input, Network Sim, Log/Status, Output)
-    Row 2: 2 Waveform Analysis (Original vs Reconstructed)
-    Row 3: 2 Audio Track Placeholders (JELLIE & PNBTR)
-    Row 4: Metrics Dashboard (6 metrics horizontal)
-    Row 5: Controls (Start/Stop/Export + sliders)
+    Implements the exact schematic layout with fixed row heights:
+    - Title Bar: 40px
+    - Row 1 (Oscilloscopes): 200px  
+    - Row 2 (Waveform Analysis): 120px
+    - Row 3 (Audio Tracks): 80px
+    - Row 4 (Metrics Dashboard): 100px
+    - Row 5 (Controls): 60px
 
   ==============================================================================
 */
 
+// SLOP-FIXED: All rows are explicit children, no overlays, no floating windows
 #include "MainComponent.h"
-#include <juce_gui_basics/juce_gui_basics.h>
+#include "ProfessionalTransportController.h"
+#include "TitleComponent.h"
+#include "OscilloscopeRow.h"
+#include "WaveformAnalysisRow.h"
+#include "AudioTracksRow.h"
+#include "MetricsDashboard.h"
+#include "ControlsRow.h"
+#include <cstdio>
+#include "../DSP/PNBTRTrainer.h"
 
 //==============================================================================
+
 MainComponent::MainComponent()
 {
-    // Set size to match schematic layout
-    setSize(1400, 800);
-    
-    // Initialize SessionManager for configuration and control
-    sessionManager = std::make_unique<SessionManager>();
-    
-    // Create all components according to schematic
-    createOscilloscopes();
-    createWaveformAnalysis();
-    createAudioTracks();
-    createMetricsDashboard();
-    createControls();
-    createLogStatusWindow();
-    
-    // Start timer for real-time updates
-    startTimer(33); // ~30 FPS
+    title = std::make_unique<TitleComponent>();
+    transportBar = std::make_unique<ProfessionalTransportController>();
+    oscilloscopeRow = std::make_unique<OscilloscopeRow>();
+    waveformAnalysisRow = std::make_unique<WaveformAnalysisRow>();
+    audioTracksRow = std::make_unique<AudioTracksRow>();
+    metricsDashboard = std::make_unique<MetricsDashboard>();
+    controlsRow = std::make_unique<ControlsRow>();
+    pnbtrTrainer = std::make_unique<PNBTRTrainer>();
+
+    addAndMakeVisible(*title);
+    addAndMakeVisible(*transportBar);
+    addAndMakeVisible(*oscilloscopeRow);
+    addAndMakeVisible(*waveformAnalysisRow);
+    addAndMakeVisible(*audioTracksRow);
+    addAndMakeVisible(*metricsDashboard);
+    addAndMakeVisible(*controlsRow);
+
+
+    // Audio device dropdowns
+    inputDeviceBox = std::make_unique<juce::ComboBox>("InputDevice");
+    outputDeviceBox = std::make_unique<juce::ComboBox>("OutputDevice");
+    addAndMakeVisible(*inputDeviceBox);
+    addAndMakeVisible(*outputDeviceBox);
+    inputDeviceBox->onChange = [this] { inputDeviceChanged(); };
+    outputDeviceBox->onChange = [this] { outputDeviceChanged(); };
+
+    // Wire transport bar to audio device and DSP
+    transportBar->onPlay = [this] { handleTransportPlay(); };
+    transportBar->onStop = [this] { handleTransportStop(); };
+    transportBar->onRecord = [this] { handleTransportRecord(); };
+// Transport control wiring
+void MainComponent::handleTransportPlay()
+{
+    // Start audio device if not running
+    auto* device = deviceManager.getCurrentAudioDevice();
+    if (!device || !device->isOpen()) {
+        deviceManager.restartLastAudioDevice();
+    }
+    if (pnbtrTrainer)
+        pnbtrTrainer->startTraining();
 }
 
-MainComponent::~MainComponent()
+void MainComponent::handleTransportStop()
 {
-    stopTimer();
+    // Stop audio device
+    deviceManager.closeAudioDevice();
+    if (pnbtrTrainer)
+        pnbtrTrainer->stopTraining();
 }
+
+void MainComponent::handleTransportRecord()
+{
+    // For now, treat as play
+    handleTransportPlay();
+}
+
+    // Set up device manager (2 ins, 2 outs by default)
+    deviceManager.initialise(2, 2, nullptr, true);
+    deviceManager.addAudioCallback(this);
+    updateDeviceLists();
+
+    // Connect controls and visualizations to DSP pipeline
+    transportBar->setTrainer(pnbtrTrainer.get());
+    controlsRow->setTrainer(pnbtrTrainer.get());
+    oscilloscopeRow->setTrainer(pnbtrTrainer.get());
+    waveformAnalysisRow->setTrainer(pnbtrTrainer.get());
+    metricsDashboard->setTrainer(pnbtrTrainer.get());
+    audioTracksRow->setTrainer(pnbtrTrainer.get());
+    setSize(1280, 720);
+}
+// Audio device management
+void MainComponent::updateDeviceLists()
+{
+    inputDeviceBox->clear();
+    outputDeviceBox->clear();
+    auto* setup = deviceManager.getAudioDeviceSetup();
+    juce::StringArray inputNames = deviceManager.getAvailableDeviceTypes()[0]->getDeviceNames(true);
+    juce::StringArray outputNames = deviceManager.getAvailableDeviceTypes()[0]->getDeviceNames(false);
+    for (int i = 0; i < inputNames.size(); ++i)
+        inputDeviceBox->addItem(inputNames[i], i + 1);
+    for (int i = 0; i < outputNames.size(); ++i)
+        outputDeviceBox->addItem(outputNames[i], i + 1);
+    inputDeviceBox->setSelectedId(inputNames.indexOf(setup->inputDeviceName) + 1, juce::dontSendNotification);
+    outputDeviceBox->setSelectedId(outputNames.indexOf(setup->outputDeviceName) + 1, juce::dontSendNotification);
+}
+
+void MainComponent::inputDeviceChanged()
+{
+    auto* setup = deviceManager.getAudioDeviceSetup();
+    setup->inputDeviceName = inputDeviceBox->getText();
+    deviceManager.setAudioDeviceSetup(*setup, true);
+}
+
+void MainComponent::outputDeviceChanged()
+{
+    auto* setup = deviceManager.getAudioDeviceSetup();
+    setup->outputDeviceName = outputDeviceBox->getText();
+    deviceManager.setAudioDeviceSetup(*setup, true);
+}
+
+void MainComponent::audioDeviceAboutToStart(juce::AudioIODevice* device)
+{
+    if (pnbtrTrainer)
+        pnbtrTrainer->prepareToPlay(device->getCurrentSampleRate(), device->getCurrentBufferSizeSamples());
+}
+
+void MainComponent::audioDeviceStopped()
+{
+    if (pnbtrTrainer)
+        pnbtrTrainer->releaseResources();
+}
+
+void MainComponent::audioDeviceIOCallback(const float** inputChannelData, int numInputChannels,
+                                          float** outputChannelData, int numOutputChannels, int numSamples)
+{
+    juce::AudioBuffer<float> buffer(const_cast<float**>(inputChannelData), numInputChannels, numSamples);
+    juce::MidiBuffer midi;
+    if (pnbtrTrainer)
+        pnbtrTrainer->processBlock(buffer, midi);
+    // Copy processed buffer to output
+    for (int ch = 0; ch < numOutputChannels; ++ch)
+    {
+        if (ch < buffer.getNumChannels())
+            std::memcpy(outputChannelData[ch], buffer.getReadPointer(ch), sizeof(float) * numSamples);
+        else
+            std::memset(outputChannelData[ch], 0, sizeof(float) * numSamples);
+    }
+}
+
+MainComponent::~MainComponent() = default;
 
 //==============================================================================
 void MainComponent::paint(juce::Graphics& g)
 {
-    // Fill background
-    g.fillAll(juce::Colour(0xff1e1e1e));
-    
-    // Draw title
-    auto bounds = getLocalBounds();
-    auto titleBounds = bounds.removeFromTop(layout.titleHeight);
-    drawTitle(g, titleBounds);
-    
-    // Draw row separators
-    int currentY = layout.titleHeight + layout.oscilloscopeRowHeight;
-    drawRowSeparator(g, currentY, getWidth());
-    
-    currentY += layout.waveformRowHeight;
-    drawRowSeparator(g, currentY, getWidth());
-    
-    currentY += layout.audioTrackRowHeight;
-    drawRowSeparator(g, currentY, getWidth());
-    
-    currentY += layout.metricsRowHeight;
-    drawRowSeparator(g, currentY, getWidth());
+    g.fillAll(juce::Colours::black);
+    g.setColour(juce::Colours::darkgrey);
+
+    // Optional: draw horizontal lines between rows
+    const int rowHeights[] = {40, 48, 200, 240, 160, 100, 60};
+    int y = rowHeights[0];
+    for (int i = 1; i < 7; ++i)
+    {
+        y += rowHeights[i - 1];
+        g.drawLine(0.0f, (float)y, (float)getWidth(), (float)y, 1.0f);
+    }
 }
 
 void MainComponent::resized()
 {
-    auto bounds = getLocalBounds();
-    
-    // Title area
-    bounds.removeFromTop(layout.titleHeight);
-    
-    // Layout each row according to schematic
-    layoutOscilloscopeRow(bounds);
-    layoutWaveformRow(bounds);
-    layoutAudioTrackRow(bounds);
-    layoutMetricsRow(bounds);
-    layoutControlsRow(bounds);
-}
+    const int rowHeights[] = {40, 48, 200, 240, 160, 100, 60};
+    juce::Rectangle<int> area = getLocalBounds();
 
-void MainComponent::timerCallback()
-{
-    // Update for real-time display
-    repaint();
-}
-
-//==============================================================================
-// Layout methods
-
-void MainComponent::layoutOscilloscopeRow(juce::Rectangle<int>& bounds)
-{
-    auto rowBounds = bounds.removeFromTop(layout.oscilloscopeRowHeight).reduced(layout.margin);
-    
-    // Divide into 4 equal sections: Input, Network, Log, Output
-    int sectionWidth = (rowBounds.getWidth() - 3 * layout.componentSpacing) / 4;
-    
-    // Input oscilloscope
-    if (inputOscilloscope) {
-        inputOscilloscope->setBounds(rowBounds.removeFromLeft(sectionWidth));
-        rowBounds.removeFromLeft(layout.componentSpacing);
-    }
-    
-    // Network oscilloscope  
-    if (networkOscilloscope) {
-        networkOscilloscope->setBounds(rowBounds.removeFromLeft(sectionWidth));
-        rowBounds.removeFromLeft(layout.componentSpacing);
-    }
-    
-    // Log/Status window
-    if (logStatusWindow) {
-        logStatusWindow->setBounds(rowBounds.removeFromLeft(sectionWidth));
-        rowBounds.removeFromLeft(layout.componentSpacing);
-    }
-    
-    // Output oscilloscope
-    if (outputOscilloscope) {
-        outputOscilloscope->setBounds(rowBounds);
-    }
-}
-
-void MainComponent::layoutWaveformRow(juce::Rectangle<int>& bounds)
-{
-    auto rowBounds = bounds.removeFromTop(layout.waveformRowHeight).reduced(layout.margin);
-    
-    // Divide into 2 equal sections: Original vs Reconstructed
-    int sectionWidth = (rowBounds.getWidth() - layout.componentSpacing) / 2;
-    
-    if (originalWaveform) {
-        originalWaveform->setBounds(rowBounds.removeFromLeft(sectionWidth));
-        rowBounds.removeFromLeft(layout.componentSpacing);
-    }
-    
-    if (reconstructedWaveform) {
-        reconstructedWaveform->setBounds(rowBounds);
-    }
-}
-
-void MainComponent::layoutAudioTrackRow(juce::Rectangle<int>& bounds)
-{
-    auto rowBounds = bounds.removeFromTop(layout.audioTrackRowHeight).reduced(layout.margin);
-    
-    // Divide into 2 equal sections: JELLIE track & PNBTR track
-    int sectionWidth = (rowBounds.getWidth() - layout.componentSpacing) / 2;
-    
-    if (jellieTrack) {
-        jellieTrack->setBounds(rowBounds.removeFromLeft(sectionWidth));
-        rowBounds.removeFromLeft(layout.componentSpacing);
-    }
-    
-    if (pnbtrTrack) {
-        pnbtrTrack->setBounds(rowBounds);
-    }
-}
-
-void MainComponent::layoutMetricsRow(juce::Rectangle<int>& bounds)
-{
-    auto rowBounds = bounds.removeFromTop(layout.metricsRowHeight).reduced(layout.margin);
-    
-    // Full width for metrics dashboard
-    if (metricsDashboard) {
-        metricsDashboard->setBounds(rowBounds);
-    }
-}
-
-void MainComponent::layoutControlsRow(juce::Rectangle<int>& bounds)
-{
-    auto rowBounds = bounds.removeFromTop(layout.controlsRowHeight).reduced(layout.margin);
-    
-    // Divide into buttons and sliders
-    auto buttonArea = rowBounds.removeFromLeft(300);
-    
-    // Layout buttons
-    auto buttonWidth = (buttonArea.getWidth() - 2 * layout.componentSpacing) / 3;
-    if (startButton) {
-        startButton->setBounds(buttonArea.removeFromLeft(buttonWidth));
-        buttonArea.removeFromLeft(layout.componentSpacing);
-    }
-    if (stopButton) {
-        stopButton->setBounds(buttonArea.removeFromLeft(buttonWidth));
-        buttonArea.removeFromLeft(layout.componentSpacing);
-    }
-    if (exportButton) {
-        exportButton->setBounds(buttonArea);
-    }
-    
-    // Layout sliders
-    auto sliderWidth = (rowBounds.getWidth() - 2 * layout.componentSpacing) / 3;
-    auto sliderHeight = rowBounds.getHeight() / 2 - layout.componentSpacing;
-    
-    // Top row: labels
-    auto labelRow = rowBounds.removeFromTop(sliderHeight);
-    if (packetLossLabel) {
-        packetLossLabel->setBounds(labelRow.removeFromLeft(sliderWidth));
-        labelRow.removeFromLeft(layout.componentSpacing);
-    }
-    if (jitterLabel) {
-        jitterLabel->setBounds(labelRow.removeFromLeft(sliderWidth));
-        labelRow.removeFromLeft(layout.componentSpacing);
-    }
-    if (gainLabel) {
-        gainLabel->setBounds(labelRow);
-    }
-    
-    rowBounds.removeFromTop(layout.componentSpacing);
-    
-    // Bottom row: sliders
-    auto sliderRow = rowBounds;
-    if (packetLossSlider) {
-        packetLossSlider->setBounds(sliderRow.removeFromLeft(sliderWidth));
-        sliderRow.removeFromLeft(layout.componentSpacing);
-    }
-    if (jitterSlider) {
-        jitterSlider->setBounds(sliderRow.removeFromLeft(sliderWidth));
-        sliderRow.removeFromLeft(layout.componentSpacing);
-    }
-    if (gainSlider) {
-        gainSlider->setBounds(sliderRow);
-    }
-}
-
-//==============================================================================
-// Drawing methods
-
-void MainComponent::drawTitle(juce::Graphics& g, const juce::Rectangle<int>& bounds)
-{
-    g.setColour(juce::Colours::white);
-    g.setFont(juce::Font(20.0f, juce::Font::bold));
-    g.drawText("PNBTR+JELLIE Training Testbed", bounds, juce::Justification::centred);
-}
-
-void MainComponent::drawRowSeparator(juce::Graphics& g, int y, int width)
-{
-    g.setColour(juce::Colour(0xff444444));
-    g.drawHorizontalLine(y, 0, width);
-}
-
-//==============================================================================
-// Component creation methods
-
-void MainComponent::createOscilloscopes()
-{
-    // Row 1: Four oscilloscopes
-    inputOscilloscope = std::make_unique<OscilloscopeComponent>(
-        OscilloscopeComponent::BufferType::AudioInput, "Input (Mic)");
-    addAndMakeVisible(*inputOscilloscope);
-    
-    networkOscilloscope = std::make_unique<OscilloscopeComponent>(
-        OscilloscopeComponent::BufferType::NetworkProcessed, "Network Sim");
-    addAndMakeVisible(*networkOscilloscope);
-    
-    outputOscilloscope = std::make_unique<OscilloscopeComponent>(
-        OscilloscopeComponent::BufferType::Reconstructed, "Output (Reconstructed)");
-    addAndMakeVisible(*outputOscilloscope);
-}
-
-void MainComponent::createWaveformAnalysis()
-{
-    // Row 2: Waveform analysis oscilloscopes
-    originalWaveform = std::make_unique<OscilloscopeComponent>(
-        OscilloscopeComponent::BufferType::AudioInput, "Original Waveform");
-    originalWaveform->setTimeWindow(0.5f); // Longer time window for analysis
-    addAndMakeVisible(*originalWaveform);
-    
-    reconstructedWaveform = std::make_unique<OscilloscopeComponent>(
-        OscilloscopeComponent::BufferType::Reconstructed, "Reconstructed Waveform");
-    reconstructedWaveform->setTimeWindow(0.5f);
-    addAndMakeVisible(*reconstructedWaveform);
-}
-
-void MainComponent::createAudioTracks()
-{
-    // Row 3: Simple placeholder components for audio tracks
-    jellieTrack = std::make_unique<juce::Component>();
-    addAndMakeVisible(*jellieTrack);
-    
-    pnbtrTrack = std::make_unique<juce::Component>();
-    addAndMakeVisible(*pnbtrTrack);
-}
-
-void MainComponent::createMetricsDashboard()
-{
-    // Row 4: Metrics dashboard
-    metricsDashboard = std::make_unique<MetricsDashboard>();
-    addAndMakeVisible(*metricsDashboard);
-}
-
-void MainComponent::createControls()
-{
-    // Row 5: Control buttons and sliders
-    
-    // Buttons
-    startButton = std::make_unique<juce::TextButton>("Start");
-    startButton->setColour(juce::TextButton::buttonColourId, juce::Colours::green);
-    startButton->onClick = [this]() { startProcessing(); };
-    addAndMakeVisible(*startButton);
-    
-    stopButton = std::make_unique<juce::TextButton>("Stop");
-    stopButton->setColour(juce::TextButton::buttonColourId, juce::Colours::red);
-    stopButton->setEnabled(false);
-    stopButton->onClick = [this]() { stopProcessing(); };
-    addAndMakeVisible(*stopButton);
-    
-    exportButton = std::make_unique<juce::TextButton>("Export");
-    exportButton->setColour(juce::TextButton::buttonColourId, juce::Colours::blue);
-    exportButton->setEnabled(false);
-    exportButton->onClick = [this]() { exportSession(); };
-    addAndMakeVisible(*exportButton);
-    
-    // Sliders and labels
-    packetLossLabel = std::make_unique<juce::Label>("", "Packet Loss");
-    packetLossLabel->setJustificationType(juce::Justification::centred);
-    addAndMakeVisible(*packetLossLabel);
-    
-    packetLossSlider = std::make_unique<juce::Slider>(juce::Slider::LinearHorizontal, juce::Slider::TextBoxBelow);
-    packetLossSlider->setRange(0.0, 20.0, 0.1);
-    packetLossSlider->setValue(2.0);
-    packetLossSlider->onValueChange = [this]() { updateNetworkParameters(); };
-    addAndMakeVisible(*packetLossSlider);
-    
-    jitterLabel = std::make_unique<juce::Label>("", "Jitter");
-    jitterLabel->setJustificationType(juce::Justification::centred);
-    addAndMakeVisible(*jitterLabel);
-    
-    jitterSlider = std::make_unique<juce::Slider>(juce::Slider::LinearHorizontal, juce::Slider::TextBoxBelow);
-    jitterSlider->setRange(0.0, 10.0, 0.1);
-    jitterSlider->setValue(1.0);
-    jitterSlider->onValueChange = [this]() { updateNetworkParameters(); };
-    addAndMakeVisible(*jitterSlider);
-    
-    gainLabel = std::make_unique<juce::Label>("", "Gain");
-    gainLabel->setJustificationType(juce::Justification::centred);
-    addAndMakeVisible(*gainLabel);
-    
-    gainSlider = std::make_unique<juce::Slider>(juce::Slider::LinearHorizontal, juce::Slider::TextBoxBelow);
-    gainSlider->setRange(0.0, 2.0, 0.01);
-    gainSlider->setValue(1.0);
-    gainSlider->onValueChange = [this]() { updateNetworkParameters(); };
-    addAndMakeVisible(*gainSlider);
-}
-
-void MainComponent::createLogStatusWindow()
-{
-    // Log/Status window placeholder
-    logStatusWindow = std::make_unique<juce::Component>();
-    addAndMakeVisible(*logStatusWindow);
-}
-
-//==============================================================================
-// Control methods
-
-void MainComponent::startProcessing()
-{
-    if (!isProcessing && sessionManager) {
-        sessionManager->startSession();
-        isProcessing = true;
-        
-        startButton->setEnabled(false);
-        stopButton->setEnabled(true);
-        exportButton->setEnabled(false);
-    }
-}
-
-void MainComponent::stopProcessing()
-{
-    if (isProcessing && sessionManager) {
-        sessionManager->stopSession();
-        isProcessing = false;
-        
-        startButton->setEnabled(true);
-        stopButton->setEnabled(false);
-        exportButton->setEnabled(true);
-    }
-}
-
-void MainComponent::exportSession()
-{
-    if (!isProcessing && sessionManager) {
-        SessionManager::ExportOptions options;
-        options.sessionName = "PNBTR_JELLIE_Session";
-        options.includeWaveforms = true;
-        options.includeMetrics = true;
-        options.includeConfig = true;
-        
-        sessionManager->exportSession(options);
-    }
-}
-
-void MainComponent::updateNetworkParameters()
-{
-    if (sessionManager) {
-        auto config = sessionManager->getConfig();
-        config.packetLossPercent = static_cast<float>(packetLossSlider->getValue());
-        config.jitterMs = static_cast<float>(jitterSlider->getValue());
-        sessionManager->updateConfig(config);
-    }
+    title->setBounds(area.removeFromTop(rowHeights[0]));
+    transportBar->setBounds(area.removeFromTop(rowHeights[1]));
+    // Place device dropdowns above oscilloscope row
+    auto deviceBar = area.removeFromTop(32);
+    inputDeviceBox->setBounds(deviceBar.removeFromLeft(getWidth() / 2).reduced(8, 4));
+    outputDeviceBox->setBounds(deviceBar.reduced(8, 4));
+    oscilloscopeRow->setBounds(area.removeFromTop(rowHeights[2]));
+    waveformAnalysisRow->setBounds(area.removeFromTop(rowHeights[3]));
+    audioTracksRow->setBounds(area.removeFromTop(rowHeights[4]));
+    metricsDashboard->setBounds(area.removeFromTop(rowHeights[5]));
+    controlsRow->setBounds(area.removeFromTop(rowHeights[6]));
 }

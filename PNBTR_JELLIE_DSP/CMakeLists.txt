@@ -21,21 +21,28 @@ elseif(UNIX)
     set(PLATFORM_LINUX TRUE)
 endif()
 
-# Compiler flags
-set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -DDEBUG")
-set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
+# Compiler flags optimized for roadmap performance targets
+set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -DDEBUG -DPNBTR_ROADMAP_DEBUG")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG -DPNBTR_GPU_NATIVE -DPNBTR_ROADMAP_OPTIMIZED")
 
-# Add common warnings
+# Enhanced warnings and optimizations for roadmap
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
     add_compile_options(-Wall -Wextra -Wpedantic)
+    # Add roadmap-specific optimizations
+    add_compile_options(-march=native -mtune=native)
+    if(CMAKE_BUILD_TYPE STREQUAL "Release")
+        add_compile_options(-flto -ffast-math)
+    endif()
 endif()
 
-# Include directories
+# Include directories (enhanced for roadmap)
 include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/core
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${CMAKE_CURRENT_SOURCE_DIR}/../JDAT_Framework/include
     ${CMAKE_CURRENT_SOURCE_DIR}/../PNBTR_Framework/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/../PNBTR_Training/include
 )
 
 # Link directories
@@ -44,8 +51,14 @@ link_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/../PNBTR_Framework/lib
 )
 
-# Find required packages
+# Find required packages (enhanced for roadmap)
 find_package(Threads REQUIRED)
+
+# JSON library for configuration and logging
+find_package(PkgConfig QUIET)
+if(PkgConfig_FOUND)
+    pkg_check_modules(JSONCPP jsoncpp)
+endif()
 
 # Audio libraries
 if(PLATFORM_MACOS)
@@ -54,12 +67,14 @@ if(PLATFORM_MACOS)
     find_library(AUDIOTOOLBOX_LIBRARY AudioToolbox)
     find_library(METAL_LIBRARY Metal)
     find_library(METALKIT_LIBRARY MetalKit)
+    find_library(METALPERFORMANCESHADERS_LIBRARY MetalPerformanceShaders)
     set(PLATFORM_LIBRARIES 
         ${COREAUDIO_LIBRARY} 
         ${AUDIOUNIT_LIBRARY} 
         ${AUDIOTOOLBOX_LIBRARY}
         ${METAL_LIBRARY}
         ${METALKIT_LIBRARY}
+        ${METALPERFORMANCESHADERS_LIBRARY}
     )
 elseif(PLATFORM_WINDOWS)
     set(PLATFORM_LIBRARIES winmm dsound)
@@ -69,7 +84,7 @@ elseif(PLATFORM_LINUX)
     set(PLATFORM_LIBRARIES ${ALSA_LIBRARIES})
 endif()
 
-# Common libraries for all platforms
+# Common libraries for all platforms (enhanced for roadmap)
 set(COMMON_LIBRARIES
     Threads::Threads
     ${PLATFORM_LIBRARIES}
@@ -96,6 +111,9 @@ add_subdirectory(core)
 # Standalone testbeds
 add_subdirectory(standalone)
 
+# VST3 GUI applications (standalone apps, not requiring VST3 SDK)
+add_subdirectory(standalone/vst3_plugin)
+
 # VST3 plugin (only if VST3 SDK is available)
 find_path(VST3_SDK_PATH "pluginterfaces/vst/ivstcomponent.h"
     PATHS
@@ -107,7 +125,7 @@ find_path(VST3_SDK_PATH "pluginterfaces/vst/ivstcomponent.h"
 
 if(VST3_SDK_PATH)
     message(STATUS "VST3 SDK found at: ${VST3_SDK_PATH}")
-    add_subdirectory(vst3_plugin)
+    # VST3 plugin build would go here if needed
 else()
     message(STATUS "VST3 SDK not found - skipping plugin build")
     message(STATUS "To build VST3 plugin, set VST3_SDK_PATH or place SDK in ../vst3sdk")
