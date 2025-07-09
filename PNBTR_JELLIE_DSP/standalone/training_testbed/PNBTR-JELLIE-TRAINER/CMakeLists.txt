@@ -82,6 +82,7 @@ target_sources(PnbtrJellieTrainer PRIVATE
 
     # GPU integration
     Source/GPU/MetalBridge.mm
+    Source/GPU/MetalSpectralBridge.mm
 )
 
 
@@ -141,6 +142,7 @@ set_source_files_properties(
     Source/GPU/MetalAudioTrack.mm
     Source/GUI/MetalDrawableTrack.mm
     Source/GPU/MetalBridge.mm
+    Source/GPU/MetalSpectralBridge.mm
     PROPERTIES COMPILE_FLAGS "-fobjc-arc"
 )
 

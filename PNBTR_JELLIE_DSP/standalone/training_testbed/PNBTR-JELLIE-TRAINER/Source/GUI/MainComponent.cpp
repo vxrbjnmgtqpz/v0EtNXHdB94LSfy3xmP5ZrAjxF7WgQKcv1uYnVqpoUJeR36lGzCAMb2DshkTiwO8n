@@ -275,22 +275,21 @@ void MainComponent::resized()
         return;
     }
     
-    // Full UI layout (only when loaded)
-    const int rowHeights[] = {40, 48, 200, 240, 160, 100, 60};
+    // Full UI layout (only when loaded) - REMOVED redundant title row
+    const int rowHeights[] = {48, 200, 240, 160, 100, 60};
 
-    if (title) title->setBounds(area.removeFromTop(rowHeights[0]));
-    if (transportBar) transportBar->setBounds(area.removeFromTop(rowHeights[1]));
+    if (transportBar) transportBar->setBounds(area.removeFromTop(rowHeights[0]));
     
     // Place device dropdowns above oscilloscope row
     auto deviceBar = area.removeFromTop(32);
     if (inputDeviceBox) inputDeviceBox->setBounds(deviceBar.removeFromLeft(getWidth() / 2).reduced(8, 4));
     if (outputDeviceBox) outputDeviceBox->setBounds(deviceBar.reduced(8, 4));
     
-    if (oscilloscopeRow) oscilloscopeRow->setBounds(area.removeFromTop(rowHeights[2]));
-    if (waveformAnalysisRow) waveformAnalysisRow->setBounds(area.removeFromTop(rowHeights[3]));
-    if (audioTracksRow) audioTracksRow->setBounds(area.removeFromTop(rowHeights[4]));
-    if (metricsDashboard) metricsDashboard->setBounds(area.removeFromTop(rowHeights[5]));
-    if (controlsRow) controlsRow->setBounds(area.removeFromTop(rowHeights[6]));
+    if (oscilloscopeRow) oscilloscopeRow->setBounds(area.removeFromTop(rowHeights[1]));
+    if (waveformAnalysisRow) waveformAnalysisRow->setBounds(area.removeFromTop(rowHeights[2]));
+    if (audioTracksRow) audioTracksRow->setBounds(area.removeFromTop(rowHeights[3]));
+    if (metricsDashboard) metricsDashboard->setBounds(area.removeFromTop(rowHeights[4]));
+    if (controlsRow) controlsRow->setBounds(area.removeFromTop(rowHeights[5]));
 }
 
 void MainComponent::timerCallback()
@@ -301,10 +300,8 @@ void MainComponent::timerCallback()
     // VIDEO GAME ENGINE LOADING: One component per frame to prevent blocking
     switch (initializationStep) {
         case 0:
-            printf("[INIT] Step 0: Creating core components...\n");
-            juce::Logger::writeToLog("[INIT] Step 0: Creating core components...");
-            title = std::make_unique<TitleComponent>();
-            addAndMakeVisible(title.get());
+            printf("[INIT] Step 0: Skipping redundant title component...\n");
+            juce::Logger::writeToLog("[INIT] Step 0: Skipping redundant title component (using native window title)");
             loadingLabel->setText("Loading Core Components...", juce::dontSendNotification);
             printf("[INIT] Step 0 completed successfully\n");
             break;
@@ -443,6 +440,19 @@ void MainComponent::timerCallback()
             juce::Logger::writeToLog("[DIAGNOSTIC] Output device: " + setup.outputDeviceName);
             juce::Logger::writeToLog("[DIAGNOSTIC] Sample rate: " + juce::String(setup.sampleRate));
             juce::Logger::writeToLog("[DIAGNOSTIC] Buffer size: " + juce::String(setup.bufferSize));
+            
+            // CRITICAL OSCILLOSCOPE FIX: Ensure input device is actually selected
+            if (setup.inputDeviceName.isEmpty())
+            {
+                auto* deviceType = deviceManager.getAvailableDeviceTypes()[0];
+                auto inputs = deviceType->getDeviceNames(true); // true = input devices
+                if (! inputs.isEmpty())
+                {
+                    setup.inputDeviceName = inputs[0]; // select first available input
+                    juce::Logger::writeToLog("[OSCILLOSCOPE FIX] Selected input device: " + setup.inputDeviceName);
+                    deviceManager.setAudioDeviceSetup(setup, true);
+                }
+            }
             
             // Force audio device start for oscilloscope data - FIX: Actually start a device
             auto* currentDevice = deviceManager.getCurrentAudioDevice();

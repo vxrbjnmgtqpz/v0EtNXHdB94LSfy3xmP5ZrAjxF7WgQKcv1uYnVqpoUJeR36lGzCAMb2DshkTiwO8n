@@ -48,20 +48,32 @@ void AudioThumbnailComponent::loadFromBuffer(const float* data, int numSamples, 
     if (numSamples <= 0 || data == nullptr)
         return;
 
-    // Check if data actually changed to avoid expensive thumbnail recalculation
-    std::vector<float> newBuffer(data, data + numSamples);
-    if (newBuffer == liveBuffer && sampleRate == liveSampleRate) {
-        return; // No change, skip expensive thumbnail rebuild
-    }
-
-    liveBuffer = std::move(newBuffer);
+    // LIVE AUDIO FIX: Always update for streaming data, no comparison check
+    // The expensive comparison was preventing live audio updates
+    
+    liveBuffer.assign(data, data + numSamples);
     liveSampleRate = sampleRate;
     usingLiveBuffer = true;
 
     // Create a temporary AudioBuffer for thumbnail
     juce::AudioBuffer<float> tempBuffer(1, numSamples);
     tempBuffer.copyFrom(0, 0, data, numSamples);
+    
+    // Reset and rebuild thumbnail with new data
     thumbnail.reset(sampleRate, numSamples);
     thumbnail.addBlock(0, tempBuffer, 0, numSamples);
+    
+    // DEBUG: Check if we're getting meaningful audio data
+    float maxLevel = 0.0f;
+    for (int i = 0; i < numSamples; ++i) {
+        maxLevel = std::max(maxLevel, std::abs(data[i]));
+    }
+    
+    static int debugCount = 0;
+    if (++debugCount % 60 == 0) { // Every ~30 seconds at 2Hz
+        printf("[AUDIO THUMBNAIL] Samples: %d, Max Level: %.4f, Total Length: %.2fs\n", 
+               numSamples, maxLevel, thumbnail.getTotalLength());
+    }
+    
     repaint();
 }

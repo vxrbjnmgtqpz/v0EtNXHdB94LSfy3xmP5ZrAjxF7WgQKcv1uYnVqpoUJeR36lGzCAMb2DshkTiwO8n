@@ -506,3 +506,12 @@ void MetalBridge::setNetworkParameters(float packetLoss, float jitter) {
     // Store parameters for use in runNetworkSimulation
     // These will be passed as shader parameters
 }
+
+// Missing implementations for MetalSpectralBridge integration
+id<MTLDevice> MetalBridge::getDevice() const {
+    return device;
+}
+
+id<MTLCommandQueue> MetalBridge::getCommandQueue() const {
+    return commandQueue;
+}

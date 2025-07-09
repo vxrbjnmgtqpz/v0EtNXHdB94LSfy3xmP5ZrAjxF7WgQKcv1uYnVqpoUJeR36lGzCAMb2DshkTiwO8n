@@ -10,8 +10,8 @@ class PNBTRTrainer;
 //==============================================================================
 /**
  * ControlsRow Component
- * Row 5 in the schematic: Transport controls + network parameter sliders
- * Leverages GPU-aware transport controls from TOASTer
+ * Row 5 in the schematic: Network parameter sliders + export functionality
+ * Transport controls are handled by ProfessionalTransportController
  */
 class ControlsRow : public juce::Component
 {
@@ -25,14 +25,11 @@ public:
     // Connect to PNBTRTrainer for control callbacks
     void setTrainer(PNBTRTrainer* trainer);
     
-    // GPU-safe control updates
-    void updateTransportState(bool isPlaying, bool isRecording);
+    // GPU-safe parameter updates
     void updateNetworkParameters(float packetLoss, float jitter, float gain);
 
 private:
-    // Transport controls (GPU-aware, borrowed from TOASTer pattern)
-    std::unique_ptr<juce::TextButton> startButton;
-    std::unique_ptr<juce::TextButton> stopButton;
+    // Export functionality (utility function, not transport control)
     std::unique_ptr<juce::TextButton> exportButton;
     
     // Network parameter sliders (write to GPU config atomically)
@@ -49,8 +46,6 @@ private:
     PNBTRTrainer* trainer = nullptr;
     
     // Control callbacks
-    void startProcessing();
-    void stopProcessing();
     void exportSession();
     void onPacketLossChanged();
     void onJitterChanged();

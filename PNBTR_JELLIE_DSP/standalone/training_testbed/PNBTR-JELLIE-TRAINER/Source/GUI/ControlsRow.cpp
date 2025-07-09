@@ -4,25 +4,6 @@
 //==============================================================================
 ControlsRow::ControlsRow()
 {
-    // Transport controls (GPU-aware pattern from TOASTer)
-    startButton = std::make_unique<juce::TextButton>("Start");
-    stopButton = std::make_unique<juce::TextButton>("Stop");
-    exportButton = std::make_unique<juce::TextButton>("Export WAV");
-    
-    // Configure transport buttons
-    startButton->setColour(juce::TextButton::buttonColourId, juce::Colours::green.withAlpha(0.7f));
-    stopButton->setColour(juce::TextButton::buttonColourId, juce::Colours::red.withAlpha(0.7f));
-    exportButton->setColour(juce::TextButton::buttonColourId, juce::Colours::blue.withAlpha(0.7f));
-    
-    // Set up callbacks
-    startButton->onClick = [this] { startProcessing(); };
-    stopButton->onClick = [this] { stopProcessing(); };
-    exportButton->onClick = [this] { exportSession(); };
-    
-    addAndMakeVisible(*startButton);
-    addAndMakeVisible(*stopButton);
-    addAndMakeVisible(*exportButton);
-    
     // Network parameter sliders (write to GPU config atomically)
     packetLossSlider = std::make_unique<juce::Slider>(juce::Slider::LinearHorizontal, juce::Slider::TextBoxBelow);
     jitterSlider = std::make_unique<juce::Slider>(juce::Slider::LinearHorizontal, juce::Slider::TextBoxBelow);
@@ -62,6 +43,12 @@ ControlsRow::ControlsRow()
     addAndMakeVisible(*packetLossLabel);
     addAndMakeVisible(*jitterLabel);
     addAndMakeVisible(*gainLabel);
+    
+    // Export button (utility function, not transport control)
+    exportButton = std::make_unique<juce::TextButton>("Export WAV");
+    exportButton->setColour(juce::TextButton::buttonColourId, juce::Colours::blue.withAlpha(0.7f));
+    exportButton->onClick = [this] { exportSession(); };
+    addAndMakeVisible(*exportButton);
 }
 
 ControlsRow::~ControlsRow() = default;
@@ -78,19 +65,8 @@ void ControlsRow::resized()
 {
     auto area = getLocalBounds().reduced(4);
     
-    // Transport controls on the left (3 buttons)
-    auto transportArea = area.removeFromLeft(300);
-    auto buttonWidth = transportArea.getWidth() / 3 - 4;
-    
-    startButton->setBounds(transportArea.removeFromLeft(buttonWidth));
-    transportArea.removeFromLeft(4);
-    stopButton->setBounds(transportArea.removeFromLeft(buttonWidth));
-    transportArea.removeFromLeft(4);
-    exportButton->setBounds(transportArea);
-    
-    // Network parameter sliders on the right
-    area.removeFromLeft(20); // spacing
-    auto sliderWidth = area.getWidth() / 3 - 8;
+    // Network parameter sliders (3 sliders + 1 export button)
+    auto sliderWidth = area.getWidth() / 4 - 8;
     
     // Packet Loss
     auto packetLossArea = area.removeFromLeft(sliderWidth);
@@ -107,21 +83,20 @@ void ControlsRow::resized()
     area.removeFromLeft(12); // spacing
     
     // Gain
-    gainLabel->setBounds(area.removeFromTop(18));
-    gainSlider->setBounds(area);
+    auto gainArea = area.removeFromLeft(sliderWidth);
+    gainLabel->setBounds(gainArea.removeFromTop(18));
+    gainSlider->setBounds(gainArea);
+    
+    area.removeFromLeft(12); // spacing
+    
+    // Export button
+    exportButton->setBounds(area.reduced(8));
 }
 
 //==============================================================================
 void ControlsRow::setTrainer(PNBTRTrainer* t)
 {
     trainer = t;
-}
-
-void ControlsRow::updateTransportState(bool isPlaying, bool isRecording)
-{
-    startButton->setEnabled(!isPlaying);
-    stopButton->setEnabled(isPlaying);
-    exportButton->setEnabled(!isPlaying && !isRecording);
 }
 
 void ControlsRow::updateNetworkParameters(float packetLoss, float jitter, float gain)
@@ -132,23 +107,6 @@ void ControlsRow::updateNetworkParameters(float packetLoss, float jitter, float 
 }
 
 //==============================================================================
-void ControlsRow::startProcessing()
-{
-    if (trainer != nullptr) {
-        trainer->startTraining();
-        // If "Record" is armed, enable recording
-        trainer->recordingActive.store(true);
-    }
-}
-
-void ControlsRow::stopProcessing()
-{
-    if (trainer != nullptr) {
-        trainer->stopTraining();
-        trainer->recordingActive.store(false);
-    }
-}
-
 void ControlsRow::exportSession()
 {
     // Export the recorded buffer to a WAV file

@@ -26,13 +26,28 @@ void AudioTracksRow::timerCallback()
 void AudioTracksRow::updateThumbnails()
 {
     if (!trainer) return;
-    std::vector<float> inputBuf(bufferSize);
-    std::vector<float> outputBuf(bufferSize);
-    trainer->getInputBuffer(inputBuf.data(), bufferSize);
-    trainer->getOutputBuffer(outputBuf.data(), bufferSize);
-    // Optionally, get actual sample rate from trainer if available
-    jellieTrack.loadFromBuffer(inputBuf.data(), bufferSize, sampleRate);
-    pnptrTrack.loadFromBuffer(outputBuf.data(), bufferSize, sampleRate);
+    
+    // Use the correct thread-safe methods from PNBTRTrainer
+    std::vector<float> inputBuf(bufferSize * 2); // Stereo data
+    std::vector<float> outputBuf(bufferSize * 2); // Stereo data
+    
+    // Get live oscilloscope input (microphone data)
+    trainer->getLatestOscInput(inputBuf.data(), bufferSize);
+    
+    // Get live oscilloscope output (reconstructed data)  
+    trainer->getLatestOscOutput(outputBuf.data(), bufferSize);
+    
+    // Load mono data into thumbnails (take left channel)
+    std::vector<float> monoInput(bufferSize);
+    std::vector<float> monoOutput(bufferSize);
+    
+    for (int i = 0; i < bufferSize; ++i) {
+        monoInput[i] = inputBuf[i * 2]; // Left channel
+        monoOutput[i] = outputBuf[i * 2]; // Left channel
+    }
+    
+    jellieTrack.loadFromBuffer(monoInput.data(), bufferSize, sampleRate);
+    pnptrTrack.loadFromBuffer(monoOutput.data(), bufferSize, sampleRate);
 }
 
 void AudioTracksRow::resized()
