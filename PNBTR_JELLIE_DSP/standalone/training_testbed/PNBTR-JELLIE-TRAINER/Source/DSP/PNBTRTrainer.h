@@ -102,6 +102,9 @@ private:
     // GPU processing pipeline
     std::unique_ptr<TrainingMetrics> metrics;
     std::unique_ptr<PacketLossSimulator> packetLossSimulator;
+    
+    // 🎮 VIDEO GAME ENGINE: High-priority audio scheduler
+    std::unique_ptr<class AudioScheduler> audioScheduler;
 
     //==============================================================================
     // Processing parameters

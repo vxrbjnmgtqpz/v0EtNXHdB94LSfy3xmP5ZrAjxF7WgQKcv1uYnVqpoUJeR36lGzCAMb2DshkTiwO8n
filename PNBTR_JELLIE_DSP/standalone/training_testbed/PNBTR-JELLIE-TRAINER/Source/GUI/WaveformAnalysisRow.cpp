@@ -14,26 +14,12 @@ WaveformAnalysisRow::WaveformAnalysisRow()
                                 SpectralAnalysisConfig::TEXTURE_HEIGHT, 
                                 true)
 {
-    // Initialize GPU-native spectral bridge
-    spectralBridge = std::make_unique<MetalSpectralBridge>(MetalBridge::getInstance());
-    
-    // Configure DJ-style colors
-    spectralConfig.lowColor = juce::Colour::fromRGB(255, 80, 80);    // Red/Orange for bass
-    spectralConfig.midColor = juce::Colour::fromRGB(80, 255, 80);    // Green for mids
-    spectralConfig.highColor = juce::Colour::fromRGB(80, 200, 255);  // Blue/Cyan for highs
-    spectralConfig.maxMagnitude = 1.0f;
-    spectralConfig.logScale = 1.2f;
-    spectralConfig.smoothingFactor = 0.8f;
-    spectralConfig.armed = true;
-    spectralConfig.pulse = 0.0f;
-    
-    // Initialize spectral bridge
-    if (spectralBridge->initialize()) {
-        spectralBridge->setConfig(spectralConfig);
-        juce::Logger::writeToLog("[WaveformAnalysisRow] GPU-native spectral analysis initialized");
-    } else {
-        juce::Logger::writeToLog("[WaveformAnalysisRow] ERROR: Failed to initialize GPU spectral analysis");
-    }
+    // 🎮 VIDEO GAME ENGINE RULE: TRANSPORT BAR PRIORITY #1
+    // Metal initialization DISABLED to maintain game loop stability
+    // See: VIDEO_GAME_ENGINE_RULES.md for proper deferred init protocol
+    // TODO: Re-enable with async Metal init after transport bar testing
+    spectralBridge = nullptr; // Disabled for game loop stability
+    metalInitialized = true; // Skip Metal init to prevent main thread blocking
 }
 
 WaveformAnalysisRow::~WaveformAnalysisRow() = default;
@@ -50,7 +36,8 @@ void WaveformAnalysisRow::setTrainer(PNBTRTrainer* trainerPtr)
 
 void WaveformAnalysisRow::timerCallback()
 {
-    updateGPUSpectralData();
+    // SIMPLIFIED: Just basic updates, no Metal for now
+    // updateGPUSpectralData(); // Disabled until transport bar is stable
 }
 
 void WaveformAnalysisRow::updateGPUSpectralData()

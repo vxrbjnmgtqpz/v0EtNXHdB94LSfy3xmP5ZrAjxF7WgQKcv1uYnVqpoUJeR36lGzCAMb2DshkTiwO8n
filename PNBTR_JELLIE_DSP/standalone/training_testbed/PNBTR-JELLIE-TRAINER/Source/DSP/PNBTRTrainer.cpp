@@ -14,6 +14,7 @@
 #include "../GPU/MetalBridge.h"
 #include "../Metrics/TrainingMetrics.h"
 #include "../Network/PacketLossSimulator.h"
+#include "AudioScheduler.h"
 #include <thread>
 
 //==============================================================================
@@ -30,6 +31,9 @@ PNBTRTrainer::PNBTRTrainer()
     // Initialize lightweight components immediately
     metrics = std::make_unique<TrainingMetrics>();
     packetLossSimulator = std::make_unique<PacketLossSimulator>();
+    
+    // 🎮 VIDEO GAME ENGINE: Initialize high-priority audio scheduler
+    audioScheduler = std::make_unique<AudioScheduler>(this);
     
     // SYNCHRONOUS Metal initialization to prevent race condition
     juce::Logger::writeToLog("[PNBTRTrainer] Starting Metal initialization (synchronous)...");
@@ -348,15 +352,28 @@ void PNBTRTrainer::setGain(float gainDb)
 //==============================================================================
 void PNBTRTrainer::startTraining()
 {
+    // 🎮 VIDEO GAME ENGINE: Start HIGHEST PRIORITY THREAD when transport Play pressed
+    if (audioScheduler && !audioScheduler->isAudioEngineRunning()) {
+        audioScheduler->startAudioEngine();
+        juce::Logger::writeToLog("[TRANSPORT] 🎮 HIGHEST PRIORITY AUDIO THREAD STARTED");
+    }
+    
     trainingActive.store(true);
     metrics->reset();
-    juce::Logger::writeToLog("Training started");
+    juce::Logger::writeToLog("[TRANSPORT] Training started - GPU pipeline active");
 }
 
 void PNBTRTrainer::stopTraining()
 {
     trainingActive.store(false);
-    juce::Logger::writeToLog("Training stopped");
+    
+    // 🎮 VIDEO GAME ENGINE: Stop HIGHEST PRIORITY THREAD when transport Stop pressed
+    if (audioScheduler && audioScheduler->isAudioEngineRunning()) {
+        audioScheduler->stopAudioEngine();
+        juce::Logger::writeToLog("[TRANSPORT] 🎮 HIGHEST PRIORITY AUDIO THREAD STOPPED");
+    }
+    
+    juce::Logger::writeToLog("[TRANSPORT] Training stopped - GPU pipeline inactive");
 }
 
 //==============================================================================

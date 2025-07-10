@@ -49,11 +49,11 @@ MainComponent::MainComponent()
     addAndMakeVisible(loadingLabel.get());
     printf("[CONSTRUCTOR] Loading label created and added\n");
     
-    // Start background initialization timer (video game style)
+    // Start background initialization timer (much slower to prevent race conditions)
     initializationStep = 0;
-    printf("[CONSTRUCTOR] About to call startTimer(16)...\n");
+    printf("[CONSTRUCTOR] About to call startTimer(100)...\n");
     fflush(stdout);
-    startTimer(16); // 60 FPS update rate like a game engine
+    startTimer(100); // 10 FPS - much safer for GUI component creation
     printf("[CONSTRUCTOR] startTimer(16) completed successfully\n");
     fflush(stdout);
     
@@ -311,6 +311,7 @@ void MainComponent::timerCallback()
             transportBar = std::make_unique<ProfessionalTransportController>();
             addAndMakeVisible(transportBar.get());
             loadingLabel->setText("Loading Transport Controls...", juce::dontSendNotification);
+            repaint(); // Force display update before next component
             break;
             
         case 2:

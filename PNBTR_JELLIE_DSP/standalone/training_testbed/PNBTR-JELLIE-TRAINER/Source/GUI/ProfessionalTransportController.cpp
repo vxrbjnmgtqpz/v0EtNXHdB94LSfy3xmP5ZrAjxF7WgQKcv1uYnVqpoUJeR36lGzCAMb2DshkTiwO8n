@@ -71,8 +71,8 @@ ProfessionalTransportController::ProfessionalTransportController()
     recordButton->onClick = [this] { recordButtonClicked(); };
     bpmSlider->onValueChange = [this] { bpmSliderChanged(); };
     
-    // Start reasonable timer for transport display updates
-    startTimer(50); // 20 Hz - perfectly smooth for human perception
+    // 🎮 VIDEO GAME ENGINE: Much slower timer to prevent string race conditions 
+    startTimer(200); // 5 Hz - prevents JUCE String assertion failures
 }
 
 ProfessionalTransportController::~ProfessionalTransportController()
@@ -254,7 +254,13 @@ void ProfessionalTransportController::updateBarsBeatsDisplay()
 
 // Button callbacks
 void ProfessionalTransportController::playButtonClicked() {
-    if (onPlay) onPlay();
+    printf("🎮 TRANSPORT BAR: Play button clicked!\n");
+    fflush(stdout);
+    if (onPlay) {
+        printf("🎮 TRANSPORT BAR: Calling onPlay callback...\n");
+        fflush(stdout);
+        onPlay();
+    }
     play();
 }
 void ProfessionalTransportController::stopButtonClicked() {

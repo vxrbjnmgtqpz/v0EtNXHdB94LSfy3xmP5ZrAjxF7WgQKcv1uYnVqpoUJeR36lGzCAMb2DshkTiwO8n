@@ -42,6 +42,9 @@ private:
     // Animation state
     float pulseTime = 0.0f;
     
+    // Metal initialization state
+    bool metalInitialized = false;
+    
     static constexpr double sampleRate = 48000.0;
     static constexpr int spectralBufferSize = 1024; // FFT size
 

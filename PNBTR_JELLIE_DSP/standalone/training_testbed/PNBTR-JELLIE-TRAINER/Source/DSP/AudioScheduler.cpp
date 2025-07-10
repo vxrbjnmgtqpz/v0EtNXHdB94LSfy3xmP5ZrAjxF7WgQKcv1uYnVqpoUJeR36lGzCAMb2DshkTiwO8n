@@ -172,12 +172,20 @@ void AudioScheduler::processAudioBlock()
         return; // Skip processing if trainer not available or inactive
     }
     
-    // TODO: Generate audio block data for PNBTRTrainer
-    // For now, just simulate audio processing time
-    // In final implementation, this will call trainer->processBlock()
+    // 🎮 VIDEO GAME ENGINE: Generate real audio block and process it
+    juce::AudioBuffer<float> audioBuffer(2, blockSize); // Stereo buffer
+    juce::MidiBuffer midiBuffer;
     
-    // Simulate realistic DSP work (replace with actual audio processing)
-    std::this_thread::sleep_for(std::chrono::microseconds(100)); // ~0.1ms of work
+    // Generate test audio or get from audio input (for now, use silence)
+    audioBuffer.clear();
+    
+    // Call the actual DSP processing pipeline
+    try {
+        trainer->processBlock(audioBuffer, midiBuffer);
+        std::cout << "[AudioScheduler] Processed audio block: " << blockSize << " samples" << std::endl;
+    } catch (const std::exception& e) {
+        std::cout << "[AudioScheduler] Exception in processBlock: " << e.what() << std::endl;
+    }
 }
 
 void AudioScheduler::updateMetrics()

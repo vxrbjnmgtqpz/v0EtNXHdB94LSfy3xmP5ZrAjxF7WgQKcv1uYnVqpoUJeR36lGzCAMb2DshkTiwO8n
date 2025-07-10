@@ -11,7 +11,7 @@ LogStatusComponent::LogStatusComponent()
     logBox.setColour(juce::TextEditor::textColourId, juce::Colours::lightgreen);
     addAndMakeVisible(logBox);
 
-    startTimerHz(20); // update every 50ms
+    startTimerHz(5); // 🎮 VIDEO GAME ENGINE: Much slower to prevent string race conditions
     
     // Add initial log entry
     addEntry("🚀 PNBTR+JELLIE Training Testbed initialized");

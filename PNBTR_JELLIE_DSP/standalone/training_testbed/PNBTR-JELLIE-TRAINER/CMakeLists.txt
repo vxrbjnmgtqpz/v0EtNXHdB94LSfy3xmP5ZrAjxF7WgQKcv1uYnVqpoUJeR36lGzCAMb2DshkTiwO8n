@@ -77,6 +77,7 @@ target_sources(PnbtrJellieTrainer PRIVATE
 
     # DSP (add PNBTRTrainer.cpp for linker)
     Source/DSP/PNBTRTrainer.cpp
+    Source/DSP/AudioScheduler.cpp
     Source/Metrics/TrainingMetrics.cpp
     Source/Network/PacketLossSimulator.cpp
 

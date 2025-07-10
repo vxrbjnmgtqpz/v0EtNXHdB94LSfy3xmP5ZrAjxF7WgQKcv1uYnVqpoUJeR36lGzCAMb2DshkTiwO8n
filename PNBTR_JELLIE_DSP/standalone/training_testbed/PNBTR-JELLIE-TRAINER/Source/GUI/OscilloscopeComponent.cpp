@@ -5,10 +5,6 @@
 #include <cmath>
 
 void OscilloscopeComponent::setTrainer(PNBTRTrainer* trainerPtr) { trainer = trainerPtr; }
-#include "OscilloscopeComponent.h"
-#include "../GPU/MetalBridgeInterface.h"
-#include <algorithm>
-#include <cmath>
 
 //==============================================================================
 OscilloscopeComponent::OscilloscopeComponent(BufferType type, const juce::String& title)

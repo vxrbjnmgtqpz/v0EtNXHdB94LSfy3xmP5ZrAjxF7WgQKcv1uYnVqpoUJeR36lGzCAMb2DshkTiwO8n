@@ -61,7 +61,7 @@ private:
     
     //==============================================================================
     // Display parameters
-    int refreshRateHz = 20;  // Reduced from 60Hz - still smooth but much more efficient
+    int refreshRateHz = 5;  // 🎮 VIDEO GAME ENGINE: Much slower to prevent timer race conditions
     float amplitudeScale = 1.0f;
     float timeWindowSeconds = 0.1f; // 100ms window
     bool showGrid = true;

@@ -130,7 +130,7 @@ private:
     double blockInterval_ms = 10.67; // Default: 512 samples @ 48kHz
     
     uint64_t nextBlockTime_us = 0;
-    juce::Time::HighResolutionTimer hrTimer;
+    // Note: HighResolutionTimer is abstract, using chrono for timing instead
 
     //==============================================================================
     // Performance monitoring
