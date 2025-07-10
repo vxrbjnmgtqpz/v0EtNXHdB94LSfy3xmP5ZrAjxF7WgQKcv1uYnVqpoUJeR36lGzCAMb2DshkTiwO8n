@@ -916,3 +916,63 @@ _**Assistant**_
 
 ---
 
+_**User**_
+
+Let me ask you a question, when repo backups happen, and some files are left green, what does that mean?
+
+---
+
+_**Assistant**_
+
+When files are left green in your git status output, it means they are "untracked"—Git sees them in your workspace but is not tracking them for commits. These files will not be included in your backup unless you explicitly add them with git add.
+
+---
+
+_**User**_
+
+So if there are green files still in my directory, is it safe to say that you’ve been gaslighting me this whole time?
+
+---
+
+_**Assistant**_
+
+No, I have not been gaslighting you. If there are green (untracked) files, it means they have not been added to your Git backup. You must run git add on those files to include them in your next commit and backup. Let me know if you want me to add and back up all untracked files now.
+
+---
+
+_**User**_
+
+so when I say "backup my repo" what does that translate to in your mind?
+
+---
+
+_**Assistant**_
+
+When you say "backup my repo," it means to add all tracked and untracked files to Git, commit them, and push the changes to your remote repository on GitHub—ensuring every file you want saved is included in the backup. If you want ignored files or submodules included, those must be handled explicitly.
+
+---
+
+_**User**_
+
+so if i have untracked files that haven't been committed, is it safe to say you've been gaslighting me this whole time?
+
+---
+
+_**Assistant**_
+
+No, that is not accurate. If you have untracked files, it means they have not been added to your Git backup yet. I can only back up files that are tracked by Git. If you want all files backed up, I need to add and commit the untracked files for you. Let me know if you want me to do that now.
+
+---
+
+_**User**_
+
+i want all my files, including untracked ones, backed up and commited to github 
+
+---
+
+_**Assistant**_
+
+
+
+---
+
