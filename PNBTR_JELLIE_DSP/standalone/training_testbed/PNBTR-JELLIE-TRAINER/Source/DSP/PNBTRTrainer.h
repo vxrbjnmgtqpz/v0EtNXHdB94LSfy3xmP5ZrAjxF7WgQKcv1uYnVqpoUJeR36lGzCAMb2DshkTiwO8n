@@ -96,15 +96,18 @@ public:
     bool isTrainingActive() const { return trainingActive.load(); }
     void startTraining();
     void stopTraining();
+    
+    // ADDED: Record arm state management for connecting UI to GPU pipeline
+    void setJellieRecordArmed(bool armed) { jellieRecordArmed.store(armed); }
+    void setPNBTRRecordArmed(bool armed) { pnbtrRecordArmed.store(armed); }
+    bool isJellieRecordArmed() const { return jellieRecordArmed.load(); }
+    bool isPNBTRRecordArmed() const { return pnbtrRecordArmed.load(); }
 
 private:
     //==============================================================================
     // GPU processing pipeline
     std::unique_ptr<TrainingMetrics> metrics;
     std::unique_ptr<PacketLossSimulator> packetLossSimulator;
-    
-    // 🎮 VIDEO GAME ENGINE: High-priority audio scheduler
-    std::unique_ptr<class AudioScheduler> audioScheduler;
 
     //==============================================================================
     // Processing parameters
@@ -139,6 +142,13 @@ private:
     void initializeGPUBuffers();
     void copyInputToGPU(const juce::AudioBuffer<float>& buffer);
     void copyOutputFromGPU(juce::AudioBuffer<float>& buffer);
+    
+    // 7-stage pipeline output buffer (CORRECTED: stores processed audio from GPU)
+    std::vector<float> processedOutputBuffer;
+
+    // ADDED: Record arm state management for connecting UI to GPU pipeline
+    std::atomic<bool> jellieRecordArmed{false};
+    std::atomic<bool> pnbtrRecordArmed{false};
 
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PNBTRTrainer)

@@ -1,0 +1,46 @@
+cmake_minimum_required(VERSION 3.20)
+
+project(training_testbed)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# JUCE setup
+find_package(JUCE CONFIG REQUIRED)
+
+add_executable(training_testbed
+    main.cpp
+    training_testbed.cpp
+    JuceMain.cpp
+)
+
+# JUCE modules
+juce_add_gui_app(training_testbed)
+
+# JUCE settings
+juce_generate_juce_header(training_testbed)
+
+# JUCE modules required for this app
+juce_add_modules(
+    juce_audio_utils
+    juce_audio_devices
+    juce_audio_basics
+    juce_gui_basics
+    juce_gui_extra
+)
+
+target_include_directories(training_testbed PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+
+target_link_libraries(training_testbed
+    pnbtr_jellie_core
+    # Add CoreAudio, GUI, and other dependencies here
+)
+
+if(APPLE)
+    target_link_libraries(training_testbed
+        "-framework CoreAudio"
+        "-framework AudioUnit"
+        "-framework AudioToolbox"
+        "-framework Cocoa"
+    )
+endif()

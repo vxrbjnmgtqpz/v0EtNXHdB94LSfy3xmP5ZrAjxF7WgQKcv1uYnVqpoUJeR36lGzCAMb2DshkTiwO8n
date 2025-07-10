@@ -1,0 +1,303 @@
+# PNBTR+JELLIE DSP TRAINING TESTBED - HELP REQUEST
+
+**Project**: JAMNet PNBTR+JELLIE Training Testbed Application  
+**Date**: July 10, 2025  
+**Status**: 🔴 **CRITICAL ISSUE** - Application builds but record arm buttons not functioning properly  
+**Request**: Expert assistance needed for audio pipeline debugging and UI-to-GPU connection
+
+---
+
+## 🎯 **PROJECT OVERVIEW**
+
+### **What We're Building**
+
+A real-time Digital Audio Workstation (DAW) training testbed that simulates network audio transmission with packet loss and neural reconstruction. The application combines:
+
+- **PNBTR** (Predictive Neural Bit-Rate Transport) - AI-powered audio reconstruction
+- **JELLIE** (JSON Encoded Low-Latency Information Exchange) - Network protocol simulation
+- **Metal GPU Computing** - Real-time audio processing pipeline
+- **JUCE Framework** - Cross-platform audio application framework
+
+### **Core Architecture**
+
+```
+Microphone Input → JUCE Audio → MetalBridge → GPU Shaders → Audio Output
+       ↓               ↓            ↓            ↓            ↓
+   Core Audio     Float Buffers   GPU Memory   7-Stage     Speakers/
+   Hardware       (128-4096       Upload/      Processing  Headphones
+                  samples)        Download     Pipeline
+```
+
+### **7-Stage GPU Processing Pipeline**
+
+1. **Audio Input Capture** - Record-armed input with gain control
+2. **Input Gating** - Noise suppression and signal detection
+3. **DJ-Style Spectral Analysis** - Real-time FFT with color mapping
+4. **JELLIE Preprocessing** - Prepare audio for network simulation
+5. **Network Simulation** - Packet loss, jitter, and latency simulation
+6. **PNBTR Reconstruction** - Neural prediction for lost audio packets
+7. **Visual Feedback** - Real-time spectrum and waveform display
+
+---
+
+## ✅ **MAJOR ACCOMPLISHMENTS**
+
+### **1. Complete Build System (WORKING)**
+
+- ✅ CMake configuration with JUCE integration
+- ✅ Metal shader compilation pipeline
+- ✅ macOS app bundle generation
+- ✅ All dependencies resolved (Metal, JUCE, system frameworks)
+
+### **2. Core Application Structure (WORKING)**
+
+- ✅ JUCE-based GUI application framework
+- ✅ Professional transport controls (Play/Stop/Record)
+- ✅ Audio device manager with microphone permissions
+- ✅ Real-time audio callback system
+- ✅ Thread-safe parameter management
+
+### **3. GPU Metal Processing (IMPLEMENTED)**
+
+- ✅ MetalBridge singleton with 7-stage pipeline
+- ✅ All Metal compute shaders written and compiled
+- ✅ GPU buffer management and memory allocation
+- ✅ Command queue and pipeline state objects
+- ✅ CPU-GPU data transfer mechanisms
+
+### **4. UI Components (IMPLEMENTED)**
+
+- ✅ SpectralAudioTrack components with record arm buttons
+- ✅ Real-time oscilloscope displays
+- ✅ Transport bar with professional DAW controls
+- ✅ Metrics dashboard for performance monitoring
+- ✅ Network simulation parameter controls
+
+### **5. Audio Integration (PARTIALLY WORKING)**
+
+- ✅ Core Audio input capture
+- ✅ JUCE AudioIODeviceCallback implementation
+- ✅ Microphone permission handling (macOS)
+- ✅ Real-time audio buffer processing
+- ⚠️ **ISSUE**: Record arm buttons don't control actual recording
+
+---
+
+## 🔴 **CURRENT CRITICAL ISSUES**
+
+### **Primary Issue: Record Arm Buttons Not Connected to Audio Pipeline**
+
+**SYMPTOMS:**
+
+- ✅ Application builds and launches successfully
+- ✅ Transport controls are visible and clickable
+- ✅ Record arm "R" buttons toggle visually (grey ↔ red)
+- ✅ Audio input oscilloscope shows microphone signal
+- ❌ **Record arm buttons don't actually control audio recording**
+- ❌ **GPU shaders may be hardcoded to record regardless of button state**
+- ❌ **No actual audio recording occurs when buttons are armed**
+
+**EXPECTED BEHAVIOR:**
+
+1. User clicks red "R" button on track → Button turns red (armed)
+2. User presses Play → Training starts
+3. Audio is captured ONLY from record-armed tracks
+4. GPU pipeline respects actual UI button states
+5. Visual feedback shows recording activity
+
+**CURRENT BEHAVIOR:**
+
+1. User clicks red "R" button → Button toggles color ✅
+2. User presses Play → Transport shows playing ✅
+3. Audio input detected in oscilloscope ✅
+4. **BUT**: No connection between button state and actual recording ❌
+5. **GPU shaders may ignore UI states entirely** ❌
+
+### **Technical Investigation Needed**
+
+**Data Flow Analysis Required:**
+
+```
+SpectralAudioTrack::recordArmButton::onClick()
+    ↓
+SpectralAudioTrack::setRecordArmed(bool)
+    ↓
+MainComponent::isJellieTrackRecordArmed() / isPNBTRTrackRecordArmed()
+    ↓
+MainComponent::audioDeviceIOCallback()
+    ↓
+PNBTRTrainer::setJellieRecordArmed() / setPNBTRRecordArmed()
+    ↓
+PNBTRTrainer::processBlock()
+    ↓
+MetalBridge::setRecordArmStates()
+    ↓
+MetalBridge::runSevenStageProcessingPipeline()
+    ↓
+GPU Metal Shaders (AudioInputCaptureShader, RecordArmVisualShader)
+```
+
+**Questions for Investigation:**
+
+1. Are the record arm button click handlers actually being called?
+2. Is `MainComponent::audioDeviceIOCallback()` calling the record arm state methods?
+3. Are the atomic boolean values being properly passed to MetalBridge?
+4. Are the GPU shaders using the passed boolean values or hardcoded `true`?
+5. Is there a disconnect between UI thread and audio thread state synchronization?
+
+---
+
+## 📂 **PROJECT STRUCTURE**
+
+### **Key Files and Their Status**
+
+**GUI Components:**
+
+- `Source/GUI/MainComponent.cpp` - ✅ Main window with audio callback
+- `Source/GUI/SpectralAudioTrack.cpp` - ⚠️ Has record arm buttons but unclear if connected
+- `Source/GUI/ProfessionalTransportController.cpp` - ✅ Working transport controls
+
+**Audio Processing:**
+
+- `Source/DSP/PNBTRTrainer.cpp` - ⚠️ Has atomic record arm variables but unclear if used
+- `Source/DSP/PNBTRTrainer.h` - ⚠️ Has setter methods for record arm states
+
+**GPU Processing:**
+
+- `Source/GPU/MetalBridge.mm` - ⚠️ Has record arm state management but unclear if working
+- `Source/GPU/MetalBridge.h` - ⚠️ Has record arm methods but unclear if called
+- `shaders/audioProcessingKernels.metal` - ⚠️ May be hardcoded to record regardless of UI
+
+**Build System:**
+
+- `CMakeLists.txt` - ✅ Complete and working
+- `build/` directory - ✅ Contains compiled application
+
+### **Current Build Location**
+
+```
+/Users/timothydowler/Projects/JAMNet/PNBTR_JELLIE_DSP/standalone/training_testbed/PNBTR-JELLIE-TRAINER/build/PnbtrJellieTrainer_artefacts/Debug/PNBTR+JELLIE Training Testbed.app
+```
+
+**Application Launch Status:**
+
+- ✅ Builds successfully
+- ✅ Launches without crashes
+- ✅ Process ID 21701 running stably
+- ✅ CPU usage ~30-90% (normal for GPU/audio processing)
+- ⚠️ **Record arm functionality not working as expected**
+
+---
+
+## 🔧 **DEBUGGING APPROACH NEEDED**
+
+### **Phase 1: Verify UI Event Handling**
+
+1. **Test Record Arm Button Clicks**
+
+   - Add console logging to `SpectralAudioTrack::recordArmButton::onClick()`
+   - Verify button state changes are being triggered
+   - Check if `setRecordArmed(bool)` is being called with correct values
+
+2. **Test State Propagation to MainComponent**
+   - Add logging to `MainComponent::isJellieTrackRecordArmed()`
+   - Verify audio callback is checking track states
+   - Confirm values are being passed to PNBTRTrainer
+
+### **Phase 2: Verify Audio Thread Communication**
+
+3. **Test PNBTRTrainer State Management**
+
+   - Add logging to `PNBTRTrainer::setJellieRecordArmed()`
+   - Verify atomic variables are being updated
+   - Check if `processBlock()` is using the states
+
+4. **Test MetalBridge Integration**
+   - Add logging to `MetalBridge::setRecordArmStates()`
+   - Verify GPU pipeline is receiving UI states
+   - Check if shaders are using the passed boolean values
+
+### **Phase 3: Verify GPU Shader Implementation**
+
+5. **Test Metal Shader State Usage**
+   - Review `audioProcessingKernels.metal` for hardcoded values
+   - Ensure shaders use passed uniform values, not constants
+   - Verify buffer bindings are correct for boolean parameters
+
+### **Phase 4: End-to-End Testing**
+
+6. **Test Complete Recording Pipeline**
+   - Arm one track, leave other disarmed
+   - Start playback and speak into microphone
+   - Verify only armed track captures audio
+   - Check visual feedback matches actual recording state
+
+---
+
+## 🎯 **IMMEDIATE ASSISTANCE NEEDED**
+
+### **Expert Help Required For:**
+
+1. **Audio Programming Expertise**
+
+   - JUCE AudioIODeviceCallback debugging
+   - Real-time audio thread safety analysis
+   - Core Audio integration on macOS
+
+2. **Metal GPU Computing Expertise**
+
+   - Metal compute shader debugging
+   - CPU-GPU state synchronization
+   - Metal command buffer and pipeline debugging
+
+3. **UI-to-Audio Pipeline Integration**
+   - Thread-safe UI state propagation
+   - Atomic variable usage in real-time audio context
+   - Event handling between UI and audio threads
+
+### **Specific Questions:**
+
+1. **Is the data flow from UI buttons to GPU shaders actually connected?**
+2. **Are there missing method calls in the audio callback chain?**
+3. **Are the GPU shaders ignoring the passed boolean parameters?**
+4. **Is there a threading issue between UI updates and audio processing?**
+5. **Should we add comprehensive logging to trace the complete data flow?**
+
+### **Success Criteria:**
+
+- ✅ User can click record arm buttons and see immediate visual feedback
+- ✅ Only record-armed tracks capture audio during playback
+- ✅ GPU shaders respect actual UI button states (not hardcoded values)
+- ✅ Visual indicators accurately reflect recording activity
+- ✅ Complete end-to-end recording pipeline functions as designed
+
+---
+
+## 📋 **SYSTEM INFORMATION**
+
+**Hardware:** Apple Silicon Mac (macOS 14.4.0)  
+**Development Tools:** Xcode 15.3, CMake 3.22+  
+**Frameworks:** JUCE 7.0+, Metal, Core Audio  
+**Build Status:** ✅ Successful compilation and linking  
+**Runtime Status:** ⚠️ Launches but record arm functionality broken
+
+**Process Information:**
+
+- **PID:** 21701
+- **CPU Usage:** 30-90%
+- **Memory:** ~200MB
+- **Status:** Running stably, no crashes
+
+---
+
+## 🚨 **CRITICAL SUCCESS FACTORS**
+
+This training testbed is a **proof-of-concept for real-time neural audio reconstruction** that could revolutionize network audio transmission. The core GPU pipeline and application framework are complete, but the **final connection between UI controls and audio recording** is the missing piece.
+
+**Once this record arm integration is resolved, we will have a fully functional DAW-quality training environment for testing PNBTR+JELLIE neural audio algorithms.**
+
+**Priority:** 🔴 **URGENT** - This is the final blocking issue before full system integration testing can begin.
+
+---
+
+**Contact:** Available for real-time debugging session and screen sharing if needed to resolve this critical integration issue.

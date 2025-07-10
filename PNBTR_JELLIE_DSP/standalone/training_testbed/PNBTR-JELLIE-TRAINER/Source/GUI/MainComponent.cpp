@@ -49,11 +49,11 @@ MainComponent::MainComponent()
     addAndMakeVisible(loadingLabel.get());
     printf("[CONSTRUCTOR] Loading label created and added\n");
     
-    // Start background initialization timer (much slower to prevent race conditions)
+    // Start background initialization timer (video game style)
     initializationStep = 0;
-    printf("[CONSTRUCTOR] About to call startTimer(100)...\n");
+    printf("[CONSTRUCTOR] About to call startTimer(16)...\n");
     fflush(stdout);
-    startTimer(100); // 10 FPS - much safer for GUI component creation
+    startTimer(16); // 60 FPS update rate like a game engine
     printf("[CONSTRUCTOR] startTimer(16) completed successfully\n");
     fflush(stdout);
     
@@ -90,6 +90,17 @@ void MainComponent::handleTransportRecord()
     if (pnbtrTrainer)
         pnbtrTrainer->recordingActive.store(true);
     handleTransportPlay();
+}
+
+// ADDED: Record arm state methods for connecting UI to audio pipeline
+bool MainComponent::isJellieTrackRecordArmed() const
+{
+    return jellieTrack ? jellieTrack->isRecordArmed() : false;
+}
+
+bool MainComponent::isPNBTRTrackRecordArmed() const
+{
+    return pnbtrTrack ? pnbtrTrack->isRecordArmed() : false;
 }
 // Audio device management
 void MainComponent::updateDeviceLists()
@@ -181,7 +192,7 @@ void MainComponent::audioDeviceStopped()
 void MainComponent::audioDeviceIOCallback(const float** inputChannelData, int numInputChannels,
                                           float** outputChannelData, int numOutputChannels, int numSamples)
 {
-    // CRITICAL FIX 3: Verify callback is being called at all - USE PRINTF FOR RELIABLE LOGGING
+    // CRITICAL FIX: Verify callback is being called and show input levels
     static int callbackCount = 0;
     static int audioDebugCount = 0;
     
@@ -196,16 +207,29 @@ void MainComponent::audioDeviceIOCallback(const float** inputChannelData, int nu
         juce::Logger::writeToLog("[AUDIO CALLBACK] Running (" + juce::String(callbackCount) + ")");
     }
     
-    // DEBUG: Check if we're actually receiving microphone input
-    if (++audioDebugCount % 100 == 0) { // Every ~2 seconds
+    // ENHANCED DEBUG: Check if we're actually receiving microphone input and show levels
+    if (++audioDebugCount % 50 == 0) { // Every ~1 second
         float maxInputLevel = 0.0f;
+        float rmsLevel = 0.0f;
+        int samplesWithSignal = 0;
+        
         if (inputChannelData && numInputChannels > 0 && inputChannelData[0]) {
             for (int i = 0; i < numSamples; ++i) {
-                maxInputLevel = std::max(maxInputLevel, std::abs(inputChannelData[0][i]));
+                float sample = std::abs(inputChannelData[0][i]);
+                maxInputLevel = std::max(maxInputLevel, sample);
+                rmsLevel += sample * sample;
+                if (sample > 0.001f) samplesWithSignal++; // Count samples above noise floor
             }
+            rmsLevel = std::sqrt(rmsLevel / numSamples);
         }
+        
+        printf("[🎤 INPUT LEVEL] Max: %.4f, RMS: %.4f, Active samples: %d/%d\n", 
+               maxInputLevel, rmsLevel, samplesWithSignal, numSamples);
+        
         juce::Logger::writeToLog("[INPUT DEBUG] Channels: " + juce::String(numInputChannels) + 
                                 ", Max Level: " + juce::String(maxInputLevel, 4) + 
+                                ", RMS Level: " + juce::String(rmsLevel, 4) +
+                                ", Active Samples: " + juce::String(samplesWithSignal) + "/" + juce::String(numSamples) +
                                 ", Data Ptr: " + juce::String(inputChannelData ? "valid" : "null"));
     }
     
@@ -213,16 +237,23 @@ void MainComponent::audioDeviceIOCallback(const float** inputChannelData, int nu
     for (int ch = 0; ch < numOutputChannels; ++ch)
         std::memset(outputChannelData[ch], 0, sizeof(float) * numSamples);
 
-    // Thread-safe audio buffer copy and processing - FIX INPUT CHANNEL CREATION
-    juce::AudioBuffer<float> buffer;
+    // CORRECTED: Create proper JUCE buffer and copy input data (no const cast issues)
+    juce::AudioBuffer<float> buffer(std::max(numInputChannels, 2), numSamples);
+    buffer.clear(); // Start with silence
+    
+    // Copy input channels to buffer (safe copy, not cast)
     if (inputChannelData && numInputChannels > 0) {
-        // Create buffer from input data
-        buffer = juce::AudioBuffer<float>(const_cast<float**>(inputChannelData), numInputChannels, numSamples);
-    } else {
-        // No input - create silent buffer for processing
-        buffer = juce::AudioBuffer<float>(2, numSamples); // Stereo silence
-        buffer.clear();
-        juce::Logger::writeToLog("[INPUT DEBUG] No input channels - using silent buffer");
+        for (int ch = 0; ch < std::min(numInputChannels, buffer.getNumChannels()); ++ch) {
+            if (inputChannelData[ch]) {
+                buffer.copyFrom(ch, 0, inputChannelData[ch], numSamples);
+            }
+        }
+    }
+    
+    // Ensure we have at least stereo for processing
+    if (buffer.getNumChannels() == 1) {
+        buffer.setSize(2, numSamples, true, true, true); // Make stereo, copy existing data
+        buffer.copyFrom(1, 0, buffer, 0, 0, numSamples); // Duplicate mono to stereo
     }
     
     if (pnbtrTrainer)
@@ -230,6 +261,15 @@ void MainComponent::audioDeviceIOCallback(const float** inputChannelData, int nu
         // Try/catch to prevent any crash from killing the audio thread
         try {
             juce::MidiBuffer midi;
+            
+            // CRITICAL FIX: Pass record arm states to the audio processor
+            bool jellieRecordArmed = isJellieTrackRecordArmed();
+            bool pnbtrRecordArmed = isPNBTRTrackRecordArmed();
+            
+            // Set record arm states in the trainer so GPU pipeline can respect them
+            pnbtrTrainer->setJellieRecordArmed(jellieRecordArmed);
+            pnbtrTrainer->setPNBTRRecordArmed(pnbtrRecordArmed);
+            
             pnbtrTrainer->processBlock(buffer, midi);
         } catch (const std::exception& e) {
             juce::Logger::writeToLog("[AUDIO CALLBACK] Exception: " + juce::String(e.what()));
@@ -237,11 +277,16 @@ void MainComponent::audioDeviceIOCallback(const float** inputChannelData, int nu
             juce::Logger::writeToLog("[AUDIO CALLBACK] Unknown exception");
         }
     }
-    // Copy processed buffer to output (thread-safe)
+    
+    // Copy processed buffer to output (ensure we don't exceed output channel count)
     for (int ch = 0; ch < numOutputChannels; ++ch)
     {
-        if (ch < buffer.getNumChannels())
+        if (ch < buffer.getNumChannels()) {
             std::memcpy(outputChannelData[ch], buffer.getReadPointer(ch), sizeof(float) * numSamples);
+        } else {
+            // Zero out extra output channels
+            std::memset(outputChannelData[ch], 0, sizeof(float) * numSamples);
+        }
     }
 }
 
@@ -253,12 +298,12 @@ void MainComponent::paint(juce::Graphics& g)
     g.fillAll(juce::Colours::black);
     g.setColour(juce::Colours::darkgrey);
 
-    // Optional: draw horizontal lines between rows
-    const int rowHeights[] = {40, 48, 200, 240, 160, 100, 60};
-    int y = rowHeights[0];
-    for (int i = 1; i < 7; ++i)
+    // FIXED: Consistent row heights matching resized() method
+    const int rowHeights[] = {48, 32, 200, 160, 160, 100, 60}; // Added device bar height
+    int y = 0;
+    for (int i = 0; i < 6; ++i)
     {
-        y += rowHeights[i - 1];
+        y += rowHeights[i];
         g.drawLine(0.0f, (float)y, (float)getWidth(), (float)y, 1.0f);
     }
 }
@@ -275,21 +320,31 @@ void MainComponent::resized()
         return;
     }
     
-    // Full UI layout (only when loaded) - REMOVED redundant title row
-    const int rowHeights[] = {48, 200, 240, 160, 100, 60};
+    // FIXED: Consistent row heights and complete layout
+    const int rowHeights[] = {48, 32, 200, 160, 160, 100, 60};
 
+    // Row 1: Transport Bar (48px)
     if (transportBar) transportBar->setBounds(area.removeFromTop(rowHeights[0]));
     
-    // Place device dropdowns above oscilloscope row
-    auto deviceBar = area.removeFromTop(32);
+    // Row 2: Device dropdowns (32px)
+    auto deviceBar = area.removeFromTop(rowHeights[1]);
     if (inputDeviceBox) inputDeviceBox->setBounds(deviceBar.removeFromLeft(getWidth() / 2).reduced(8, 4));
     if (outputDeviceBox) outputDeviceBox->setBounds(deviceBar.reduced(8, 4));
     
-    if (oscilloscopeRow) oscilloscopeRow->setBounds(area.removeFromTop(rowHeights[1]));
-    if (waveformAnalysisRow) waveformAnalysisRow->setBounds(area.removeFromTop(rowHeights[2]));
-    if (audioTracksRow) audioTracksRow->setBounds(area.removeFromTop(rowHeights[3]));
-    if (metricsDashboard) metricsDashboard->setBounds(area.removeFromTop(rowHeights[4]));
-    if (controlsRow) controlsRow->setBounds(area.removeFromTop(rowHeights[5]));
+    // Row 3: Oscilloscopes (200px)
+    if (oscilloscopeRow) oscilloscopeRow->setBounds(area.removeFromTop(rowHeights[2]));
+    
+    // Row 4: JELLIE Track (160px)
+    if (jellieTrack) jellieTrack->setBounds(area.removeFromTop(rowHeights[3]));
+    
+    // Row 5: PNBTR Track (160px)
+    if (pnbtrTrack) pnbtrTrack->setBounds(area.removeFromTop(rowHeights[4]));
+    
+    // Row 6: Metrics Dashboard (100px)
+    if (metricsDashboard) metricsDashboard->setBounds(area.removeFromTop(rowHeights[5]));
+    
+    // Row 7: Controls Row (60px) - FIXED: This was missing!
+    if (controlsRow) controlsRow->setBounds(area.removeFromTop(rowHeights[6]));
 }
 
 void MainComponent::timerCallback()
@@ -300,18 +355,23 @@ void MainComponent::timerCallback()
     // VIDEO GAME ENGINE LOADING: One component per frame to prevent blocking
     switch (initializationStep) {
         case 0:
-            printf("[INIT] Step 0: Skipping redundant title component...\n");
-            juce::Logger::writeToLog("[INIT] Step 0: Skipping redundant title component (using native window title)");
-            loadingLabel->setText("Loading Core Components...", juce::dontSendNotification);
+            printf("[INIT] Step 0: Creating transport bar...\n");
+            juce::Logger::writeToLog("[INIT] Step 0: Creating transport bar...");
+            transportBar = std::make_unique<ProfessionalTransportController>();
+            addAndMakeVisible(transportBar.get());
+            loadingLabel->setText("Loading Transport Controls...", juce::dontSendNotification);
             printf("[INIT] Step 0 completed successfully\n");
             break;
             
         case 1:
-            juce::Logger::writeToLog("[INIT] Step 1: Creating transport bar...");
-            transportBar = std::make_unique<ProfessionalTransportController>();
-            addAndMakeVisible(transportBar.get());
-            loadingLabel->setText("Loading Transport Controls...", juce::dontSendNotification);
-            repaint(); // Force display update before next component
+            juce::Logger::writeToLog("[INIT] Step 1: Creating audio device dropdowns...");
+            inputDeviceBox = std::make_unique<juce::ComboBox>("InputDevice");
+            outputDeviceBox = std::make_unique<juce::ComboBox>("OutputDevice");
+            addAndMakeVisible(inputDeviceBox.get());
+            addAndMakeVisible(outputDeviceBox.get());
+            inputDeviceBox->onChange = [this] { inputDeviceChanged(); };
+            outputDeviceBox->onChange = [this] { outputDeviceChanged(); };
+            loadingLabel->setText("Loading Audio Device Controls...", juce::dontSendNotification);
             break;
             
         case 2:
@@ -347,10 +407,12 @@ void MainComponent::timerCallback()
             break;
             
         case 6:
-            juce::Logger::writeToLog("[INIT] Step 6: Creating audio tracks...");
-            audioTracksRow = std::make_unique<AudioTracksRow>();
-            addAndMakeVisible(audioTracksRow.get());
-            loadingLabel->setText("Loading Audio Tracks...", juce::dontSendNotification);
+            juce::Logger::writeToLog("[INIT] Step 6: Creating spectral audio tracks...");
+            jellieTrack = std::make_unique<SpectralAudioTrack>(SpectralAudioTrack::TrackType::JELLIE_INPUT, "JELLIE");
+            pnbtrTrack = std::make_unique<SpectralAudioTrack>(SpectralAudioTrack::TrackType::PNBTR_OUTPUT, "PNBTR");
+            addAndMakeVisible(jellieTrack.get());
+            addAndMakeVisible(pnbtrTrack.get());
+            loadingLabel->setText("Loading Spectral Audio Tracks...", juce::dontSendNotification);
             break;
             
         case 7:
@@ -380,7 +442,11 @@ void MainComponent::timerCallback()
             oscilloscopeRow->setTrainer(pnbtrTrainer.get());
             waveformAnalysisRow->setTrainer(pnbtrTrainer.get());
             metricsDashboard->setTrainer(pnbtrTrainer.get());
-            audioTracksRow->setTrainer(pnbtrTrainer.get());
+            jellieTrack->setTrainer(pnbtrTrainer.get());
+            pnbtrTrack->setTrainer(pnbtrTrainer.get());
+            
+            // Connect TOAST network oscilloscope to metrics dashboard
+            metricsDashboard->setTOASTNetworkOscilloscope(&oscilloscopeRow->getNetworkOsc());
             loadingLabel->setText("Connecting Components...", juce::dontSendNotification);
             break;
             
@@ -388,8 +454,34 @@ void MainComponent::timerCallback()
             printf("[INIT] Step 10: Initializing audio system...\n");
             juce::Logger::writeToLog("[INIT] Step 10: Initializing audio system...");
             
-            // Initialize audio device manager with explicit microphone access
-            printf("[DEVICE] Calling deviceManager.initialise(2, 2, nullptr, true)...\n");
+            // CRITICAL FIX FOR macOS: Request microphone permissions explicitly
+            #if JUCE_MAC
+            printf("[PERMISSIONS] Requesting microphone permissions on macOS...\n");
+            juce::Logger::writeToLog("[PERMISSIONS] Requesting microphone permissions on macOS...");
+            
+            // Request microphone permission (this will show the permission dialog if needed)
+            juce::RuntimePermissions::request(juce::RuntimePermissions::recordAudio, 
+                [this](bool granted) {
+                    if (granted) {
+                        printf("[PERMISSIONS] ✅ Microphone permission granted!\n");
+                        juce::Logger::writeToLog("[PERMISSIONS] ✅ Microphone permission granted!");
+                    } else {
+                        printf("[PERMISSIONS] ❌ Microphone permission denied!\n");
+                        juce::Logger::writeToLog("[PERMISSIONS] ❌ Microphone permission denied!");
+                    }
+                });
+            
+            // Wait a moment for permission dialog to be handled
+            juce::Timer::callAfterDelay(100, [this]() {
+                bool hasPermission = juce::RuntimePermissions::isGranted(juce::RuntimePermissions::recordAudio);
+                printf("[PERMISSIONS] Microphone permission status: %s\n", hasPermission ? "GRANTED" : "DENIED");
+                juce::Logger::writeToLog("[PERMISSIONS] Microphone permission status: " + 
+                                       juce::String(hasPermission ? "GRANTED" : "DENIED"));
+            });
+            #endif
+            
+            // CRITICAL FIX: Enable input channels explicitly and request microphone permissions
+            printf("[DEVICE] Requesting microphone permissions and initializing with input channels...\n");
             juce::String error = deviceManager.initialise(2, 2, nullptr, true);
             
             if (error.isNotEmpty()) {
@@ -406,21 +498,71 @@ void MainComponent::timerCallback()
                 printf("[DEVICE] Audio device manager initialized successfully\n");
                 juce::Logger::writeToLog("[DEVICE] Audio device manager initialized successfully");
                 
-                // CRITICAL FIX 1: Add callback BEFORE starting device
+                // CRITICAL FIX: Add callback BEFORE configuring device
                 printf("[CALLBACK] Adding audio callback to device manager...\n");
                 juce::Logger::writeToLog("[CALLBACK] Adding audio callback to device manager...");
                 deviceManager.addAudioCallback(this);
                 printf("[CALLBACK] Audio callback registered successfully\n");
                 juce::Logger::writeToLog("[CALLBACK] Audio callback registered successfully");
                 
+                // CRITICAL FIX: Explicitly enable input channels and configure device
+                auto setup = deviceManager.getAudioDeviceSetup();
+                printf("[DEVICE] Current setup - Input: '%s', Output: '%s'\n", 
+                       setup.inputDeviceName.toUTF8().getAddress(),
+                       setup.outputDeviceName.toUTF8().getAddress());
+                
+                // Ensure we have input devices selected
+                if (setup.inputDeviceName.isEmpty()) {
+                    auto* deviceType = deviceManager.getAvailableDeviceTypes()[0];
+                    auto inputDevices = deviceType->getDeviceNames(true);
+                    if (!inputDevices.isEmpty()) {
+                        setup.inputDeviceName = inputDevices[0];
+                        printf("[DEVICE] Selected default input device: '%s'\n", 
+                               setup.inputDeviceName.toUTF8().getAddress());
+                    }
+                }
+                
+                // CRITICAL: Set up input channels explicitly
+                setup.useDefaultInputChannels = true;
+                setup.inputChannels.setRange(0, 2, true);  // Enable first 2 input channels
+                setup.useDefaultOutputChannels = true;
+                setup.outputChannels.setRange(0, 2, true); // Enable first 2 output channels
+                setup.sampleRate = 48000.0;
+                setup.bufferSize = 512;
+                
+                printf("[DEVICE] Applying audio setup with input channels enabled...\n");
+                error = deviceManager.setAudioDeviceSetup(setup, true); // true = strict requirements
+                
+                if (error.isNotEmpty()) {
+                    printf("[DEVICE] Setup error: %s\n", error.toUTF8().getAddress());
+                    juce::Logger::writeToLog("[DEVICE] Audio setup error: " + error);
+                } else {
+                    printf("[DEVICE] Audio device setup completed successfully\n");
+                    juce::Logger::writeToLog("[DEVICE] Audio device setup completed successfully");
+                    
+                    // Verify the device is actually running and has input channels
+                    auto* currentDevice = deviceManager.getCurrentAudioDevice();
+                    if (currentDevice && currentDevice->isOpen()) {
+                        auto activeInputs = currentDevice->getActiveInputChannels();
+                        auto activeOutputs = currentDevice->getActiveOutputChannels();
+                        printf("[DEVICE] ✅ Device running: '%s'\n", currentDevice->getName().toUTF8().getAddress());
+                        printf("[DEVICE] ✅ Active input channels: %s\n", activeInputs.toString(2).toUTF8().getAddress());
+                        printf("[DEVICE] ✅ Active output channels: %s\n", activeOutputs.toString(2).toUTF8().getAddress());
+                        printf("[DEVICE] ✅ Sample rate: %.0f Hz\n", currentDevice->getCurrentSampleRate());
+                        printf("[DEVICE] ✅ Buffer size: %d samples\n", currentDevice->getCurrentBufferSizeSamples());
+                        
+                        juce::Logger::writeToLog("[DEVICE] ✅ Audio device fully operational with input channels!");
+                        juce::Logger::writeToLog("[DEVICE] Input channels: " + activeInputs.toString(2));
+                        juce::Logger::writeToLog("[DEVICE] Output channels: " + activeOutputs.toString(2));
+                    } else {
+                        printf("[DEVICE] ❌ Device not running after setup\n");
+                        juce::Logger::writeToLog("[DEVICE] ❌ Device not running after setup");
+                    }
+                }
+                
                 updateDeviceLists();
                 
-                // Force microphone activation to trigger permission dialog
-                auto currentSetup = deviceManager.getAudioDeviceSetup();
-                juce::Logger::writeToLog("[DEVICE] Current input: " + currentSetup.inputDeviceName);
-                juce::Logger::writeToLog("[DEVICE] Current output: " + currentSetup.outputDeviceName);
-                
-                // CRITICAL FIX 2: Verify input channels are configured  
+                // CRITICAL FIX: Verify input channels are configured  
                 juce::Logger::writeToLog("[DEVICE] Input channels requested: 2");
                 juce::Logger::writeToLog("[DEVICE] Output channels requested: 2");
             }

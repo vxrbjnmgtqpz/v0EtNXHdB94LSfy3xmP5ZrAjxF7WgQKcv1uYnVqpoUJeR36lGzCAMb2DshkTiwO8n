@@ -4,10 +4,14 @@
     MetalBridge.h
     Created: GPU-native Metal bridge for zero-copy processing
 
-    Manages Metal buffers and dispatches kernels for:
-    - JELLIE encoding (48kHz→192kHz, 8-channel distribution)
-    - Network simulation (packet loss, jitter)
-    - PNBTR reconstruction (neural gap filling)
+    UPDATED: Manages 7-stage Metal compute pipeline for:
+    - Stage 1: Input Capture (record-armed audio with gain control)
+    - Stage 2: Input Gating (noise suppression and signal detection) 
+    - Stage 3: DJ-Style Spectral Analysis (real-time FFT with color mapping)
+    - Stage 4: Record Arm Visual (animated record-arm feedback)
+    - Stage 5: JELLIE Preprocessing (prepare audio for neural processing)
+    - Stage 6: Network Simulation (packet loss and jitter simulation)
+    - Stage 7: PNBTR Reconstruction (neural prediction and audio restoration)
 
   ==============================================================================
 */
@@ -67,6 +71,14 @@ public:
     void updateWaveformTexture(id<MTLTexture> texture, size_t width, size_t height);
     id<MTLDevice> getDevice() const;
     id<MTLCommandQueue> getCommandQueue() const;
+    
+    // NEW: 7-stage processing pipeline methods
+    void uploadInputToGPU(const float* input, size_t numSamples);
+    void runSevenStageProcessingPipeline(size_t numSamples);
+    void downloadOutputFromGPU(float* output, size_t numSamples);
+    void dispatchThreadsForEncoder(id<MTLComputeCommandEncoder> encoder, 
+                                   id<MTLComputePipelineState> pipeline, 
+                                   size_t numSamples);
 #endif
 
     void processAudioBlock(const float* input, float* output, size_t numSamples);
@@ -81,6 +93,9 @@ public:
     const float* getInputBufferPtr() const;
     const float* getOutputBufferPtr() const;
     void setNetworkParameters(float packetLoss, float jitter);
+    
+    // ADDED: Record arm state management for GPU pipeline
+    void setRecordArmStates(bool jellieArmed, bool pnbtrArmed);
 
 private:
     MetalBridge();
@@ -91,22 +106,40 @@ private:
     size_t currentNumChannels = 0;
     bool sessionActive = false;
     AudioMetrics latestMetrics;
+    
+    // ADDED: Record arm states for GPU pipeline
+    bool jellieRecordArmed = false;
+    bool pnbtrRecordArmed = false;
 
 #ifdef __OBJC__
     // Metal Resources
     id<MTLDevice> device;
     id<MTLCommandQueue> commandQueue;
     id<MTLLibrary> library;
-    id<MTLComputePipelineState> jellieEncodePipeline;
-    id<MTLComputePipelineState> networkSimPipeline;
-    id<MTLComputePipelineState> pnbtrReconstructPipeline;
-    id<MTLComputePipelineState> metricsPipeline;
-    id<MTLComputePipelineState> waveformPipeline;
+    
+    // NEW: 7-stage compute pipeline states (corrected shader names)
+    id<MTLComputePipelineState> inputCapturePipeline;      // Stage 1: AudioInputCaptureShader
+    id<MTLComputePipelineState> inputGatePipeline;         // Stage 2: AudioInputGateShader  
+    id<MTLComputePipelineState> spectralAnalysisPipeline;  // Stage 3: DJSpectralAnalysisShader
+    id<MTLComputePipelineState> recordArmPipeline;         // Stage 4: RecordArmVisualShader
+    id<MTLComputePipelineState> jellieEncodePipeline;      // Stage 5: JELLIEPreprocessShader
+    id<MTLComputePipelineState> networkSimPipeline;       // Stage 6: NetworkSimulationShader
+    id<MTLComputePipelineState> pnbtrReconstructPipeline; // Stage 7: PNBTRReconstructionShader
+    id<MTLComputePipelineState> metricsPipeline;          // Metrics: MetricsComputeShader
+    id<MTLComputePipelineState> waveformPipeline;         // Legacy: waveformRenderer
+    
+    // Audio buffers (main pipeline)
     id<MTLBuffer> audioInputBuffer;
     id<MTLBuffer> jellieBuffer;
     id<MTLBuffer> networkBuffer;
     id<MTLBuffer> reconstructedBuffer;
     id<MTLBuffer> metricsBuffer;
+    
+    // NEW: Stage buffers for 7-stage pipeline
+    id<MTLBuffer> stage1Buffer;  // After input capture
+    id<MTLBuffer> stage2Buffer;  // After input gating  
+    id<MTLBuffer> stage3Buffer;  // After spectral analysis
+    id<MTLBuffer> stage4Buffer;  // After record arm visual
 #endif
 
     // Internal Methods

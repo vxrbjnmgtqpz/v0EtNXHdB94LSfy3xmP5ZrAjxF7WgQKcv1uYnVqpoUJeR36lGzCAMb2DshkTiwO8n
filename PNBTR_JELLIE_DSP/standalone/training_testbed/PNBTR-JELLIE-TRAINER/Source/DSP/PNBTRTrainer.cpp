@@ -14,7 +14,6 @@
 #include "../GPU/MetalBridge.h"
 #include "../Metrics/TrainingMetrics.h"
 #include "../Network/PacketLossSimulator.h"
-#include "AudioScheduler.h"
 #include <thread>
 
 //==============================================================================
@@ -31,9 +30,6 @@ PNBTRTrainer::PNBTRTrainer()
     // Initialize lightweight components immediately
     metrics = std::make_unique<TrainingMetrics>();
     packetLossSimulator = std::make_unique<PacketLossSimulator>();
-    
-    // 🎮 VIDEO GAME ENGINE: Initialize high-priority audio scheduler
-    audioScheduler = std::make_unique<AudioScheduler>(this);
     
     // SYNCHRONOUS Metal initialization to prevent race condition
     juce::Logger::writeToLog("[PNBTRTrainer] Starting Metal initialization (synchronous)...");
@@ -123,6 +119,12 @@ void PNBTRTrainer::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuff
         // Pass through audio unchanged if training is inactive, but oscilloscopes still get data
         return;
     }
+
+    // **CRITICAL FIX: Pass record arm states to MetalBridge before processing**
+    MetalBridge::getInstance().setRecordArmStates(
+        jellieRecordArmed.load(), 
+        pnbtrRecordArmed.load()
+    );
 
     // **REAL PROCESSING PIPELINE - GPU KERNELS**
     // 1. Copy input samples into shared Metal input buffer (zero-copy)
@@ -296,38 +298,46 @@ void PNBTRTrainer::initializeGPUBuffers()
 
 void PNBTRTrainer::copyInputToGPU(const juce::AudioBuffer<float>& buffer)
 {
-    // Zero-copy transfer to Metal buffer
+    // CORRECTED: Use processAudioBlock for complete 7-stage pipeline processing
     const float* leftChannel = buffer.getReadPointer(0);
-    const float* rightChannel = buffer.getReadPointer(1);
+    const float* rightChannel = buffer.getNumChannels() > 1 ? buffer.getReadPointer(1) : leftChannel;
     
-    // Interleave stereo data for GPU processing
-    std::vector<float> interleavedData(buffer.getNumSamples() * 2);
+    // Create planar stereo layout for processAudioBlock method
+    std::vector<float> planarInput(buffer.getNumSamples() * 2);
+    std::vector<float> planarOutput(buffer.getNumSamples() * 2);
+    
+    // First half: left channel, second half: right channel (planar format)
     for (int i = 0; i < buffer.getNumSamples(); ++i) {
-        interleavedData[i * 2] = leftChannel[i];
-        interleavedData[i * 2 + 1] = rightChannel[i];
+        planarInput[i] = leftChannel[i];                              // Left channel first
+        planarInput[i + buffer.getNumSamples()] = rightChannel[i];   // Right channel second
     }
     
-    MetalBridge::getInstance().copyInputToGPU(interleavedData.data(), 
-                               buffer.getNumSamples(), 
-                               2);
+    // Process complete 7-stage pipeline via MetalBridge
+    MetalBridge::getInstance().processAudioBlock(planarInput.data(), planarOutput.data(), buffer.getNumSamples());
+    
+    // Store processed output for copyOutputFromGPU
+    processedOutputBuffer = std::move(planarOutput);
 }
 
 void PNBTRTrainer::copyOutputFromGPU(juce::AudioBuffer<float>& buffer)
 {
-    // Zero-copy transfer from Metal buffer
-    std::vector<float> interleavedData(buffer.getNumSamples() * 2);
+    // CORRECTED: Use processed output from 7-stage pipeline
+    if (processedOutputBuffer.empty()) {
+        // No processed data available, clear output
+        buffer.clear();
+        return;
+    }
     
-    MetalBridge::getInstance().copyOutputFromGPU(interleavedData.data(), 
-                                  buffer.getNumSamples(), 
-                                  2);
-    
-    // De-interleave stereo data from GPU
+    // Convert planar format back to JUCE buffer format
     float* leftChannel = buffer.getWritePointer(0);
-    float* rightChannel = buffer.getWritePointer(1);
+    float* rightChannel = buffer.getNumChannels() > 1 ? buffer.getWritePointer(1) : nullptr;
     
+    // First half: left channel, second half: right channel (planar format)
     for (int i = 0; i < buffer.getNumSamples(); ++i) {
-        leftChannel[i] = interleavedData[i * 2];
-        rightChannel[i] = interleavedData[i * 2 + 1];
+        leftChannel[i] = processedOutputBuffer[i];                              // Left channel first half
+        if (rightChannel) {
+            rightChannel[i] = processedOutputBuffer[i + buffer.getNumSamples()]; // Right channel second half
+        }
     }
 }
 
@@ -352,28 +362,15 @@ void PNBTRTrainer::setGain(float gainDb)
 //==============================================================================
 void PNBTRTrainer::startTraining()
 {
-    // 🎮 VIDEO GAME ENGINE: Start HIGHEST PRIORITY THREAD when transport Play pressed
-    if (audioScheduler && !audioScheduler->isAudioEngineRunning()) {
-        audioScheduler->startAudioEngine();
-        juce::Logger::writeToLog("[TRANSPORT] 🎮 HIGHEST PRIORITY AUDIO THREAD STARTED");
-    }
-    
     trainingActive.store(true);
     metrics->reset();
-    juce::Logger::writeToLog("[TRANSPORT] Training started - GPU pipeline active");
+    juce::Logger::writeToLog("Training started");
 }
 
 void PNBTRTrainer::stopTraining()
 {
     trainingActive.store(false);
-    
-    // 🎮 VIDEO GAME ENGINE: Stop HIGHEST PRIORITY THREAD when transport Stop pressed
-    if (audioScheduler && audioScheduler->isAudioEngineRunning()) {
-        audioScheduler->stopAudioEngine();
-        juce::Logger::writeToLog("[TRANSPORT] 🎮 HIGHEST PRIORITY AUDIO THREAD STOPPED");
-    }
-    
-    juce::Logger::writeToLog("[TRANSPORT] Training stopped - GPU pipeline inactive");
+    juce::Logger::writeToLog("Training stopped");
 }
 
 //==============================================================================

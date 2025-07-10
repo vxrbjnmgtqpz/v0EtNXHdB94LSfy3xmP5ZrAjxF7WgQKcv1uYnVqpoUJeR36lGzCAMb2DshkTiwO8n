@@ -4,13 +4,13 @@
     MainComponent.h
     Created: Main GUI component for PNBTR+JELLIE Training Testbed
 
-    Implements the exact schematic layout with fixed row heights:
-    - Title Bar: 40px
-    - Row 1 (Oscilloscopes): 200px  
-    - Row 2 (Waveform Analysis): 120px
-    - Row 3 (Audio Tracks): 80px
-    - Row 4 (Metrics Dashboard): 100px
-    - Row 5 (Controls): 60px
+    Implements the corrected layout with fixed row heights (no title row):
+    - Row 1 (Transport): 48px - Play/Pause/Stop/Record, session time, BPM, packet loss/jitter
+    - Row 2 (Oscilloscopes): 200px - Input, TOAST Network, Log/Status, Output
+    - Row 3 (Waveform Analysis): 240px
+    - Row 4 (Audio Tracks): 160px
+    - Row 5 (Metrics Dashboard): 100px
+    - Row 6 (Controls): 60px
 
   ==============================================================================
 */
@@ -27,10 +27,9 @@
 
 // Include full headers for all row components
 #include "ProfessionalTransportController.h"
-#include "TitleComponent.h"
 #include "OscilloscopeRow.h"
 #include "WaveformAnalysisRow.h"
-#include "AudioTracksRow.h"
+#include "SpectralAudioTrack.h"
 #include "MetricsDashboard.h"
 #include "ControlsRow.h"
 
@@ -77,12 +76,12 @@ private:
     int initializationStep = 0;
     bool isFullyLoaded = false;
     
-    // GUI components (lazy loaded)
+    // GUI components (lazy loaded) - REMOVED TitleComponent per user request
     std::unique_ptr<ProfessionalTransportController> transportBar;
-    std::unique_ptr<TitleComponent> title;
     std::unique_ptr<OscilloscopeRow> oscilloscopeRow;
     std::unique_ptr<WaveformAnalysisRow> waveformAnalysisRow;
-    std::unique_ptr<AudioTracksRow> audioTracksRow;
+    std::unique_ptr<SpectralAudioTrack> jellieTrack;
+    std::unique_ptr<SpectralAudioTrack> pnbtrTrack;
     std::unique_ptr<MetricsDashboard> metricsDashboard;
     std::unique_ptr<ControlsRow> controlsRow;
 
@@ -100,6 +99,10 @@ private:
     // Audio engine integration
     void initializeAudioEngine();
     void shutdownAudioEngine();
+    
+    // ADDED: Record arm state management for connecting UI to audio pipeline
+    bool isJellieTrackRecordArmed() const;
+    bool isPNBTRTrackRecordArmed() const;
 
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)
