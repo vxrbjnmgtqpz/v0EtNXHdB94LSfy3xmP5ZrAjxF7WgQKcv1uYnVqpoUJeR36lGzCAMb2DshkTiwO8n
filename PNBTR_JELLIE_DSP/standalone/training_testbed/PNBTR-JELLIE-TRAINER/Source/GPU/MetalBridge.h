@@ -21,6 +21,12 @@ public:
     void processAudioBlock(const float* inputData, float* outputData, size_t numSamples);
     void setRecordArmStates(bool jellieArmed, bool pnbtrArmed);
     bool isInitialized() const { return initialized; }
+    
+    // Async visualization loop
+    void startVisualizationLoop();
+    void stopVisualizationLoop();
+    void updateVisualizationBuffer(const float* audioData, size_t numSamples);
+    const float* getVisualizationBuffer(size_t& bufferSize) const;
 
 private:
     MetalBridge();

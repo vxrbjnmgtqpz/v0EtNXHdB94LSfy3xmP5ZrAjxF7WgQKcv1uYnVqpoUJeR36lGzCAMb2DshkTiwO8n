@@ -11,8 +11,8 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 # Navigate to the build directory
 cd "$SCRIPT_DIR/build"
 
-# Check if the app exists
-APP_PATH="PnbtrJellieTrainer_artefacts/Release/PNBTR+JELLIE Training Testbed.app/Contents/MacOS/PNBTR+JELLIE Training Testbed"
+# Check if the app exists - FIXED PATH
+APP_PATH="PnbtrJellieTrainer_artefacts/PNBTR+JELLIE Training Testbed.app/Contents/MacOS/PNBTR+JELLIE Training Testbed"
 
 if [ -f "$APP_PATH" ]; then
     echo "✅ Found app at: $APP_PATH"

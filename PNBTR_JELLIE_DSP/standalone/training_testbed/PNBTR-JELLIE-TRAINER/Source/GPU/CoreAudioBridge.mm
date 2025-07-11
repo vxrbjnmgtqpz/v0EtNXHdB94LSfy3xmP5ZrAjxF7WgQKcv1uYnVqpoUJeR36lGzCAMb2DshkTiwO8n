@@ -772,10 +772,48 @@ extern "C" {
             auto& metalBridge = MetalBridge::getInstance();
             NSLog(@"[✅] MetalBridge instance: AVAILABLE");
             NSLog(@"[🔧] MetalBridge appears to be initialized");
+            
+            // Additional diagnostics from comprehensive guide
+            if (metalBridge.isInitialized()) {
+                NSLog(@"[✅] MetalBridge: Fully initialized and ready");
+            } else {
+                NSLog(@"[⚠️] MetalBridge: Not fully initialized");
+            }
+            
         } catch (const std::exception& e) {
             NSLog(@"[❌] MetalBridge ERROR: %s", e.what());
         } catch (...) {
             NSLog(@"[❌] MetalBridge: Unknown error or not initialized");
+        }
+    }
+    
+    void diagnoseCoreAudioError(OSStatus error, const char* operation) {
+        NSLog(@"[🔍 CORE AUDIO DIAGNOSTIC] Operation: %s, Error: %d", operation, error);
+        
+        switch (error) {
+            case -10851:
+                NSLog(@"[📋 ERROR -10851] kAudioUnitErr_InvalidProperty - Device selection issue");
+                NSLog(@"[💡 FIX] Check device is alive and supports required format");
+                break;
+            case -10867:
+                NSLog(@"[📋 ERROR -10867] kAudioUnitErr_CannotDoInCurrentContext - Stream format issue");
+                NSLog(@"[💡 FIX] Ensure matching sample rates and channel counts");
+                break;
+            case -50:
+                NSLog(@"[📋 ERROR -50] paramErr - Invalid parameter");
+                NSLog(@"[💡 FIX] Check buffer sizes and format specifications");
+                break;
+            case -10863:
+                NSLog(@"[📋 ERROR -10863] kAudioUnitErr_FormatNotSupported");
+                NSLog(@"[💡 FIX] Use supported format (44.1/48kHz, 16/24-bit)");
+                break;
+            case -10868:
+                NSLog(@"[📋 ERROR -10868] kAudioUnitErr_InvalidScope");
+                NSLog(@"[💡 FIX] Check input/output scope configuration");
+                break;
+            default:
+                NSLog(@"[📋 ERROR %d] Unknown Core Audio error", error);
+                break;
         }
     }
     
