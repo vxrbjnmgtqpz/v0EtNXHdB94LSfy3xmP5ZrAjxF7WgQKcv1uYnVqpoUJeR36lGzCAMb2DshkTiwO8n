@@ -46,6 +46,28 @@ public:
     void getLatestOscOutput(float* dest, int numSamples);
     // GUI thread: get latest recorded buffer (thread-safe)
     void getRecordedBuffer(float* dest, int numSamples, size_t offset);
+    
+    // ADDED: Real-time GPU processing data access for waveform visualization
+    void getInputBuffer(float* dest, int numSamples);
+    void getReconstructedBuffer(float* dest, int numSamples);
+    void getSpectralBuffer(float* dest, int numSamples);
+    void getNetworkBuffer(float* dest, int numSamples);
+    
+    // ADDED: GPU processing performance metrics for dashboard
+    struct GPUProcessingMetrics {
+        float totalLatency_us = 0.0f;
+        float gpuLatency_us = 0.0f;
+        float averageLatency_us = 0.0f;
+        float peakLatency_us = 0.0f;
+        float qualityLevel = 1.0f;
+        uint32_t samplesProcessed = 0;
+        uint32_t fftSize = 1024;
+        bool spectralProcessingEnabled = true;
+        bool neuralProcessingEnabled = true;
+    };
+    
+    GPUProcessingMetrics getGPUMetrics() const;
+    bool isTrainingActive() const { return recordingActive.load(); }
 
     //==============================================================================
     // AudioProcessor interface
@@ -89,11 +111,9 @@ public:
     TrainingMetrics* getMetrics() const { return metrics.get(); }
 
     // GPU buffer access for oscilloscope
-    void getInputBuffer(float* destination, int numSamples);
     void getOutputBuffer(float* destination, int numSamples);
 
     // Training state
-    bool isTrainingActive() const { return trainingActive.load(); }
     void startTraining();
     void stopTraining();
 

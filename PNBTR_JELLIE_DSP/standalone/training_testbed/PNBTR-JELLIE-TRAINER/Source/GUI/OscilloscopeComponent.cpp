@@ -6,6 +6,11 @@
 
 void OscilloscopeComponent::setTrainer(PNBTRTrainer* trainerPtr) { 
     trainer = trainerPtr; 
+    
+    // Start timer only after trainer is set
+    if (trainer) {
+        startTimer(1000 / refreshRateHz);
+    }
 }
 
 //==============================================================================
@@ -19,8 +24,7 @@ OscilloscopeComponent::OscilloscopeComponent(BufferType type, const juce::String
     displayBuffer.resize(bufferSize, 0.0f);
     previousBuffer.resize(bufferSize, 0.0f);
     
-    // Start timer for real-time updates
-    startTimer(1000 / refreshRateHz);
+    // Timer will be started when trainer is set
     
     // Set size
     setSize(300, 200);

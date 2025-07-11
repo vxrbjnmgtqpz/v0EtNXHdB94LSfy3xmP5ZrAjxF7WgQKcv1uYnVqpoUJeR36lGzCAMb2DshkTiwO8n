@@ -22,7 +22,7 @@ public:
     struct Config {
         // Audio settings
         double sampleRate = 48000.0;
-        int blockSize = 512;
+        int blockSize = 256;
         int numChannels = 2;
         
         // Network simulation

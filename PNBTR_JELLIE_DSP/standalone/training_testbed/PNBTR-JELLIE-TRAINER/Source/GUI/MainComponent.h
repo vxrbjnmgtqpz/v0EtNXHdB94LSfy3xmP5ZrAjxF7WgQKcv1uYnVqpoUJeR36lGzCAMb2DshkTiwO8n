@@ -32,6 +32,7 @@
 #include "SpectralAudioTrack.h"
 #include "MetricsDashboard.h"
 #include "ControlsRow.h"
+#include "../DSP/PNBTRTrainer.h"
 
 // Explicitly include ComboBox header (do not include directly, already included by juce_gui_basics.h)
 
@@ -134,6 +135,9 @@ private:
 
     // Core Audio → Metal Bridge (replaces JUCE AudioDeviceManager)
     void* coreAudioBridge = nullptr;
+    
+    // ADDED: PNBTR Trainer instance for real-time GPU processing
+    PNBTRTrainer trainer;
     
     // Audio engine integration
     void initializeCoreAudioBridge();

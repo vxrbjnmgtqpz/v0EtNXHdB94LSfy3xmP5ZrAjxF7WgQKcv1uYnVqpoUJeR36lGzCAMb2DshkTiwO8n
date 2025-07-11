@@ -27,6 +27,27 @@ public:
     void stopVisualizationLoop();
     void updateVisualizationBuffer(const float* audioData, size_t numSamples);
     const float* getVisualizationBuffer(size_t& bufferSize) const;
+    
+    // ADDED: Thread-safe access to GPU processing buffers for GUI visualization
+    const float* getLatestInputBuffer() const;
+    const float* getLatestReconstructedBuffer() const;
+    const float* getLatestSpectralBuffer() const;
+    const float* getLatestNetworkBuffer() const;
+    
+    // ADDED: Performance metrics for dashboard
+    struct PerformanceMetrics {
+        float totalLatency_us = 0.0f;
+        float gpuLatency_us = 0.0f;
+        float averageLatency_us = 0.0f;
+        float peakLatency_us = 0.0f;
+        float qualityLevel = 1.0f;
+        uint32_t samplesProcessed = 0;
+        uint32_t fftSize = 1024;
+        bool spectralProcessingEnabled = true;
+        bool neuralProcessingEnabled = true;
+    };
+    
+    PerformanceMetrics getPerformanceMetrics() const;
 
 private:
     MetalBridge();

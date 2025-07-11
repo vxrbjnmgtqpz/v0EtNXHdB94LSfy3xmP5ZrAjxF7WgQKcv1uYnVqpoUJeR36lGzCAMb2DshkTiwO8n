@@ -45,7 +45,7 @@ public:
 
     //==============================================================================
     // Game Engine-style lifecycle
-    bool initialize(double sampleRate = 48000.0, int bufferSize = 512);
+    bool initialize(double sampleRate = 48000.0, int bufferSize = 256);
     void shutdown();
     bool isInitialized() const { return initialized.load(); }
 

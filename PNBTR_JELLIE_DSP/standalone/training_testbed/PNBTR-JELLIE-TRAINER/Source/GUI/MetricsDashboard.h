@@ -54,6 +54,7 @@ private:
         float targetValue = 1.0f;  // For progress bar scaling
         float minValue = 0.0f;
         float maxValue = 1.0f;
+        bool isActive = true;
         juce::Colour colour;
         juce::Rectangle<int> bounds;
         juce::Rectangle<int> progressBounds;

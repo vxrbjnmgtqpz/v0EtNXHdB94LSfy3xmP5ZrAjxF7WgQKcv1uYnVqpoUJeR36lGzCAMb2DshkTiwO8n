@@ -8,7 +8,7 @@ MetalAudioProcessor::MetalAudioProcessor()
     metalBridge = &MetalBridge::getInstance();
     
     // Configure audio format
-    setPlayConfigDetails(1, 1, 48000.0, 512); // Mono in/out, 48kHz, 512 samples
+    setPlayConfigDetails(1, 1, 48000.0, 256); // Mono in/out, 48kHz, 256 samples
     
     // Initialize processing state
     isProcessingActive = false;

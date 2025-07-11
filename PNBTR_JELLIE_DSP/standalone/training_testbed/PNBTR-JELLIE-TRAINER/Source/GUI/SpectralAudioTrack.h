@@ -59,7 +59,14 @@ public:
     bool exportToWAV(const juce::File& file);
     
     // Integration with PNBTRTrainer
-    void setTrainer(class PNBTRTrainer* trainer) { pnbtrTrainer = trainer; }
+    void setTrainer(class PNBTRTrainer* trainer) { 
+        pnbtrTrainer = trainer; 
+        
+        // Start timer only after trainer is set
+        if (pnbtrTrainer) {
+            startTimer(33); // 30 FPS updates
+        }
+    }
 
 private:
     // Track identification

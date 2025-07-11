@@ -37,8 +37,7 @@ SpectralAudioTrack::SpectralAudioTrack(TrackType type, const std::string& trackN
     };
     addAndMakeVisible(recordArmButton.get());
     
-    // Start visualization updates at 30 FPS
-    startTimer(33);
+    // Timer will be started when trainer is set
 }
 
 SpectralAudioTrack::~SpectralAudioTrack()

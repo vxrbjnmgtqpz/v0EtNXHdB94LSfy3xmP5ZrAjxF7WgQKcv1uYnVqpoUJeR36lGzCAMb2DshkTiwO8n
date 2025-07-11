@@ -8,7 +8,14 @@
 #include <iomanip>
 #include <sstream>
 
-void MetricsDashboard::setTrainer(PNBTRTrainer* trainerPtr) { trainer = trainerPtr; }
+void MetricsDashboard::setTrainer(PNBTRTrainer* trainerPtr) { 
+    trainer = trainerPtr; 
+    
+    // Start timer only after trainer is set
+    if (trainer) {
+        startTimer(1000 / refreshRateHz);
+    }
+}
 
 void MetricsDashboard::setTOASTNetworkOscilloscope(TOASTNetworkOscilloscope* toastOsc) 
 { 
@@ -24,8 +31,7 @@ MetricsDashboard::MetricsDashboard()
     // Initialize metrics displays
     initializeMetrics();
     
-    // Start timer for updates
-    startTimer(1000 / refreshRateHz);
+    // Timer will be started when trainer is set
     
     // Set initial size
     setSize(800, 120);
@@ -107,9 +113,96 @@ void MetricsDashboard::timerCallback()
 }
 
 //==============================================================================
-void MetricsDashboard::updateMetrics()
-{
-    updateMetricValues();
+void MetricsDashboard::updateMetrics() {
+    if (!trainer) {
+        // No trainer connected - show default/offline metrics
+        for (auto& metric : metrics) {
+            metric->currentValue = 0.0f;
+            metric->isActive = false;
+        }
+        return;
+    }
+    
+    // Get real-time GPU processing metrics from trainer
+    auto gpuMetrics = trainer->getGPUMetrics();
+    
+    // Update latency metrics (convert to milliseconds for display)
+    auto latencyMetric = std::find_if(metrics.begin(), metrics.end(), 
+        [](const std::unique_ptr<MetricDisplay>& m) { return m->name == "Latency"; });
+    if (latencyMetric != metrics.end()) {
+        (*latencyMetric)->currentValue = gpuMetrics.averageLatency_us / 1000.0f; // Convert µs to ms
+        (*latencyMetric)->isActive = true;
+        
+        // Color coding based on performance
+        if (gpuMetrics.averageLatency_us < 100.0f) {
+            (*latencyMetric)->colour = juce::Colours::green; // Excellent
+        } else if (gpuMetrics.averageLatency_us < 200.0f) {
+            (*latencyMetric)->colour = juce::Colours::yellow; // Good
+        } else {
+            (*latencyMetric)->colour = juce::Colours::red; // Needs optimization
+        }
+    }
+    
+    // Update quality metrics
+    auto qualityMetric = std::find_if(metrics.begin(), metrics.end(), 
+        [](const std::unique_ptr<MetricDisplay>& m) { return m->name == "Quality"; });
+    if (qualityMetric != metrics.end()) {
+        (*qualityMetric)->currentValue = gpuMetrics.qualityLevel * 100.0f; // Convert to percentage
+        (*qualityMetric)->isActive = true;
+        
+        // Color coding based on quality level
+        if (gpuMetrics.qualityLevel >= 0.9f) {
+            (*qualityMetric)->colour = juce::Colours::green; // High quality
+        } else if (gpuMetrics.qualityLevel >= 0.7f) {
+            (*qualityMetric)->colour = juce::Colours::yellow; // Medium quality
+        } else {
+            (*qualityMetric)->colour = juce::Colours::orange; // Reduced quality
+        }
+    }
+    
+    // Update processing rate (samples per second)
+    auto rateMetric = std::find_if(metrics.begin(), metrics.end(), 
+        [](const std::unique_ptr<MetricDisplay>& m) { return m->name == "Rate"; });
+    if (rateMetric != metrics.end()) {
+        (*rateMetric)->currentValue = gpuMetrics.samplesProcessed; // Samples processed
+        (*rateMetric)->isActive = true;
+        (*rateMetric)->colour = juce::Colours::cyan;
+    }
+    
+    // Update FFT size indicator
+    auto fftMetric = std::find_if(metrics.begin(), metrics.end(), 
+        [](const std::unique_ptr<MetricDisplay>& m) { return m->name == "FFT Size"; });
+    if (fftMetric != metrics.end()) {
+        (*fftMetric)->currentValue = static_cast<float>(gpuMetrics.fftSize);
+        (*fftMetric)->isActive = gpuMetrics.spectralProcessingEnabled;
+        (*fftMetric)->colour = gpuMetrics.spectralProcessingEnabled ? juce::Colours::lightblue : juce::Colours::grey;
+    }
+    
+    // Update neural processing indicator
+    auto neuralMetric = std::find_if(metrics.begin(), metrics.end(), 
+        [](const std::unique_ptr<MetricDisplay>& m) { return m->name == "Neural"; });
+    if (neuralMetric != metrics.end()) {
+        (*neuralMetric)->currentValue = gpuMetrics.neuralProcessingEnabled ? 100.0f : 0.0f;
+        (*neuralMetric)->isActive = gpuMetrics.neuralProcessingEnabled;
+        (*neuralMetric)->colour = gpuMetrics.neuralProcessingEnabled ? juce::Colours::purple : juce::Colours::grey;
+    }
+    
+    // Update peak latency indicator
+    auto peakMetric = std::find_if(metrics.begin(), metrics.end(), 
+        [](const std::unique_ptr<MetricDisplay>& m) { return m->name == "Peak"; });
+    if (peakMetric != metrics.end()) {
+        (*peakMetric)->currentValue = gpuMetrics.peakLatency_us / 1000.0f; // Convert µs to ms
+        (*peakMetric)->isActive = true;
+        
+        // Color coding for peak latency
+        if (gpuMetrics.peakLatency_us < 200.0f) {
+            (*peakMetric)->colour = juce::Colours::green;
+        } else if (gpuMetrics.peakLatency_us < 500.0f) {
+            (*peakMetric)->colour = juce::Colours::yellow;
+        } else {
+            (*peakMetric)->colour = juce::Colours::red;
+        }
+    }
 }
 
 void MetricsDashboard::initializeMetrics()

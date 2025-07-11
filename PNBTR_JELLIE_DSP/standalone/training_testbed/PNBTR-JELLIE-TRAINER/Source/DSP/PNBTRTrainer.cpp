@@ -255,18 +255,107 @@ void PNBTRTrainer::stopTraining()
 }
 
 //==============================================================================
-void PNBTRTrainer::getInputBuffer(float* destination, int numSamples)
-{
-    // The input buffer is now internal to the MetalBridge's async pipeline.
-    // We can provide the oscilloscope buffer as a stand-in for visualization.
-    getLatestOscInput(destination, numSamples);
+void PNBTRTrainer::getInputBuffer(float* dest, int numSamples) {
+    if (!dest || numSamples <= 0) return;
+    
+    // Get real-time input data from MetalBridge
+    MetalBridge& metalBridge = MetalBridge::getInstance();
+    if (metalBridge.isInitialized()) {
+        // Access the latest input buffer data (thread-safe)
+        const float* inputData = metalBridge.getLatestInputBuffer();
+        if (inputData) {
+            std::memcpy(dest, inputData, numSamples * sizeof(float));
+            return;
+        }
+    }
+    
+    // Fallback: use oscilloscope input buffer
+    getLatestOscInput(dest, numSamples);
 }
 
-void PNBTRTrainer::getOutputBuffer(float* destination, int numSamples)
-{
-    // The output buffer is now internal to the MetalBridge's async pipeline.
-    // We can provide the oscilloscope buffer as a stand-in for visualization.
-    getLatestOscOutput(destination, numSamples);
+void PNBTRTrainer::getReconstructedBuffer(float* dest, int numSamples) {
+    if (!dest || numSamples <= 0) return;
+    
+    // Get real-time reconstructed data from MetalBridge
+    MetalBridge& metalBridge = MetalBridge::getInstance();
+    if (metalBridge.isInitialized()) {
+        // Access the latest reconstructed buffer data (thread-safe)
+        const float* reconstructedData = metalBridge.getLatestReconstructedBuffer();
+        if (reconstructedData) {
+            std::memcpy(dest, reconstructedData, numSamples * sizeof(float));
+            return;
+        }
+    }
+    
+    // Fallback: use oscilloscope output buffer
+    getLatestOscOutput(dest, numSamples);
+}
+
+void PNBTRTrainer::getSpectralBuffer(float* dest, int numSamples) {
+    if (!dest || numSamples <= 0) return;
+    
+    // Get real-time spectral analysis data from MetalBridge
+    MetalBridge& metalBridge = MetalBridge::getInstance();
+    if (metalBridge.isInitialized()) {
+        // Access the latest spectral buffer data (thread-safe)
+        const float* spectralData = metalBridge.getLatestSpectralBuffer();
+        if (spectralData) {
+            std::memcpy(dest, spectralData, numSamples * sizeof(float));
+            return;
+        }
+    }
+    
+    // Fallback: generate spectral representation from output
+    getLatestOscOutput(dest, numSamples);
+}
+
+void PNBTRTrainer::getNetworkBuffer(float* dest, int numSamples) {
+    if (!dest || numSamples <= 0) return;
+    
+    // Get real-time network simulation data from MetalBridge
+    MetalBridge& metalBridge = MetalBridge::getInstance();
+    if (metalBridge.isInitialized()) {
+        // Access the latest network buffer data (thread-safe)
+        const float* networkData = metalBridge.getLatestNetworkBuffer();
+        if (networkData) {
+            std::memcpy(dest, networkData, numSamples * sizeof(float));
+            return;
+        }
+    }
+    
+    // Fallback: use output buffer with simulated packet loss
+    getLatestOscOutput(dest, numSamples);
+    
+    // Apply simple packet loss simulation to the fallback data
+    static int packetLossCounter = 0;
+    for (int i = 0; i < numSamples; ++i) {
+        if (++packetLossCounter % 50 == 0) { // 2% packet loss simulation
+            dest[i] = 0.0f; // Simulate lost packet
+        }
+    }
+}
+
+// ADDED: GPU processing performance metrics for dashboard
+PNBTRTrainer::GPUProcessingMetrics PNBTRTrainer::getGPUMetrics() const {
+    GPUProcessingMetrics metrics;
+    
+    MetalBridge& metalBridge = MetalBridge::getInstance();
+    if (metalBridge.isInitialized()) {
+        // Get real-time performance metrics from MetalBridge
+        auto bridgeMetrics = metalBridge.getPerformanceMetrics();
+        
+        metrics.totalLatency_us = bridgeMetrics.totalLatency_us;
+        metrics.gpuLatency_us = bridgeMetrics.gpuLatency_us;
+        metrics.averageLatency_us = bridgeMetrics.averageLatency_us;
+        metrics.peakLatency_us = bridgeMetrics.peakLatency_us;
+        metrics.qualityLevel = bridgeMetrics.qualityLevel;
+        metrics.samplesProcessed = bridgeMetrics.samplesProcessed;
+        metrics.fftSize = bridgeMetrics.fftSize;
+        metrics.spectralProcessingEnabled = bridgeMetrics.spectralProcessingEnabled;
+        metrics.neuralProcessingEnabled = bridgeMetrics.neuralProcessingEnabled;
+    }
+    
+    return metrics;
 }
 
 //==============================================================================

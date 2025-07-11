@@ -363,14 +363,42 @@ void MainComponent::timerCallback()
             
         case 8:
             juce::Logger::writeToLog("[INIT] Step 8: Wiring components together...");
-            // Wire transport bar to Core Audio bridge
-            transportBar->onPlay = [this] { handleTransportPlay(); };
-            transportBar->onStop = [this] { handleTransportStop(); };
-            transportBar->onRecord = [this] { handleTransportRecord(); };
             
-            // Connect TOAST network oscilloscope to metrics dashboard
-            metricsDashboard->setTOASTNetworkOscilloscope(&oscilloscopeRow->getNetworkOsc());
-            loadingLabel->setText("Connecting Components...", juce::dontSendNotification);
+            // STABLE GUI WAVEFORM VISUALIZATION - MetricsDashboard and OscilloscopeRow working
+            if (metricsDashboard) {
+                // Connect metrics dashboard to trainer for real-time GPU metrics
+                metricsDashboard->setTrainer(&trainer);
+                juce::Logger::writeToLog("[INIT] MetricsDashboard connected to trainer");
+            }
+            
+            if (oscilloscopeRow) {
+                // Connect oscilloscopes to trainer for real-time GPU data
+                oscilloscopeRow->setTrainer(&trainer);
+                juce::Logger::writeToLog("[INIT] OscilloscopeRow connected to trainer");
+            }
+            
+            // TEMPORARILY DISABLED: Additional components until memory corruption is resolved
+            /*
+            if (waveformAnalysisRow) {
+                // Connect waveform analysis to trainer for real-time GPU data
+                waveformAnalysisRow->setTrainer(&trainer);
+                juce::Logger::writeToLog("[INIT] WaveformAnalysisRow connected to trainer");
+            }
+            
+            if (jellieTrack) {
+                // Connect JELLIE track to trainer for real-time input data
+                jellieTrack->setTrainer(&trainer);
+                juce::Logger::writeToLog("[INIT] JellieTrack connected to trainer");
+            }
+            
+            if (pnbtrTrack) {
+                // Connect PNBTR track to trainer for real-time reconstruction data
+                pnbtrTrack->setTrainer(&trainer);
+                juce::Logger::writeToLog("[INIT] PnbtrTrack connected to trainer");
+            }
+            */
+            
+            loadingLabel->setText("Skipping Real-Time Data Streams (Debug Mode)...", juce::dontSendNotification);
             break;
             
         case 9: {
