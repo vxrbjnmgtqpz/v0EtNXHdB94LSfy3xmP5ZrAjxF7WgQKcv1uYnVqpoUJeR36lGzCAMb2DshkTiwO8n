@@ -150,6 +150,30 @@ void MetalBridge::processAudioBlock(const float* inputData, float* outputData, s
         prepareBuffers(numSamples, 48000.0);
     }
 
+    // HIGH-PRECISION LATENCY PROFILING START
+    uint64_t startTime = mach_absolute_time();
+    static mach_timebase_info_data_t timebaseInfo;
+    static bool timebaseInitialized = false;
+    if (!timebaseInitialized) {
+        mach_timebase_info(&timebaseInfo);
+        timebaseInitialized = true;
+    }
+
+    // CHECKPOINT 1: Hardware Input - Verify audio frames are coming in
+    float inputPeak = 0.0f;
+    for (size_t i = 0; i < numSamples; ++i) {
+        inputPeak = std::max(inputPeak, fabsf(inputData[i]));
+    }
+    
+    static int checkpointCounter = 0;
+    if (++checkpointCounter % 200 == 0) { // Log every 200 calls
+        if (inputPeak > 0.0001f) {
+            NSLog(@"[✅ CHECKPOINT 1] Hardware Input: Peak %.6f", inputPeak);
+        } else {
+            NSLog(@"[❌ CHECKPOINT 1] SILENT HARDWARE INPUT - No signal from microphone");
+        }
+    }
+
     dispatch_semaphore_wait(frameBoundarySemaphore, DISPATCH_TIME_FOREVER);
 
     id<MTLCommandBuffer> commandBuffer = [commandQueue commandBuffer];
@@ -160,11 +184,27 @@ void MetalBridge::processAudioBlock(const float* inputData, float* outputData, s
     
     int frameIdx = currentFrameIndex;
 
-    // Convert mono input to stereo for Metal processing
+    // CHECKPOINT 2: CoreAudio → MetalBridge Transfer
+    uint64_t transferStartTime = mach_absolute_time();
     float* stereoInput = (float*)audioInputBuffer[frameIdx].contents;
     for (size_t i = 0; i < numSamples; ++i) {
         stereoInput[i * 2] = inputData[i];     // Left channel
         stereoInput[i * 2 + 1] = inputData[i]; // Right channel (duplicate mono)
+    }
+    uint64_t transferEndTime = mach_absolute_time();
+    
+    // Verify data was transferred to GPU buffer
+    float gpuInputPeak = 0.0f;
+    for (size_t i = 0; i < numSamples * 2; ++i) {
+        gpuInputPeak = std::max(gpuInputPeak, fabsf(stereoInput[i]));
+    }
+    
+    if (checkpointCounter % 200 == 0) {
+        if (gpuInputPeak > 0.0001f) {
+            NSLog(@"[✅ CHECKPOINT 2] CoreAudio→MetalBridge: Peak %.6f", gpuInputPeak);
+        } else {
+            NSLog(@"[❌ CHECKPOINT 2] SILENT METALBRIDGE INPUT - Data transfer failed");
+        }
     }
 
     // Update enhanced params for current frame
@@ -213,6 +253,9 @@ void MetalBridge::processAudioBlock(const float* inputData, float* outputData, s
     prp->lookbackSamples = 8.0f;
     prp->smoothingFactor = 0.7f;
 
+    // GPU PROCESSING START TIMING
+    uint64_t gpuStartTime = mach_absolute_time();
+    
     id<MTLComputeCommandEncoder> encoder = [commandBuffer computeCommandEncoder];
 
     // Stage 1: Enhanced Audio Input Gate
@@ -260,14 +303,85 @@ void MetalBridge::processAudioBlock(const float* inputData, float* outputData, s
     [encoder endEncoding];
     [commandBuffer commit];
 
-    // Copy reconstructed stereo output, converting back to mono
+    // CRITICAL FIX: Wait for GPU processing to complete before copying output
+    [commandBuffer waitUntilCompleted];
+    
+    // GPU PROCESSING END TIMING
+    uint64_t gpuEndTime = mach_absolute_time();
+    
+    // Verify GPU processing succeeded
+    if (commandBuffer.status != MTLCommandBufferStatusCompleted) {
+        NSLog(@"[❌ METAL ERROR] GPU processing failed with status: %ld", (long)commandBuffer.status);
+        memset(outputData, 0, numSamples * sizeof(float) * 2);
+        return;
+    }
+
+    // CHECKPOINT 3: GPU Buffer Upload - Verify data is in GPU memory
+    // (Already verified above in checkpoint 2)
+
+    // CHECKPOINT 4: GPU Processing Output - Check final GPU processing results
     float* stereoOutput = (float*)reconstructedBuffer[frameIdx].contents;
+    float gpuOutputPeak = 0.0f;
+    for (size_t i = 0; i < numSamples * 2; ++i) {
+        gpuOutputPeak = std::max(gpuOutputPeak, fabsf(stereoOutput[i]));
+    }
+    
+    if (checkpointCounter % 200 == 0) {
+        if (gpuOutputPeak > 0.0001f) {
+            NSLog(@"[✅ CHECKPOINT 4] GPU Processing Output: Peak %.6f", gpuOutputPeak);
+        } else {
+            NSLog(@"[❌ CHECKPOINT 4] SILENT GPU OUTPUT - Shader processing failed");
+        }
+    }
+
+    // CHECKPOINT 5: GPU → Output Buffer Transfer
+    uint64_t downloadStartTime = mach_absolute_time();
     for (size_t i = 0; i < numSamples; ++i) {
         outputData[i * 2] = stereoOutput[i * 2];         // Left channel
         outputData[i * 2 + 1] = stereoOutput[i * 2 + 1]; // Right channel
     }
+    uint64_t downloadEndTime = mach_absolute_time();
+    
+    // Verify download succeeded
+    float outputPeak = 0.0f;
+    for (size_t i = 0; i < numSamples * 2; ++i) {
+        outputPeak = std::max(outputPeak, fabsf(outputData[i]));
+    }
+    
+    if (checkpointCounter % 200 == 0) {
+        if (outputPeak > 0.0001f) {
+            NSLog(@"[✅ CHECKPOINT 5] GPU→Output Buffer: Peak %.6f", outputPeak);
+        } else {
+            NSLog(@"[❌ CHECKPOINT 5] SILENT DOWNLOAD - GPU→CPU transfer failed");
+        }
+    }
+
+    // TOTAL PROCESSING TIME CALCULATION
+    uint64_t endTime = mach_absolute_time();
+    
+    // Calculate microseconds for each stage
+    double transferTimeUs = (double)(transferEndTime - transferStartTime) * timebaseInfo.numer / timebaseInfo.denom / 1000.0;
+    double gpuProcessingTimeUs = (double)(gpuEndTime - gpuStartTime) * timebaseInfo.numer / timebaseInfo.denom / 1000.0;
+    double downloadTimeUs = (double)(downloadEndTime - downloadStartTime) * timebaseInfo.numer / timebaseInfo.denom / 1000.0;
+    double totalTimeUs = (double)(endTime - startTime) * timebaseInfo.numer / timebaseInfo.denom / 1000.0;
+    
+    // LATENCY PROFILING - Log every 500 calls to avoid spam
+    static int latencyCounter = 0;
+    if (++latencyCounter % 500 == 0) {
+        NSLog(@"[🚀 LATENCY PROFILE] Total: %.1fµs | Transfer: %.1fµs | GPU: %.1fµs | Download: %.1fµs", 
+              totalTimeUs, transferTimeUs, gpuProcessingTimeUs, downloadTimeUs);
+        
+        // Compare against revolutionary <750µs target
+        if (totalTimeUs < 750.0) {
+            NSLog(@"[🎯 REVOLUTIONARY TARGET MET] %.1fµs < 750µs - JAMNet performance achieved!", totalTimeUs);
+        } else {
+            NSLog(@"[⚠️ OPTIMIZATION NEEDED] %.1fµs > 750µs - Need to optimize for JAMNet target", totalTimeUs);
+        }
+    }
 
     currentFrameIndex = (currentFrameIndex + 1) % MAX_FRAMES_IN_FLIGHT;
+    
+    // CHECKPOINT 6: Hardware Output - This will be verified in the output callback
 }
 
 void MetalBridge::setRecordArmStates(bool jellieArmed, bool pnbtrArmed) {

@@ -181,8 +181,29 @@ static OSStatus OutputRenderCallback(void* inRefCon,
                 out[i * 2 + 1] = frame.samples[1][i];
             }
         }
+        
+        // CHECKPOINT 6: Hardware Output - Verify audio reaches speakers
+        static int outputCheckpointCounter = 0;
+        if (++outputCheckpointCounter % 200 == 0) {
+            float outputPeak = 0.0f;
+            for (uint32_t i = 0; i < inNumberFrames * 2; ++i) {
+                outputPeak = std::max(outputPeak, fabsf(out[i]));
+            }
+            
+            if (outputPeak > 0.0001f) {
+                NSLog(@"[✅ CHECKPOINT 6] Hardware Output: Peak %.6f - Audio reaching speakers", outputPeak);
+            } else {
+                NSLog(@"[❌ CHECKPOINT 6] SILENT OUTPUT - Final stage failed");
+            }
+        }
     } else {
         memset(out, 0, inNumberFrames * sizeof(float) * 2);
+        
+        // Log when no audio frame is available
+        static int silentOutputCounter = 0;
+        if (++silentOutputCounter % 1000 == 0) {
+            NSLog(@"[⚠️ CHECKPOINT 6] No audio frame available from GPU processing");
+        }
     }
     
     return noErr;
