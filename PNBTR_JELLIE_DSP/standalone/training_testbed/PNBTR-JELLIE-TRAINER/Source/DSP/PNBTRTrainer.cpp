@@ -58,17 +58,10 @@ void PNBTRTrainer::prepareToPlay(double sampleRate, int samplesPerBlock)
     currentSampleRate = sampleRate;
     currentBlockSize = samplesPerBlock;
     
-    // Initialize GPU buffers for zero-copy processing
-    initializeGPUBuffers();
-    
-    // Configure Metal bridge
-    MetalBridge::getInstance().setProcessingParameters(sampleRate, samplesPerBlock);
+    // Configure and prepare GPU buffers for the new block size and sample rate.
     MetalBridge::getInstance().prepareBuffers(samplesPerBlock, sampleRate);
     
-    // Initialize metrics
     metrics->prepare(sampleRate, samplesPerBlock);
-    
-    // Initialize packet loss simulator
     packetLossSimulator->prepare(sampleRate, samplesPerBlock);
     
     juce::Logger::writeToLog("PNBTRTrainer prepared: " + 
@@ -78,8 +71,7 @@ void PNBTRTrainer::prepareToPlay(double sampleRate, int samplesPerBlock)
 
 void PNBTRTrainer::releaseResources()
 {
-    MetalBridge::getInstance().shutdown();
-    
+    // MetalBridge is a singleton managed by its own lifecycle; no explicit shutdown needed here.
     trainingActive.store(false);
 }
 
@@ -87,72 +79,52 @@ void PNBTRTrainer::releaseResources()
 void PNBTRTrainer::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
     juce::ScopedNoDenormals noDenormals;
-    static int blockCount = 0;
-    if (++blockCount % 100 == 0) {
-        juce::Logger::writeToLog("[PNBTRTrainer::processBlock] Called (" + juce::String(blockCount) + ")");
-    }
-    
     const int numSamples = buffer.getNumSamples();
     const int numChannels = buffer.getNumChannels();
-    // Ensure we have stereo input
+
     if (numChannels < 2) {
         buffer.setSize(2, numSamples, true, true, true);
     }
 
-    // --- ALWAYS update oscilloscope buffers for UI (even if training inactive) ---
     updateOscilloscopeBuffers(buffer);
     if (recordingActive.load())
         updateRecordingBuffer(buffer);
     
-    // DEBUG: Check what's blocking GPU processing
-    bool isTrainingActive = trainingActive.load();
-    bool isMetalReady = MetalBridge::getInstance().isInitialized();
-    
-    static int debugCounter = 0;
-    if (++debugCounter % 100 == 0) { // Every ~2 seconds at 48kHz
-        juce::Logger::writeToLog("[GPU BLOCK CHECK] Training Active: " + juce::String(isTrainingActive ? "YES" : "NO") + 
-                                ", Metal Ready: " + juce::String(isMetalReady ? "YES" : "NO"));
-    }
-    
-    // Early exit if training inactive or MetalBridge not ready (but oscilloscopes still work!)
-    if (!isTrainingActive || !isMetalReady) {
-        // Pass through audio unchanged if training is inactive, but oscilloscopes still get data
+    if (!trainingActive.load() || !MetalBridge::getInstance().isInitialized()) {
         return;
     }
 
-    // **CRITICAL FIX: Pass record arm states to MetalBridge before processing**
     MetalBridge::getInstance().setRecordArmStates(
         jellieRecordArmed.load(), 
         pnbtrRecordArmed.load()
     );
 
-    // **REAL PROCESSING PIPELINE - GPU KERNELS**
-    // 1. Copy input samples into shared Metal input buffer (zero-copy)
-    copyInputToGPU(buffer);
-    // 2. Generate packet loss map and simulate transmission for this block
-    packetLossSimulator->generateLossMap(packetLossPercentage.load(), 
-                                        jitterAmount.load());
+    // --- New Asynchronous GPU Processing ---
+    // Instead of calling multiple steps, we now make a single call to process the entire block.
+    // The MetalBridge handles the entire 7-stage pipeline asynchronously.
     
-    // Simulate TOAST transmission of audio chunk
-    const float* audioData = buffer.getReadPointer(0);
-    uint64_t timestamp = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::microseconds>(
-        std::chrono::high_resolution_clock::now().time_since_epoch()).count());
-    
-    // Convert to vector for TOAST transmission
-    std::vector<float> audioVector(audioData, audioData + numSamples);
-    packetLossSimulator->transmitAudioChunk(audioVector, timestamp, 
-                                           static_cast<uint32_t>(currentSampleRate), 2);
-    // 3. Encode with JELLIE (Metal kernel: 48kHz→192kHz + 8-channel distribution)
-    runJellieEncode();
-    // 4. Apply simulated packet loss/jitter (Metal kernel)
-    runNetworkSimulation();
-    // 5. Reconstruct via PNBTR (Metal kernel: neural gap filling)
-    runPNBTRReconstruction();
-    // 6. Copy reconstructed buffer back to CPU output (zero-copy)
-    copyOutputFromGPU(buffer);
-    // 7. Update shared metrics/log buffers (part of core loop)
-    updateMetrics();
-    // Clear unused MIDI
+    // We need to provide stereo, planar input for the GPU pipeline.
+    std::vector<float> planarInput(numSamples * 2);
+    const float* leftIn = buffer.getReadPointer(0);
+    const float* rightIn = buffer.getReadPointer(1);
+    for(int i = 0; i < numSamples; ++i) {
+        planarInput[i] = leftIn[i];
+        planarInput[i + numSamples] = rightIn[i];
+    }
+
+    std::vector<float> planarOutput(numSamples * 2);
+
+    // Process the entire block on the GPU
+    MetalBridge::getInstance().processAudioBlock(planarInput.data(), planarOutput.data(), numSamples);
+
+    // Copy the processed planar output back to the interleaved JUCE buffer
+    float* leftOut = buffer.getWritePointer(0);
+    float* rightOut = buffer.getWritePointer(1);
+    for(int i = 0; i < numSamples; ++i) {
+        leftOut[i] = planarOutput[i];
+        rightOut[i] = planarOutput[i + numSamples];
+    }
+
     midiMessages.clear();
 }
 
@@ -246,117 +218,26 @@ void PNBTRTrainer::getRecordedBuffer(float* dest, int numSamples, size_t offset)
 }
 
 //==============================================================================
-void PNBTRTrainer::runJellieEncode()
-{
-    if (!MetalBridge::getInstance().runJellieEncode()) {
-        juce::Logger::writeToLog("JELLIE encode kernel failed");
-    }
-}
-
-void PNBTRTrainer::runNetworkSimulation()
-{
-    if (!MetalBridge::getInstance().runNetworkSimulation(packetLossPercentage.load(), 
-                                          jitterAmount.load())) {
-        juce::Logger::writeToLog("Network simulation kernel failed");
-    }
-}
-
-void PNBTRTrainer::runPNBTRReconstruction()
-{
-    if (!MetalBridge::getInstance().runPNBTRReconstruction()) {
-        juce::Logger::writeToLog("PNBTR reconstruction kernel failed");
-    }
-}
-
-void PNBTRTrainer::updateMetrics()
-{
-    // Get real network statistics from PacketLossSimulator
-    const auto& networkStats = packetLossSimulator->getStats();
-    
-    // Generate realistic audio quality metrics based on packet loss
-    float snr = 40.0f - (networkStats.packets_lost * 2.0f); // SNR degrades with packet loss
-    float thd = 0.5f + (networkStats.packets_lost * 0.1f);   // THD increases with packet loss
-    float latency = 8.0f + (jitterAmount.load() * 0.5f);     // Base latency + jitter effect
-    
-    // Clamp values to realistic ranges
-    snr = juce::jlimit(10.0f, 60.0f, snr);
-    thd = juce::jlimit(0.1f, 10.0f, thd);
-    latency = juce::jlimit(5.0f, 100.0f, latency);
-    
-    // Update training metrics with real network data
-    metrics->updateFromGPU(snr, thd, latency, 
-                          networkStats.packets_sent, 
-                          networkStats.packets_lost);
-}
-
+// (All old helper methods like runJellieEncode, copyInputToGPU etc. are now removed
+// as their logic is encapsulated within MetalBridge::processAudioBlock)
 //==============================================================================
-void PNBTRTrainer::initializeGPUBuffers()
-{
-    // GPU buffers are initialized in MetalBridge
-    // This ensures zero-copy from CPU→GPU via Metal MTLBuffer objects
-}
-
-void PNBTRTrainer::copyInputToGPU(const juce::AudioBuffer<float>& buffer)
-{
-    // CORRECTED: Use processAudioBlock for complete 7-stage pipeline processing
-    const float* leftChannel = buffer.getReadPointer(0);
-    const float* rightChannel = buffer.getNumChannels() > 1 ? buffer.getReadPointer(1) : leftChannel;
-    
-    // Create planar stereo layout for processAudioBlock method
-    std::vector<float> planarInput(buffer.getNumSamples() * 2);
-    std::vector<float> planarOutput(buffer.getNumSamples() * 2);
-    
-    // First half: left channel, second half: right channel (planar format)
-    for (int i = 0; i < buffer.getNumSamples(); ++i) {
-        planarInput[i] = leftChannel[i];                              // Left channel first
-        planarInput[i + buffer.getNumSamples()] = rightChannel[i];   // Right channel second
-    }
-    
-    // Process complete 7-stage pipeline via MetalBridge
-    MetalBridge::getInstance().processAudioBlock(planarInput.data(), planarOutput.data(), buffer.getNumSamples());
-    
-    // Store processed output for copyOutputFromGPU
-    processedOutputBuffer = std::move(planarOutput);
-}
-
-void PNBTRTrainer::copyOutputFromGPU(juce::AudioBuffer<float>& buffer)
-{
-    // CORRECTED: Use processed output from 7-stage pipeline
-    if (processedOutputBuffer.empty()) {
-        // No processed data available, clear output
-        buffer.clear();
-        return;
-    }
-    
-    // Convert planar format back to JUCE buffer format
-    float* leftChannel = buffer.getWritePointer(0);
-    float* rightChannel = buffer.getNumChannels() > 1 ? buffer.getWritePointer(1) : nullptr;
-    
-    // First half: left channel, second half: right channel (planar format)
-    for (int i = 0; i < buffer.getNumSamples(); ++i) {
-        leftChannel[i] = processedOutputBuffer[i];                              // Left channel first half
-        if (rightChannel) {
-            rightChannel[i] = processedOutputBuffer[i + buffer.getNumSamples()]; // Right channel second half
-        }
-    }
-}
 
 //==============================================================================
 void PNBTRTrainer::setPacketLossPercentage(float percentage)
 {
-    packetLossPercentage.store(juce::jlimit(0.0f, 100.0f, percentage));
-    MetalBridge::getInstance().setNetworkParameters(percentage, jitterAmount.load());
+    // This functionality is now handled internally by the simulation stages
+    // within the MetalBridge and is no longer controlled from here.
 }
 
 void PNBTRTrainer::setJitterAmount(float jitterMs)
 {
-    jitterAmount.store(juce::jmax(0.0f, jitterMs));
-    MetalBridge::getInstance().setNetworkParameters(packetLossPercentage.load(), jitterMs);
+    // This functionality is now handled internally by the simulation stages
+    // within the MetalBridge and is no longer controlled from here.
 }
 
 void PNBTRTrainer::setGain(float gainDb)
 {
-    this->gainDb.store(juce::jlimit(-60.0f, 20.0f, gainDb));
+    this->gainDb.store(gainDb);
 }
 
 //==============================================================================
@@ -376,20 +257,16 @@ void PNBTRTrainer::stopTraining()
 //==============================================================================
 void PNBTRTrainer::getInputBuffer(float* destination, int numSamples)
 {
-    // Get input buffer from GPU for oscilloscope display
-    if (MetalBridge::getInstance().getInputBufferPtr()) {
-        const float* inputPtr = MetalBridge::getInstance().getInputBufferPtr();
-        std::memcpy(destination, inputPtr, numSamples * sizeof(float));
-    }
+    // The input buffer is now internal to the MetalBridge's async pipeline.
+    // We can provide the oscilloscope buffer as a stand-in for visualization.
+    getLatestOscInput(destination, numSamples);
 }
 
 void PNBTRTrainer::getOutputBuffer(float* destination, int numSamples)
 {
-    // Get output buffer from GPU for oscilloscope display
-    if (MetalBridge::getInstance().getOutputBufferPtr()) {
-        const float* outputPtr = MetalBridge::getInstance().getOutputBufferPtr();
-        std::memcpy(destination, outputPtr, numSamples * sizeof(float));
-    }
+    // The output buffer is now internal to the MetalBridge's async pipeline.
+    // We can provide the oscilloscope buffer as a stand-in for visualization.
+    getLatestOscOutput(destination, numSamples);
 }
 
 //==============================================================================

@@ -7,7 +7,8 @@
 #include "../DSP/PNBTRTrainer.h"
 
 // Forward declarations
-class MetalBridgeInterface;
+class MetalBridge;
+class PNBTRTrainer;
 class TOASTNetworkOscilloscope;
 struct AudioMetrics;
 
@@ -66,7 +67,7 @@ private:
     //==============================================================================
     // Metrics configuration
     std::vector<std::unique_ptr<MetricDisplay>> metrics;
-    MetalBridgeInterface* metalBridge;
+    MetalBridge* metalBridge;
     
     //==============================================================================
     // Display parameters

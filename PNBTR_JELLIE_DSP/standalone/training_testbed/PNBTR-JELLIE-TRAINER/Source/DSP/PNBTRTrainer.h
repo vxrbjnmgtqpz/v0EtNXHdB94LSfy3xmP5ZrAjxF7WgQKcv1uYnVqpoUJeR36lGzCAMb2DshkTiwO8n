@@ -96,7 +96,7 @@ public:
     bool isTrainingActive() const { return trainingActive.load(); }
     void startTraining();
     void stopTraining();
-    
+
     // ADDED: Record arm state management for connecting UI to GPU pipeline
     void setJellieRecordArmed(bool armed) { jellieRecordArmed.store(armed); }
     void setPNBTRRecordArmed(bool armed) { pnbtrRecordArmed.store(armed); }

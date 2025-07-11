@@ -83,6 +83,7 @@ target_sources(PnbtrJellieTrainer PRIVATE
 
     # GPU integration
     Source/GPU/MetalBridge.mm
+    Source/GPU/CoreAudioBridge.mm
 )
 
 
@@ -95,12 +96,13 @@ target_include_directories(PnbtrJellieTrainer PRIVATE
 )
 
 # Add JAM Framework v2 includes if available
-if(JAM_FRAMEWORK_AVAILABLE)
-    target_include_directories(PnbtrJellieTrainer PRIVATE
-        "${JAM_FRAMEWORK_DIR}/include"
-        "${JAM_FRAMEWORK_DIR}/src"
-    )
-endif()
+# 🔧 TEMPORARILY DISABLED: JAM Framework includes for GPU pipeline testing
+# if(JAM_FRAMEWORK_AVAILABLE)
+#     target_include_directories(PnbtrJellieTrainer PRIVATE
+#         "${JAM_FRAMEWORK_DIR}/include"
+#         "${JAM_FRAMEWORK_DIR}/src"
+#     )
+# endif()
 
 # Link required JUCE modules
 target_link_libraries(PnbtrJellieTrainer PRIVATE
@@ -117,9 +119,10 @@ target_link_libraries(PnbtrJellieTrainer PRIVATE
 )
 
 # Link JAM Framework v2 if available
-if(JAM_FRAMEWORK_AVAILABLE)
-    target_link_libraries(PnbtrJellieTrainer PRIVATE jam_framework_v2)
-endif()
+# 🔧 TEMPORARILY DISABLED: JAM Framework integration for GPU pipeline testing
+# if(JAM_FRAMEWORK_AVAILABLE)
+#     target_link_libraries(PnbtrJellieTrainer PRIVATE jam_framework_v2)
+# endif()
 
 # ==============================================================================
 # Metal Integration
@@ -143,6 +146,7 @@ set_source_files_properties(
     Source/GPU/MetalAudioTrack.mm
     Source/GUI/MetalDrawableTrack.mm
     Source/GPU/MetalBridge.mm
+    Source/GPU/CoreAudioBridge.mm
     PROPERTIES COMPILE_FLAGS "-fobjc-arc"
 )
 
@@ -150,29 +154,41 @@ set_source_files_properties(
 # Metal Shader Compilation (simplified)
 # ==============================================================================
 
-# Custom command to compile Metal shaders
+# Custom command to compile Metal shaders from shaders/ directory
 if(APPLE)
-    # Compile individual shader files
-    add_custom_command(
-        OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/waveformRenderer.air
-        COMMAND xcrun -sdk macosx metal -c ${CMAKE_CURRENT_SOURCE_DIR}/Source/GPU/waveformRenderer.metal -o ${CMAKE_CURRENT_BINARY_DIR}/waveformRenderer.air
-        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/Source/GPU/waveformRenderer.metal
-        COMMENT "Compiling waveform renderer Metal shader"
+    # Define all 8 GPU pipeline shaders
+    set(SHADER_SOURCES
+        shaders/AudioInputCaptureShader.metal
+        shaders/AudioInputGateShader.metal
+        shaders/DJSpectralAnalysisShader.metal
+        shaders/RecordArmVisualShader.metal
+        shaders/JELLIEPreprocessShader.metal
+        shaders/NetworkSimulationShader.metal
+        shaders/PNBTRReconstructionShader.metal
+        shaders/MetricsComputeShader.metal
     )
+
+    set(AIR_FILES)
+    foreach(SHADER ${SHADER_SOURCES})
+        get_filename_component(SHADER_NAME ${SHADER} NAME_WE)
+        set(AIR_FILE ${CMAKE_CURRENT_BINARY_DIR}/${SHADER_NAME}.air)
     
     add_custom_command(
-        OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/audioProcessingKernels.air
-        COMMAND xcrun -sdk macosx metal -c ${CMAKE_CURRENT_SOURCE_DIR}/Source/GPU/audioProcessingKernels.metal -o ${CMAKE_CURRENT_BINARY_DIR}/audioProcessingKernels.air
-        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/Source/GPU/audioProcessingKernels.metal
-        COMMENT "Compiling audio processing Metal kernels"
-    )
+            OUTPUT ${AIR_FILE}
+            COMMAND xcrun -sdk macosx metal -c ${CMAKE_CURRENT_SOURCE_DIR}/${SHADER} -o ${AIR_FILE}
+            DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/${SHADER}
+            COMMENT "Compiling Metal shader: ${SHADER_NAME}"
+        )
+        
+        list(APPEND AIR_FILES ${AIR_FILE})
+    endforeach()
     
-    # Create combined Metal library
+    # Create combined Metal library from all 8 shaders
     add_custom_command(
         OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/default.metallib
-        COMMAND xcrun -sdk macosx metallib ${CMAKE_CURRENT_BINARY_DIR}/waveformRenderer.air ${CMAKE_CURRENT_BINARY_DIR}/audioProcessingKernels.air -o ${CMAKE_CURRENT_BINARY_DIR}/default.metallib
-        DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/waveformRenderer.air ${CMAKE_CURRENT_BINARY_DIR}/audioProcessingKernels.air
-        COMMENT "Linking Metal library"
+        COMMAND xcrun -sdk macosx metallib ${AIR_FILES} -o ${CMAKE_CURRENT_BINARY_DIR}/default.metallib
+        DEPENDS ${AIR_FILES}
+        COMMENT "Linking complete Metal library with 8 GPU pipeline shaders"
     )
     
     # Add Metal shader compilation as dependency

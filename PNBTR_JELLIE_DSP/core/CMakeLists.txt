@@ -7,6 +7,8 @@ add_library(pnbtr_jellie_core
     signal_transmission.cpp
     comprehensive_logging.cpp
     training_preparation.cpp
+    MetalBridge.mm
+    CoreAudioBridge.mm
 )
 
 target_include_directories(pnbtr_jellie_core PUBLIC

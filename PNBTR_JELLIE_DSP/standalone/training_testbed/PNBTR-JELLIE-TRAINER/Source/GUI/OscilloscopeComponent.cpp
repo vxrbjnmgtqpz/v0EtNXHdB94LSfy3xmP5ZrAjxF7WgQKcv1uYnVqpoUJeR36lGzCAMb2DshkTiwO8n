@@ -1,21 +1,19 @@
 #include "OscilloscopeComponent.h"
 #include "../DSP/PNBTRTrainer.h"
-#include "../GPU/MetalBridgeInterface.h"
+#include "../GPU/MetalBridge.h"
 #include <algorithm>
 #include <cmath>
 
-void OscilloscopeComponent::setTrainer(PNBTRTrainer* trainerPtr) { trainer = trainerPtr; }
-#include "OscilloscopeComponent.h"
-#include "../GPU/MetalBridgeInterface.h"
-#include <algorithm>
-#include <cmath>
+void OscilloscopeComponent::setTrainer(PNBTRTrainer* trainerPtr) { 
+    trainer = trainerPtr; 
+}
 
 //==============================================================================
 OscilloscopeComponent::OscilloscopeComponent(BufferType type, const juce::String& title)
     : bufferType(type), oscilloscopeTitle(title)
 {
     // Get MetalBridge singleton
-    metalBridge = &MetalBridgeInterface::getInstance();
+    metalBridge = &MetalBridge::getInstance();
     
     // Set up display buffer
     displayBuffer.resize(bufferSize, 0.0f);

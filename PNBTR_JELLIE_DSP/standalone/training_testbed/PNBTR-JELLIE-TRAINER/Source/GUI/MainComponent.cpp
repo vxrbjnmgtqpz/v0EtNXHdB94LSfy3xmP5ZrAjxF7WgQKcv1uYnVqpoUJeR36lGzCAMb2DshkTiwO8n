@@ -33,66 +33,71 @@ using namespace juce;
 
 
 MainComponent::MainComponent()
+    : isFullyLoaded(false),
+      coreAudioBridge(nullptr),
+      initializationStep(0)
 {
-    printf("[CONSTRUCTOR] MainComponent constructor starting...\n");
-    fflush(stdout);
+    // Initialize Core Audio → Metal bridge immediately
+    initializeCoreAudioBridge();
     
-    // GAME ENGINE APPROACH: Minimal synchronous setup
-    setSize(1280, 720);
-    printf("[CONSTRUCTOR] Size set to 1280x720\n");
-    
-    // Create loading screen first (immediate, lightweight)
-    loadingLabel = std::make_unique<juce::Label>("Loading", "Initializing PNBTR+JELLIE Training System...");
-    loadingLabel->setJustificationType(juce::Justification::centred);
+    // Create loading label
+    loadingLabel = std::make_unique<juce::Label>("Loading", "Loading PNBTR+JELLIE Training System...");
     loadingLabel->setFont(juce::Font(24.0f, juce::Font::bold));
     loadingLabel->setColour(juce::Label::textColourId, juce::Colours::white);
+    loadingLabel->setJustificationType(juce::Justification::centred);
     addAndMakeVisible(loadingLabel.get());
-    printf("[CONSTRUCTOR] Loading label created and added\n");
     
-    // Start background initialization timer (video game style)
-    initializationStep = 0;
-    printf("[CONSTRUCTOR] About to call startTimer(16)...\n");
-    fflush(stdout);
-    startTimer(16); // 60 FPS update rate like a game engine
-    printf("[CONSTRUCTOR] startTimer(16) completed successfully\n");
-    fflush(stdout);
-    
-    juce::Logger::writeToLog("[INIT] MainComponent constructor completed - starting background loading...");
-    printf("[CONSTRUCTOR] MainComponent constructor completed!\n");
-    fflush(stdout);
+    // Start initialization timer
+    startTimer(200); // 200ms intervals for smooth loading animation
 }
 
 void MainComponent::handleTransportPlay()
 {
-    // Start audio device if not running
-    auto* device = deviceManager.getCurrentAudioDevice();
-    if (!device || !device->isOpen()) {
-        juce::Logger::writeToLog("[TRANSPORT] Restarting audio device");
-        deviceManager.restartLastAudioDevice();
+    // Start Core Audio capture when transport plays
+    if (coreAudioBridge) {
+        startCoreAudioCapture();
+        juce::Logger::writeToLog("[TRANSPORT] Play pressed, Core Audio capture started");
     }
-    if (pnbtrTrainer)
-        pnbtrTrainer->startTraining();
-    juce::Logger::writeToLog("[TRANSPORT] Play pressed, training started");
 }
 
 void MainComponent::handleTransportStop()
 {
-    // Stop audio device
-    juce::Logger::writeToLog("[TRANSPORT] Stop pressed, closing audio device");
-    deviceManager.closeAudioDevice();
-    if (pnbtrTrainer)
-        pnbtrTrainer->stopTraining();
+    // Stop Core Audio capture when transport stops
+    if (coreAudioBridge) {
+        stopCoreAudioCapture();
+        juce::Logger::writeToLog("[TRANSPORT] Stop pressed, Core Audio capture stopped");
+    }
 }
 
 void MainComponent::handleTransportRecord()
 {
-    // Start recording (set recordingActive)
-    if (pnbtrTrainer)
-        pnbtrTrainer->recordingActive.store(true);
+    // Start recording - record arm states control actual recording
     handleTransportPlay();
+    juce::Logger::writeToLog("[TRANSPORT] Record pressed, capture started (record arm states control actual recording)");
 }
 
-// ADDED: Record arm state methods for connecting UI to audio pipeline
+// Core Audio → Metal bridge management
+void MainComponent::initializeCoreAudioBridge()
+{
+    juce::Logger::writeToLog("[CoreAudio→Metal] Initializing Core Audio → Metal bridge...");
+    coreAudioBridge = createCoreAudioGPUBridge();
+    if (coreAudioBridge) {
+        juce::Logger::writeToLog("[CoreAudio→Metal] Bridge initialized successfully");
+    } else {
+        juce::Logger::writeToLog("[CoreAudio→Metal] Failed to initialize bridge");
+    }
+}
+
+void MainComponent::shutdownCoreAudioBridge()
+{
+    if (coreAudioBridge) {
+        destroyCoreAudioGPUBridge();
+        coreAudioBridge = nullptr;
+        juce::Logger::writeToLog("[CoreAudio→Metal] Bridge shutdown completed");
+    }
+}
+
+// ADDED: Record arm state methods for connecting UI to Core Audio → Metal pipeline
 bool MainComponent::isJellieTrackRecordArmed() const
 {
     return jellieTrack ? jellieTrack->isRecordArmed() : false;
@@ -102,195 +107,118 @@ bool MainComponent::isPNBTRTrackRecordArmed() const
 {
     return pnbtrTrack ? pnbtrTrack->isRecordArmed() : false;
 }
-// Audio device management
+
+void MainComponent::updateRecordArmStates()
+{
+    if (coreAudioBridge) {
+        bool jellieArmed = isJellieTrackRecordArmed();
+        bool pnbtrArmed = isPNBTRTrackRecordArmed();
+        
+        // 🎯 DIAGNOSTIC: Always log record arm state checks (every 10 calls)
+        static int updateCount = 0;
+        bool shouldLog = (++updateCount % 10 == 0) || jellieArmed || pnbtrArmed;
+        
+        if (shouldLog) {
+            juce::Logger::writeToLog("[🔍 RECORD ARM CHECK #" + juce::String(updateCount) + "] JELLIE: " + 
+                                   juce::String(jellieArmed ? "ARMED" : "DISARMED") + 
+                                   ", PNBTR: " + juce::String(pnbtrArmed ? "ARMED" : "DISARMED"));
+        }
+        
+        // Update Core Audio bridge with record arm states
+        setCoreAudioRecordArmStates(jellieArmed, pnbtrArmed);
+        
+        // Extra logging when states change
+        static bool lastJellieArmed = false;
+        static bool lastPnbtrArmed = false;
+        
+        if (jellieArmed != lastJellieArmed || pnbtrArmed != lastPnbtrArmed) {
+            juce::Logger::writeToLog("[🚨 RECORD ARM CHANGED] JELLIE: " + juce::String(jellieArmed ? "ARMED" : "DISARMED") + 
+                                   ", PNBTR: " + juce::String(pnbtrArmed ? "ARMED" : "DISARMED"));
+            lastJellieArmed = jellieArmed;
+            lastPnbtrArmed = pnbtrArmed;
+            
+            // 🎯 CRITICAL FIX: Auto-start capture when any track becomes armed
+            if (jellieArmed || pnbtrArmed) {
+                juce::Logger::writeToLog("[🚀 AUTO-START] Track armed - starting Core Audio capture automatically");
+                startCoreAudioCapture();
+            } else {
+                juce::Logger::writeToLog("[🛑 AUTO-STOP] No tracks armed - stopping Core Audio capture");
+                stopCoreAudioCapture();
+            }
+        }
+    }
+}
+
+// Core Audio device management
 void MainComponent::updateDeviceLists()
 {
-    // Make device enumeration async to prevent UI blocking
-    juce::Timer::callAfterDelay(10, [this]() {
-        juce::Logger::writeToLog("[DEVICE] Updating device lists...");
-        
-        inputDeviceBox->clear();
-        outputDeviceBox->clear();
-        auto setup = deviceManager.getAudioDeviceSetup();
-        
-        // Device enumeration can be slow - this is the main blocking operation
-        const auto& deviceTypes = deviceManager.getAvailableDeviceTypes();
-        if (deviceTypes.isEmpty()) {
-            juce::Logger::writeToLog("[DEVICE] No device types available");
-            return;
-        }
-        
-        juce::StringArray inputNames = deviceTypes[0]->getDeviceNames(true);
-        juce::StringArray outputNames = deviceTypes[0]->getDeviceNames(false);
-        
-        for (int i = 0; i < inputNames.size(); ++i)
-            inputDeviceBox->addItem(inputNames[i], i + 1);
-        for (int i = 0; i < outputNames.size(); ++i)
-            outputDeviceBox->addItem(outputNames[i], i + 1);
-        
-        inputDeviceBox->setSelectedId(inputNames.indexOf(setup.inputDeviceName) + 1, juce::dontSendNotification);
-        outputDeviceBox->setSelectedId(outputNames.indexOf(setup.outputDeviceName) + 1, juce::dontSendNotification);
-        
-        juce::Logger::writeToLog("[DEVICE] Device lists updated - Input: " + juce::String(inputNames.size()) + 
-                                ", Output: " + juce::String(outputNames.size()));
-    });
-}
-
-void MainComponent::inputDeviceChanged()
-{
-    // Defer device change to avoid blocking UI thread
-    juce::Timer::callAfterDelay(50, [this]() {
-        auto setup = deviceManager.getAudioDeviceSetup();
-        setup.inputDeviceName = inputDeviceBox->getText();
-        juce::Logger::writeToLog("[DEVICE] Changing input to: " + setup.inputDeviceName);
-        
-        // Use async device setup (false = non-blocking)
-        juce::String error = deviceManager.setAudioDeviceSetup(setup, false);
-        if (error.isNotEmpty()) {
-            juce::Logger::writeToLog("[DEVICE] Input change error: " + error);
-        }
-    });
-}
-
-void MainComponent::outputDeviceChanged()
-{
-    // Defer device change to avoid blocking UI thread  
-    juce::Timer::callAfterDelay(50, [this]() {
-        auto setup = deviceManager.getAudioDeviceSetup();
-        setup.outputDeviceName = outputDeviceBox->getText();
-        juce::Logger::writeToLog("[DEVICE] Changing output to: " + setup.outputDeviceName);
-        
-        // Use async device setup (false = non-blocking)
-        juce::String error = deviceManager.setAudioDeviceSetup(setup, false);
-        if (error.isNotEmpty()) {
-            juce::Logger::writeToLog("[DEVICE] Output change error: " + error);
-        }
-    });
-}
-
-void MainComponent::audioDeviceAboutToStart(juce::AudioIODevice* device)
-{
-    juce::Logger::writeToLog("[AUDIO] Device starting: " + device->getName() + 
-                            " (" + juce::String(device->getCurrentSampleRate()) + "Hz, " +
-                            juce::String(device->getCurrentBufferSizeSamples()) + " samples)");
-    
-    if (pnbtrTrainer) {
-        pnbtrTrainer->prepareToPlay(device->getCurrentSampleRate(), device->getCurrentBufferSizeSamples());
-        
-        // Auto-start training when audio device starts (no manual button required)
-        pnbtrTrainer->startTraining();
-        juce::Logger::writeToLog("[AUDIO] Training auto-started with audio device");
-    }
-}
-
-void MainComponent::audioDeviceStopped()
-{
-    if (pnbtrTrainer)
-        pnbtrTrainer->releaseResources();
-}
-
-void MainComponent::audioDeviceIOCallback(const float** inputChannelData, int numInputChannels,
-                                          float** outputChannelData, int numOutputChannels, int numSamples)
-{
-    // CRITICAL FIX: Verify callback is being called and show input levels
-    static int callbackCount = 0;
-    static int audioDebugCount = 0;
-    
-    // FORCE CONSOLE OUTPUT - ALWAYS log first few callbacks to confirm execution
-    if (callbackCount < 5) {
-        printf("[AUDIO CALLBACK #%d] CHANNELS IN:%d OUT:%d SAMPLES:%d\n", 
-               callbackCount + 1, numInputChannels, numOutputChannels, numSamples);
-        fflush(stdout);  // Force immediate output
+    if (!coreAudioBridge) {
+        juce::Logger::writeToLog("[DEVICE] Core Audio bridge not initialized");
+        return;
     }
     
-    if (++callbackCount % 100 == 0) {
-        juce::Logger::writeToLog("[AUDIO CALLBACK] Running (" + juce::String(callbackCount) + ")");
+    juce::Logger::writeToLog("[DEVICE] Updating Core Audio device lists...");
+    
+    // Clear existing items
+    inputDeviceBox->clear();
+    outputDeviceBox->clear();
+        
+    // Get input devices
+    int inputCount = getCoreAudioInputDeviceCount();
+    for (int i = 0; i < inputCount; ++i) {
+        const char* deviceName = getCoreAudioInputDeviceName(i);
+        if (deviceName && strlen(deviceName) > 0) {
+            inputDeviceBox->addItem(juce::String(deviceName), i + 1);
+        }
     }
     
-    // ENHANCED DEBUG: Check if we're actually receiving microphone input and show levels
-    if (++audioDebugCount % 50 == 0) { // Every ~1 second
-        float maxInputLevel = 0.0f;
-        float rmsLevel = 0.0f;
-        int samplesWithSignal = 0;
-        
-        if (inputChannelData && numInputChannels > 0 && inputChannelData[0]) {
-            for (int i = 0; i < numSamples; ++i) {
-                float sample = std::abs(inputChannelData[0][i]);
-                maxInputLevel = std::max(maxInputLevel, sample);
-                rmsLevel += sample * sample;
-                if (sample > 0.001f) samplesWithSignal++; // Count samples above noise floor
+    // Get output devices
+    int outputCount = getCoreAudioOutputDeviceCount();
+    for (int i = 0; i < outputCount; ++i) {
+        const char* deviceName = getCoreAudioOutputDeviceName(i);
+        if (deviceName && strlen(deviceName) > 0) {
+            outputDeviceBox->addItem(juce::String(deviceName), i + 1);
+        }
+    }
+    
+    // Set default selections
+    if (inputCount > 0) {
+        inputDeviceBox->setSelectedId(1, juce::dontSendNotification);
+    }
+    if (outputCount > 0) {
+        outputDeviceBox->setSelectedId(1, juce::dontSendNotification);
             }
-            rmsLevel = std::sqrt(rmsLevel / numSamples);
-        }
-        
-        printf("[🎤 INPUT LEVEL] Max: %.4f, RMS: %.4f, Active samples: %d/%d\n", 
-               maxInputLevel, rmsLevel, samplesWithSignal, numSamples);
-        
-        juce::Logger::writeToLog("[INPUT DEBUG] Channels: " + juce::String(numInputChannels) + 
-                                ", Max Level: " + juce::String(maxInputLevel, 4) + 
-                                ", RMS Level: " + juce::String(rmsLevel, 4) +
-                                ", Active Samples: " + juce::String(samplesWithSignal) + "/" + juce::String(numSamples) +
-                                ", Data Ptr: " + juce::String(inputChannelData ? "valid" : "null"));
+    
+    juce::Logger::writeToLog("[DEVICE] Core Audio device lists updated - Input: " + 
+                            juce::String(inputCount) + ", Output: " + juce::String(outputCount));
     }
     
-    // Defensive: zero output in case of crash or uninitialized buffer
-    for (int ch = 0; ch < numOutputChannels; ++ch)
-        std::memset(outputChannelData[ch], 0, sizeof(float) * numSamples);
-
-    // CORRECTED: Create proper JUCE buffer and copy input data (no const cast issues)
-    juce::AudioBuffer<float> buffer(std::max(numInputChannels, 2), numSamples);
-    buffer.clear(); // Start with silence
-    
-    // Copy input channels to buffer (safe copy, not cast)
-    if (inputChannelData && numInputChannels > 0) {
-        for (int ch = 0; ch < std::min(numInputChannels, buffer.getNumChannels()); ++ch) {
-            if (inputChannelData[ch]) {
-                buffer.copyFrom(ch, 0, inputChannelData[ch], numSamples);
-            }
-        }
+void MainComponent::comboBoxChanged(juce::ComboBox* comboBoxThatHasChanged)
+{
+    if (comboBoxThatHasChanged == inputDeviceBox.get()) {
+        int selectedIndex = inputDeviceBox->getSelectedId() - 1;
+        if (selectedIndex >= 0) {
+            setCoreAudioInputDevice(selectedIndex);
+            juce::Logger::writeToLog("[DEVICE] Input device changed to index: " + juce::String(selectedIndex));
     }
-    
-    // Ensure we have at least stereo for processing
-    if (buffer.getNumChannels() == 1) {
-        buffer.setSize(2, numSamples, true, true, true); // Make stereo, copy existing data
-        buffer.copyFrom(1, 0, buffer, 0, 0, numSamples); // Duplicate mono to stereo
-    }
-    
-    if (pnbtrTrainer)
-    {
-        // Try/catch to prevent any crash from killing the audio thread
-        try {
-            juce::MidiBuffer midi;
-            
-            // CRITICAL FIX: Pass record arm states to the audio processor
-            bool jellieRecordArmed = isJellieTrackRecordArmed();
-            bool pnbtrRecordArmed = isPNBTRTrackRecordArmed();
-            
-            // Set record arm states in the trainer so GPU pipeline can respect them
-            pnbtrTrainer->setJellieRecordArmed(jellieRecordArmed);
-            pnbtrTrainer->setPNBTRRecordArmed(pnbtrRecordArmed);
-            
-            pnbtrTrainer->processBlock(buffer, midi);
-        } catch (const std::exception& e) {
-            juce::Logger::writeToLog("[AUDIO CALLBACK] Exception: " + juce::String(e.what()));
-        } catch (...) {
-            juce::Logger::writeToLog("[AUDIO CALLBACK] Unknown exception");
-        }
-    }
-    
-    // Copy processed buffer to output (ensure we don't exceed output channel count)
-    for (int ch = 0; ch < numOutputChannels; ++ch)
-    {
-        if (ch < buffer.getNumChannels()) {
-            std::memcpy(outputChannelData[ch], buffer.getReadPointer(ch), sizeof(float) * numSamples);
-        } else {
-            // Zero out extra output channels
-            std::memset(outputChannelData[ch], 0, sizeof(float) * numSamples);
+    } else if (comboBoxThatHasChanged == outputDeviceBox.get()) {
+        int selectedIndex = outputDeviceBox->getSelectedId() - 1;
+        if (selectedIndex >= 0) {
+            setCoreAudioOutputDevice(selectedIndex);
+            juce::Logger::writeToLog("[DEVICE] Output device changed to index: " + juce::String(selectedIndex));
         }
     }
 }
 
-MainComponent::~MainComponent() = default;
+// Core Audio → Metal Pipeline
+// Audio processing now happens directly in CoreAudioGPUBridge → MetalBridge
+// No JUCE audio callback needed since we bypass JUCE audio processing
+
+MainComponent::~MainComponent()
+{
+    // Shutdown Core Audio bridge before destruction
+    shutdownCoreAudioBridge();
+}
 
 //==============================================================================
 void MainComponent::paint(juce::Graphics& g)
@@ -345,6 +273,17 @@ void MainComponent::resized()
     
     // Row 7: Controls Row (60px) - FIXED: This was missing!
     if (controlsRow) controlsRow->setBounds(area.removeFromTop(rowHeights[6]));
+    
+    // DEBUGGING: Add debugging buttons at the bottom
+    if (useDefaultInputButton && enableSineTestButton && checkMetalBridgeButton && forceCallbackButton) {
+        auto debugArea = area.removeFromTop(40); // 40px for debug buttons
+        int buttonWidth = debugArea.getWidth() / 4;
+        
+        useDefaultInputButton->setBounds(debugArea.removeFromLeft(buttonWidth).reduced(2));
+        enableSineTestButton->setBounds(debugArea.removeFromLeft(buttonWidth).reduced(2));
+        checkMetalBridgeButton->setBounds(debugArea.removeFromLeft(buttonWidth).reduced(2));
+        forceCallbackButton->setBounds(debugArea.reduced(2));
+    }
 }
 
 void MainComponent::timerCallback()
@@ -367,47 +306,36 @@ void MainComponent::timerCallback()
             juce::Logger::writeToLog("[INIT] Step 1: Creating audio device dropdowns...");
             inputDeviceBox = std::make_unique<juce::ComboBox>("InputDevice");
             outputDeviceBox = std::make_unique<juce::ComboBox>("OutputDevice");
+            inputDeviceBox->addListener(this);
+            outputDeviceBox->addListener(this);
             addAndMakeVisible(inputDeviceBox.get());
             addAndMakeVisible(outputDeviceBox.get());
-            inputDeviceBox->onChange = [this] { inputDeviceChanged(); };
-            outputDeviceBox->onChange = [this] { outputDeviceChanged(); };
             loadingLabel->setText("Loading Audio Device Controls...", juce::dontSendNotification);
             break;
             
         case 2:
-            juce::Logger::writeToLog("[INIT] Step 2: Creating audio device dropdowns...");
-            inputDeviceBox = std::make_unique<juce::ComboBox>("InputDevice");
-            outputDeviceBox = std::make_unique<juce::ComboBox>("OutputDevice");
-            addAndMakeVisible(inputDeviceBox.get());
-            addAndMakeVisible(outputDeviceBox.get());
-            inputDeviceBox->onChange = [this] { inputDeviceChanged(); };
-            outputDeviceBox->onChange = [this] { outputDeviceChanged(); };
-            loadingLabel->setText("Loading Audio Device Controls...", juce::dontSendNotification);
+            juce::Logger::writeToLog("[INIT] Step 2: Populating Core Audio device lists...");
+            // Populate device lists from Core Audio bridge
+            updateDeviceLists();
+            loadingLabel->setText("Loading Audio Device Lists...", juce::dontSendNotification);
             break;
             
         case 3:
-            juce::Logger::writeToLog("[INIT] Step 3: Creating DSP engine (background)...");
-            // This is the heavy one - DSP engine with Metal initialization
-            pnbtrTrainer = std::make_unique<PNBTRTrainer>();
-            loadingLabel->setText("Loading DSP Engine & GPU Resources...", juce::dontSendNotification);
-            break;
-            
-        case 4:
-            juce::Logger::writeToLog("[INIT] Step 4: Creating oscilloscopes...");
+            juce::Logger::writeToLog("[INIT] Step 3: Creating oscilloscopes...");
             oscilloscopeRow = std::make_unique<OscilloscopeRow>();
             addAndMakeVisible(oscilloscopeRow.get());
             loadingLabel->setText("Loading Real-Time Visualizations...", juce::dontSendNotification);
             break;
             
-        case 5:
-            juce::Logger::writeToLog("[INIT] Step 5: Creating waveform analysis...");
+        case 4:
+            juce::Logger::writeToLog("[INIT] Step 4: Creating waveform analysis...");
             waveformAnalysisRow = std::make_unique<WaveformAnalysisRow>();
             addAndMakeVisible(waveformAnalysisRow.get());
             loadingLabel->setText("Loading Waveform Analysis...", juce::dontSendNotification);
             break;
             
-        case 6:
-            juce::Logger::writeToLog("[INIT] Step 6: Creating spectral audio tracks...");
+        case 5:
+            juce::Logger::writeToLog("[INIT] Step 5: Creating spectral audio tracks...");
             jellieTrack = std::make_unique<SpectralAudioTrack>(SpectralAudioTrack::TrackType::JELLIE_INPUT, "JELLIE");
             pnbtrTrack = std::make_unique<SpectralAudioTrack>(SpectralAudioTrack::TrackType::PNBTR_OUTPUT, "PNBTR");
             addAndMakeVisible(jellieTrack.get());
@@ -415,263 +343,148 @@ void MainComponent::timerCallback()
             loadingLabel->setText("Loading Spectral Audio Tracks...", juce::dontSendNotification);
             break;
             
-        case 7:
-            juce::Logger::writeToLog("[INIT] Step 7: Creating metrics dashboard...");
+        case 6:
+            juce::Logger::writeToLog("[INIT] Step 6: Creating metrics dashboard...");
             metricsDashboard = std::make_unique<MetricsDashboard>();
             addAndMakeVisible(metricsDashboard.get());
             loadingLabel->setText("Loading Metrics Dashboard...", juce::dontSendNotification);
             break;
             
-        case 8:
-            juce::Logger::writeToLog("[INIT] Step 8: Creating controls row...");
+        case 7:
+            juce::Logger::writeToLog("[INIT] Step 7: Creating controls row...");
             controlsRow = std::make_unique<ControlsRow>();
             addAndMakeVisible(controlsRow.get());
+            
+            // DEBUGGING: Add debugging buttons for testing audio pipeline
+            setupDebuggingButtons();
+            
             loadingLabel->setText("Loading Control Panel...", juce::dontSendNotification);
             break;
             
-        case 9:
-            juce::Logger::writeToLog("[INIT] Step 9: Wiring components together...");
-            // Wire transport bar to audio device and DSP
+        case 8:
+            juce::Logger::writeToLog("[INIT] Step 8: Wiring components together...");
+            // Wire transport bar to Core Audio bridge
             transportBar->onPlay = [this] { handleTransportPlay(); };
             transportBar->onStop = [this] { handleTransportStop(); };
             transportBar->onRecord = [this] { handleTransportRecord(); };
-            
-            // Connect controls and visualizations to DSP pipeline
-            transportBar->setTrainer(pnbtrTrainer.get());
-            controlsRow->setTrainer(pnbtrTrainer.get());
-            oscilloscopeRow->setTrainer(pnbtrTrainer.get());
-            waveformAnalysisRow->setTrainer(pnbtrTrainer.get());
-            metricsDashboard->setTrainer(pnbtrTrainer.get());
-            jellieTrack->setTrainer(pnbtrTrainer.get());
-            pnbtrTrack->setTrainer(pnbtrTrainer.get());
             
             // Connect TOAST network oscilloscope to metrics dashboard
             metricsDashboard->setTOASTNetworkOscilloscope(&oscilloscopeRow->getNetworkOsc());
             loadingLabel->setText("Connecting Components...", juce::dontSendNotification);
             break;
             
-        case 10: {
-            printf("[INIT] Step 10: Initializing audio system...\n");
-            juce::Logger::writeToLog("[INIT] Step 10: Initializing audio system...");
+        case 9: {
+            juce::Logger::writeToLog("[INIT] Step 9: Initializing Core Audio → Metal pipeline...");
             
-            // CRITICAL FIX FOR macOS: Request microphone permissions explicitly
+            // Request microphone permissions for Core Audio
             #if JUCE_MAC
-            printf("[PERMISSIONS] Requesting microphone permissions on macOS...\n");
-            juce::Logger::writeToLog("[PERMISSIONS] Requesting microphone permissions on macOS...");
-            
-            // Request microphone permission (this will show the permission dialog if needed)
             juce::RuntimePermissions::request(juce::RuntimePermissions::recordAudio, 
                 [this](bool granted) {
                     if (granted) {
-                        printf("[PERMISSIONS] ✅ Microphone permission granted!\n");
                         juce::Logger::writeToLog("[PERMISSIONS] ✅ Microphone permission granted!");
                     } else {
-                        printf("[PERMISSIONS] ❌ Microphone permission denied!\n");
                         juce::Logger::writeToLog("[PERMISSIONS] ❌ Microphone permission denied!");
                     }
                 });
-            
-            // Wait a moment for permission dialog to be handled
-            juce::Timer::callAfterDelay(100, [this]() {
-                bool hasPermission = juce::RuntimePermissions::isGranted(juce::RuntimePermissions::recordAudio);
-                printf("[PERMISSIONS] Microphone permission status: %s\n", hasPermission ? "GRANTED" : "DENIED");
-                juce::Logger::writeToLog("[PERMISSIONS] Microphone permission status: " + 
-                                       juce::String(hasPermission ? "GRANTED" : "DENIED"));
-            });
             #endif
             
-            // CRITICAL FIX: Enable input channels explicitly and request microphone permissions
-            printf("[DEVICE] Requesting microphone permissions and initializing with input channels...\n");
-            juce::String error = deviceManager.initialise(2, 2, nullptr, true);
-            
-            if (error.isNotEmpty()) {
-                printf("[DEVICE] ERROR: %s\n", error.toUTF8().getAddress());
-                juce::Logger::writeToLog("[DEVICE] Initialization error: " + error);
-                // Try fallback with different settings
-                printf("[DEVICE] Trying fallback initialise(1, 2, nullptr, false)...\n");
-                error = deviceManager.initialise(1, 2, nullptr, false);
-                if (error.isNotEmpty()) {
-                    printf("[DEVICE] FALLBACK ALSO FAILED: %s\n", error.toUTF8().getAddress());
-                    juce::Logger::writeToLog("[DEVICE] Fallback initialization also failed: " + error);
-                }
+            // Core Audio bridge is already initialized in constructor
+            // Just verify it's ready
+            if (coreAudioBridge) {
+                juce::Logger::writeToLog("[CoreAudio→Metal] ✅ Core Audio bridge ready for audio processing");
             } else {
-                printf("[DEVICE] Audio device manager initialized successfully\n");
-                juce::Logger::writeToLog("[DEVICE] Audio device manager initialized successfully");
-                
-                // CRITICAL FIX: Add callback BEFORE configuring device
-                printf("[CALLBACK] Adding audio callback to device manager...\n");
-                juce::Logger::writeToLog("[CALLBACK] Adding audio callback to device manager...");
-                deviceManager.addAudioCallback(this);
-                printf("[CALLBACK] Audio callback registered successfully\n");
-                juce::Logger::writeToLog("[CALLBACK] Audio callback registered successfully");
-                
-                // CRITICAL FIX: Explicitly enable input channels and configure device
-                auto setup = deviceManager.getAudioDeviceSetup();
-                printf("[DEVICE] Current setup - Input: '%s', Output: '%s'\n", 
-                       setup.inputDeviceName.toUTF8().getAddress(),
-                       setup.outputDeviceName.toUTF8().getAddress());
-                
-                // Ensure we have input devices selected
-                if (setup.inputDeviceName.isEmpty()) {
-                    auto* deviceType = deviceManager.getAvailableDeviceTypes()[0];
-                    auto inputDevices = deviceType->getDeviceNames(true);
-                    if (!inputDevices.isEmpty()) {
-                        setup.inputDeviceName = inputDevices[0];
-                        printf("[DEVICE] Selected default input device: '%s'\n", 
-                               setup.inputDeviceName.toUTF8().getAddress());
-                    }
-                }
-                
-                // CRITICAL: Set up input channels explicitly
-                setup.useDefaultInputChannels = true;
-                setup.inputChannels.setRange(0, 2, true);  // Enable first 2 input channels
-                setup.useDefaultOutputChannels = true;
-                setup.outputChannels.setRange(0, 2, true); // Enable first 2 output channels
-                setup.sampleRate = 48000.0;
-                setup.bufferSize = 512;
-                
-                printf("[DEVICE] Applying audio setup with input channels enabled...\n");
-                error = deviceManager.setAudioDeviceSetup(setup, true); // true = strict requirements
-                
-                if (error.isNotEmpty()) {
-                    printf("[DEVICE] Setup error: %s\n", error.toUTF8().getAddress());
-                    juce::Logger::writeToLog("[DEVICE] Audio setup error: " + error);
-                } else {
-                    printf("[DEVICE] Audio device setup completed successfully\n");
-                    juce::Logger::writeToLog("[DEVICE] Audio device setup completed successfully");
-                    
-                    // Verify the device is actually running and has input channels
-                    auto* currentDevice = deviceManager.getCurrentAudioDevice();
-                    if (currentDevice && currentDevice->isOpen()) {
-                        auto activeInputs = currentDevice->getActiveInputChannels();
-                        auto activeOutputs = currentDevice->getActiveOutputChannels();
-                        printf("[DEVICE] ✅ Device running: '%s'\n", currentDevice->getName().toUTF8().getAddress());
-                        printf("[DEVICE] ✅ Active input channels: %s\n", activeInputs.toString(2).toUTF8().getAddress());
-                        printf("[DEVICE] ✅ Active output channels: %s\n", activeOutputs.toString(2).toUTF8().getAddress());
-                        printf("[DEVICE] ✅ Sample rate: %.0f Hz\n", currentDevice->getCurrentSampleRate());
-                        printf("[DEVICE] ✅ Buffer size: %d samples\n", currentDevice->getCurrentBufferSizeSamples());
-                        
-                        juce::Logger::writeToLog("[DEVICE] ✅ Audio device fully operational with input channels!");
-                        juce::Logger::writeToLog("[DEVICE] Input channels: " + activeInputs.toString(2));
-                        juce::Logger::writeToLog("[DEVICE] Output channels: " + activeOutputs.toString(2));
-                    } else {
-                        printf("[DEVICE] ❌ Device not running after setup\n");
-                        juce::Logger::writeToLog("[DEVICE] ❌ Device not running after setup");
-                    }
-                }
-                
-                updateDeviceLists();
-                
-                // CRITICAL FIX: Verify input channels are configured  
-                juce::Logger::writeToLog("[DEVICE] Input channels requested: 2");
-                juce::Logger::writeToLog("[DEVICE] Output channels requested: 2");
+                juce::Logger::writeToLog("[CoreAudio→Metal] ❌ Core Audio bridge not initialized");
             }
-            loadingLabel->setText("Initializing Audio System...", juce::dontSendNotification);
+            
+            loadingLabel->setText("Initializing Core Audio → Metal Pipeline...", juce::dontSendNotification);
             break;
         }
             
-        case 11: {
-            juce::Logger::writeToLog("[INIT] Step 11: Finalizing layout...");
+        case 10: {
+            juce::Logger::writeToLog("[INIT] Step 10: Finalizing Core Audio → Metal pipeline...");
             // Hide loading screen and show final UI
             loadingLabel->setVisible(false);
             isFullyLoaded = true;
             resized(); // Trigger layout
             
-            // DIAGNOSTIC: Check audio device status
-            auto setup = deviceManager.getAudioDeviceSetup();
-            juce::Logger::writeToLog("[DIAGNOSTIC] Input device: " + setup.inputDeviceName);
-            juce::Logger::writeToLog("[DIAGNOSTIC] Output device: " + setup.outputDeviceName);
-            juce::Logger::writeToLog("[DIAGNOSTIC] Sample rate: " + juce::String(setup.sampleRate));
-            juce::Logger::writeToLog("[DIAGNOSTIC] Buffer size: " + juce::String(setup.bufferSize));
-            
-            // CRITICAL OSCILLOSCOPE FIX: Ensure input device is actually selected
-            if (setup.inputDeviceName.isEmpty())
-            {
-                auto* deviceType = deviceManager.getAvailableDeviceTypes()[0];
-                auto inputs = deviceType->getDeviceNames(true); // true = input devices
-                if (! inputs.isEmpty())
-                {
-                    setup.inputDeviceName = inputs[0]; // select first available input
-                    juce::Logger::writeToLog("[OSCILLOSCOPE FIX] Selected input device: " + setup.inputDeviceName);
-                    deviceManager.setAudioDeviceSetup(setup, true);
-                }
-            }
-            
-            // Force audio device start for oscilloscope data - FIX: Actually start a device
-            auto* currentDevice = deviceManager.getCurrentAudioDevice();
-            if (!currentDevice || !currentDevice->isOpen()) {
-                juce::Logger::writeToLog("[DIAGNOSTIC] No audio device running - starting default device...");
-                
-                // Get default audio device setup and force it to start
-                auto setup = deviceManager.getAudioDeviceSetup();
-                setup.bufferSize = 512;
-                setup.sampleRate = 48000.0;
-                
-                // Ensure we have input and output devices selected
-                if (setup.inputDeviceName.isEmpty()) {
-                    auto* deviceType = deviceManager.getAvailableDeviceTypes()[0];
-                    auto inputDevices = deviceType->getDeviceNames(true);
-                    if (!inputDevices.isEmpty()) {
-                        setup.inputDeviceName = inputDevices[0];
-                        juce::Logger::writeToLog("[DIAGNOSTIC] Selected input: " + setup.inputDeviceName);
+            // 🧪 TEST: Auto-arm JELLIE track to verify pipeline functionality
+            if (jellieTrack) {
+                jellieTrack->setRecordArmed(true);
+                juce::Logger::writeToLog("[🧪 TEST] Auto-armed JELLIE track for pipeline testing");
                     }
-                }
-                
-                if (setup.outputDeviceName.isEmpty()) {
-                    auto* deviceType = deviceManager.getAvailableDeviceTypes()[0];
-                    auto outputDevices = deviceType->getDeviceNames(false);
-                    if (!outputDevices.isEmpty()) {
-                        setup.outputDeviceName = outputDevices[0];
-                        juce::Logger::writeToLog("[DIAGNOSTIC] Selected output: " + setup.outputDeviceName);
-                    }
-                }
-                
-                // CRITICAL FIX: Force explicit device startup sequence
-                juce::String error = deviceManager.setAudioDeviceSetup(setup, true);
-                if (error.isNotEmpty()) {
-                    juce::Logger::writeToLog("[DIAGNOSTIC] Failed to start audio device: " + error);
-                } else {
-                    juce::Logger::writeToLog("[DIAGNOSTIC] Audio device setup completed");
-                    
-                    // FORCE: Explicitly restart the device to ensure it starts
-                    deviceManager.restartLastAudioDevice();
-                    
-                    // VERIFY: Check if device is actually running now
-                    auto* nowRunning = deviceManager.getCurrentAudioDevice();
-                    if (nowRunning && nowRunning->isOpen()) {
-                        juce::Logger::writeToLog("[DIAGNOSTIC] ✅ AUDIO DEVICE IS NOW RUNNING!");
-                        juce::Logger::writeToLog("[DIAGNOSTIC] Device: " + nowRunning->getName());
-                        juce::Logger::writeToLog("[DIAGNOSTIC] Sample Rate: " + juce::String(nowRunning->getCurrentSampleRate()));
-                        juce::Logger::writeToLog("[DIAGNOSTIC] Buffer Size: " + juce::String(nowRunning->getCurrentBufferSizeSamples()));
-                        juce::Logger::writeToLog("[DIAGNOSTIC] Input Channels: " + nowRunning->getActiveInputChannels().toString(2));
-                    } else {
-                        juce::Logger::writeToLog("[DIAGNOSTIC] ❌ DEVICE STILL NOT RUNNING - DEEPER ISSUE");
-                    }
-                }
-            } else {
-                juce::Logger::writeToLog("[DIAGNOSTIC] Audio device already running: " + currentDevice->getName());
-            }
             
-            // Auto-start training for immediate oscilloscope response
-            if (pnbtrTrainer) {
-                pnbtrTrainer->startTraining();
-                juce::Logger::writeToLog("[DIAGNOSTIC] Auto-started training for oscilloscope data");
-            }
+            // Start monitoring record arm states for Core Audio bridge
+            startTimer(100); // Start 10Hz timer for record arm state monitoring
             
-            stopTimer(); // Stop the loading timer
-            juce::Logger::writeToLog("[INIT] ✅ FULLY LOADED - App ready for real-time operation!");
+            juce::Logger::writeToLog("[CoreAudio→Metal] ✅ FULLY LOADED - Core Audio → Metal pipeline ready!");
+            juce::Logger::writeToLog("[RECORD ARM] System ready to respond to record arm button states");
             break;
         }
             
         default:
-            stopTimer();
+            // 🔧 FIXED: Don't stop timer - let it continue for record arm monitoring
+            // The timer now continues running at 100ms intervals to monitor record arm states
             break;
     }
     
     initializationStep++;
     
     // Only repaint during loading phase (stops when initialization complete)
-    if (initializationStep <= 11) {
+    if (initializationStep <= 10) {
         repaint(); // Trigger UI update only during loading
+    } else if (isFullyLoaded) {
+        // After initialization, monitor record arm states for Core Audio bridge
+        updateRecordArmStates();
     }
+}
+
+// DEBUGGING: Setup debugging buttons for testing audio pipeline
+void MainComponent::setupDebuggingButtons()
+{
+    // Use Default Input Device button
+    useDefaultInputButton = std::make_unique<juce::TextButton>("Use Default Input");
+    useDefaultInputButton->setButtonText("Use Default Input");
+    useDefaultInputButton->setColour(juce::TextButton::buttonColourId, juce::Colours::darkblue);
+    useDefaultInputButton->setColour(juce::TextButton::textColourOffId, juce::Colours::white);
+    useDefaultInputButton->onClick = [this] {
+        useDefaultInputDevice();
+        juce::Logger::writeToLog("[DEBUG] Use Default Input Device button pressed");
+    };
+    addAndMakeVisible(useDefaultInputButton.get());
+    
+    // Enable Sine Test button
+    enableSineTestButton = std::make_unique<juce::TextButton>("Enable Sine Test");
+    enableSineTestButton->setButtonText("Enable Sine Test");
+    enableSineTestButton->setColour(juce::TextButton::buttonColourId, juce::Colours::darkgreen);
+    enableSineTestButton->setColour(juce::TextButton::textColourOffId, juce::Colours::white);
+    enableSineTestButton->setClickingTogglesState(true);
+    enableSineTestButton->onClick = [this] {
+        bool enabled = enableSineTestButton->getToggleState();
+        enableCoreAudioSineTest(enabled);
+        enableSineTestButton->setButtonText(enabled ? "Disable Sine Test" : "Enable Sine Test");
+        juce::Logger::writeToLog("[DEBUG] Sine Test " + juce::String(enabled ? "ENABLED" : "DISABLED"));
+    };
+    addAndMakeVisible(enableSineTestButton.get());
+    
+    // Check MetalBridge Status button
+    checkMetalBridgeButton = std::make_unique<juce::TextButton>("Check MetalBridge");
+    checkMetalBridgeButton->setButtonText("Check MetalBridge");
+    checkMetalBridgeButton->setColour(juce::TextButton::buttonColourId, juce::Colours::purple);
+    checkMetalBridgeButton->setColour(juce::TextButton::textColourOffId, juce::Colours::white);
+    checkMetalBridgeButton->onClick = [this] {
+        checkMetalBridgeStatus();
+        juce::Logger::writeToLog("[DEBUG] MetalBridge Status check requested");
+    };
+    addAndMakeVisible(checkMetalBridgeButton.get());
+    
+    // Force Callback button
+    forceCallbackButton = std::make_unique<juce::TextButton>("Force Callback");
+    forceCallbackButton->setButtonText("Force Callback");
+    forceCallbackButton->setColour(juce::TextButton::buttonColourId, juce::Colours::darkorange);
+    forceCallbackButton->setColour(juce::TextButton::textColourOffId, juce::Colours::white);
+    forceCallbackButton->onClick = [this] {
+        forceCoreAudioCallback();
+        juce::Logger::writeToLog("[DEBUG] Force Callback button pressed");
+    };
+    addAndMakeVisible(forceCallbackButton.get());
 }

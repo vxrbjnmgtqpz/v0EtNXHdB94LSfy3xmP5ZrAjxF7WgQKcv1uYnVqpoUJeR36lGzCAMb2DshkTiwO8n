@@ -3,7 +3,7 @@
 #include "TOASTNetworkOscilloscope.h"
 #include "../DSP/PNBTRTrainer.h"
 #include "../Metrics/TrainingMetrics.h"
-#include "../GPU/MetalBridgeInterface.h"
+#include "../GPU/MetalBridge.h"
 #include <algorithm>
 #include <iomanip>
 #include <sstream>
@@ -19,7 +19,7 @@ void MetricsDashboard::setTOASTNetworkOscilloscope(TOASTNetworkOscilloscope* toa
 MetricsDashboard::MetricsDashboard()
 {
     // Get MetalBridge singleton
-    metalBridge = &MetalBridgeInterface::getInstance();
+    metalBridge = &MetalBridge::getInstance();
     
     // Initialize metrics displays
     initializeMetrics();

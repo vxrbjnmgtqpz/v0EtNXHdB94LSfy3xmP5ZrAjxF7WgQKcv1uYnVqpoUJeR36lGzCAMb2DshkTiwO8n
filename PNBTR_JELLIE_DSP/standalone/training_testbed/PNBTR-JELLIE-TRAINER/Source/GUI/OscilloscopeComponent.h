@@ -7,7 +7,7 @@
 #include "../DSP/PNBTRTrainer.h"
 
 // Forward declarations
-class MetalBridgeInterface;
+class MetalBridge;
 
 /**
  * Real-time oscilloscope component for waveform visualization
@@ -56,7 +56,7 @@ private:
     //==============================================================================
     // Buffer connection
     BufferType bufferType;
-    MetalBridgeInterface* metalBridge;
+    MetalBridge* metalBridge;
     juce::String oscilloscopeTitle;
     
     //==============================================================================

@@ -47,7 +47,53 @@
 #include <juce_audio_processors/juce_audio_processors.h>
 #include <juce_audio_utils/juce_audio_utils.h>
 
-class MainComponent : public juce::Component, public juce::AudioIODeviceCallback, public juce::Timer
+// Forward declarations
+class ProfessionalTransportController;
+class OscilloscopeRow;
+class WaveformAnalysisRow;
+class SpectralAudioTrack;
+class MetricsDashboard;
+class ControlsRow;
+
+// Core Audio → Metal Bridge function declarations
+extern "C" {
+    void* createCoreAudioGPUBridge();
+    void destroyCoreAudioGPUBridge();
+    int getCoreAudioInputDeviceCount();
+    int getCoreAudioOutputDeviceCount();
+    const char* getCoreAudioInputDeviceName(int index);
+    const char* getCoreAudioOutputDeviceName(int index);
+    void setCoreAudioInputDevice(int deviceIndex);
+    void setCoreAudioOutputDevice(int deviceIndex);
+    void setCoreAudioRecordArmStates(bool jellieArmed, bool pnbtrArmed);
+    void startCoreAudioCapture();
+    void stopCoreAudioCapture();
+    
+    // Debugging functions
+    void enableCoreAudioSineTest(bool enable);
+    void checkMetalBridgeStatus();
+    void forceCoreAudioCallback();
+    void useDefaultInputDevice();
+}
+
+/**
+ * PNBTR+JELLIE Training Testbed - Main Component
+ * 
+ * ARCHITECTURE: Core Audio → Metal GPU Pipeline (bypasses JUCE audio processing)
+ * 
+ * Real-time DAW simulating network audio transmission with AI reconstruction.
+ * Progressive loading system displays components over time (video game engine style).
+ * 
+ * 7-row layout:
+ * - Row 1: Professional Transport Controller (48px)
+ * - Row 2: Device Selection (32px)
+ * - Row 3: Oscilloscope Arrays (200px)
+ * - Row 4: JELLIE Track (160px)
+ * - Row 5: PNBTR Track (160px)
+ * - Row 6: Metrics Dashboard (100px)
+ * - Row 7: Controls Row (60px)
+ */
+class MainComponent : public juce::Component, public juce::Timer, public juce::ComboBox::Listener
 {
 public:
     MainComponent();
@@ -59,11 +105,8 @@ public:
     // Timer callback for progressive loading (video game engine style)
     void timerCallback() override;
 
-    // Audio callback
-    void audioDeviceIOCallback(const float** inputChannelData, int numInputChannels,
-                               float** outputChannelData, int numOutputChannels, int numSamples);
-    void audioDeviceAboutToStart(juce::AudioIODevice* device);
-    void audioDeviceStopped();
+    // ComboBox listener for device selection
+    void comboBoxChanged(juce::ComboBox* comboBoxThatHasChanged) override;
 
     // Transport control wiring
     void handleTransportPlay();
@@ -76,8 +119,12 @@ private:
     int initializationStep = 0;
     bool isFullyLoaded = false;
     
-    // GUI components (lazy loaded) - REMOVED TitleComponent per user request
+    // GUI components (lazy loaded)
     std::unique_ptr<ProfessionalTransportController> transportBar;
+    std::unique_ptr<juce::ComboBox> inputDeviceBox;
+    std::unique_ptr<juce::ComboBox> outputDeviceBox;
+    std::unique_ptr<juce::Label> inputDeviceLabel;
+    std::unique_ptr<juce::Label> outputDeviceLabel;
     std::unique_ptr<OscilloscopeRow> oscilloscopeRow;
     std::unique_ptr<WaveformAnalysisRow> waveformAnalysisRow;
     std::unique_ptr<SpectralAudioTrack> jellieTrack;
@@ -85,25 +132,25 @@ private:
     std::unique_ptr<MetricsDashboard> metricsDashboard;
     std::unique_ptr<ControlsRow> controlsRow;
 
-    // DSP pipeline (loaded in background)
-    std::unique_ptr<class PNBTRTrainer> pnbtrTrainer;
-
-    // Audio device manager and device selectors
-    juce::AudioDeviceManager deviceManager;
-    std::unique_ptr<juce::ComboBox> inputDeviceBox;
-    std::unique_ptr<juce::ComboBox> outputDeviceBox;
-    void updateDeviceLists();
-    void inputDeviceChanged();
-    void outputDeviceChanged();
+    // Core Audio → Metal Bridge (replaces JUCE AudioDeviceManager)
+    void* coreAudioBridge = nullptr;
     
     // Audio engine integration
-    void initializeAudioEngine();
-    void shutdownAudioEngine();
+    void initializeCoreAudioBridge();
+    void shutdownCoreAudioBridge();
+    void updateDeviceLists();
+    void updateRecordArmStates();
     
-    // ADDED: Record arm state management for connecting UI to audio pipeline
+    // ADDED: Record arm state management for connecting UI to Core Audio → Metal pipeline
     bool isJellieTrackRecordArmed() const;
     bool isPNBTRTrackRecordArmed() const;
-
-
+    
+    // DEBUGGING: GUI buttons for testing audio pipeline
+    std::unique_ptr<juce::TextButton> useDefaultInputButton;
+    std::unique_ptr<juce::TextButton> enableSineTestButton;
+    std::unique_ptr<juce::TextButton> checkMetalBridgeButton;
+    std::unique_ptr<juce::TextButton> forceCallbackButton;
+    void setupDebuggingButtons();
+    
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)
 };
