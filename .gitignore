@@ -159,3 +159,5 @@ JSONMIDI_Framework/.cache/
 # Worktree management files (local tools)
 WORKTREE_WORKFLOW.md
 sync_worktrees.sh
+JAMNet_full_backup_July_10_2025.tar.gz
+*.tar.gz
