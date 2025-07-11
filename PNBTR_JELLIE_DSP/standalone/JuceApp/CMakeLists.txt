@@ -21,16 +21,23 @@ juce_add_gui_app(PnbtrJellieJuceApp
         Source/Main.cpp
 )
 
+target_compile_options(PnbtrJellieJuceApp PRIVATE
+    juce::juce_recommended_config_flags
+    juce::juce_recommended_lto_flags
+    juce::juce_recommended_warning_flags
+)
+
 # Add include directories for our frameworks
 target_include_directories(PnbtrJellieJuceApp PRIVATE
-    ../../../PNBTR_Framework/include
-    ../../../JDAT_Framework/include # For JELLIE
-    ../../../PNBTR_JELLIE_DSP/core
+    ../../core
+    ../../include
 )
 
 
 target_link_libraries(PnbtrJellieJuceApp
     PRIVATE
+        pnbtr_jellie_core
+        juce::juce_standalone_app
         juce::juce_audio_basics
         juce::juce_audio_devices
         juce::juce_audio_formats

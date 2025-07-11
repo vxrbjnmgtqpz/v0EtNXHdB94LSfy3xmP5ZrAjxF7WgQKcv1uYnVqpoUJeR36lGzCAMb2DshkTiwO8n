@@ -161,8 +161,8 @@ void printJellieResults(const AudioTestbed::JellieTestResult& result) {
     std::cout << "├─────────────────────┼─────────────┼─────────────┼─────────────┤\n";
     printf("│ SNR (dB)            │ %10.2f  │ %10.2f  │ %10.2f  │\n", 
            result.original_quality.snr_db, result.jellie_only_quality.snr_db, result.pnbtr_enhanced_quality.snr_db);
-    printf("│ THD+N (dB)          │ %10.2f  │ %10.2f  │ %10.2f  │\n",
-           result.original_quality.thd_plus_n_db, result.jellie_only_quality.thd_plus_n_db, result.pnbtr_enhanced_quality.thd_plus_n_db);
+    printf("│ THD+N (%%)          │ %10.2f  │ %10.2f  │ %10.2f  │\n",
+           result.original_quality.thd_plus_n_percent, result.jellie_only_quality.thd_plus_n_percent, result.pnbtr_enhanced_quality.thd_plus_n_percent);
     printf("│ Clicks Detected     │ %10d  │ %10d  │ %10d  │\n",
            0, (int)result.clicks_detected, 0); // PNBTR should eliminate clicks
     printf("│ Pops Detected       │ %10d  │ %10d  │ %10d  │\n",
@@ -234,84 +234,34 @@ int main(int argc, char* argv[]) {
     create_directories(config.report_directory);
     
     try {
+        AudioTestbed testbed(config);
+        if (!testbed.initialize()) {
+            return 1;
+        }
+
         if (run_jellie_test) {
             // 🎯 Run JELLIE + PNBTR Integration Demonstration
             std::cout << "\n🎯 JELLIE + PNBTR Integration Test\n";
             std::cout << "==================================\n";
             
             printJellieConfiguration(jellie_config);
-            demonstrateJellieEncoding();
-            
-            // For now, demonstrate the concept without full implementation
-            std::cout << "🎭 Concept Demonstration:\n";
-            std::cout << "  This testbed demonstrates the revolutionary JELLIE + PNBTR concept.\n";
-            std::cout << "  Full implementation integrates with the completed JDAT framework.\n\n";
-            
-            std::cout << "📊 Simulated Results:\n";
-            std::cout << "  📦 Packet Loss Handled: " << jellie_config.packet_loss_percentage << "%\n";
-            std::cout << "  🔧 Reconstruction Success: 99.2%\n";
-            std::cout << "  🧠 PNBTR Improvement: +12.3 dB SNR\n";
-            std::cout << "  🚫 Clicks/Pops Eliminated: 100%\n";
-            std::cout << "  ⏱️  Processing Time: <1ms\n\n";
-            
-            std::cout << "🎉 JELLIE + PNBTR Integration: ✅ REVOLUTIONARY SUCCESS!\n";
-            std::cout << "   Zero-noise packet loss recovery achieved with 8-channel redundancy!\n\n";
-        }
-        else if (run_all_tests) {
-            // Run basic PNBTR tests
-            std::cout << "\n🧪 Running PNBTR Audio Processing Tests...\n\n";
-            
-            printTestConfiguration(config);
-            
-            std::cout << "🔬 Test Suite:\n";
-            std::cout << "  1. ✅ Synthetic sine wave analysis\n";
-            std::cout << "  2. ✅ White noise processing\n";
-            std::cout << "  3. ✅ Complex harmonic content\n";
-            std::cout << "  4. ✅ Bit depth reduction analysis\n\n";
-            
-            std::cout << "📊 PNBTR vs Traditional Dithering Results:\n";
-            std::cout << "  PNBTR Quality Improvement: +8.7 dB SNR\n";
-            std::cout << "  Noise Reduction: -15.2 dB\n";
-            std::cout << "  Zero random noise artifacts\n";
-            std::cout << "  Mathematical LSB reconstruction\n\n";
-            
-            std::cout << "✅ All PNBTR tests passed!\n";
-        }
-        else if (!input_files.empty()) {
-            // Process individual files
-            printTestConfiguration(config);
-            
-            std::cout << "🎵 Processing audio files with PNBTR...\n\n";
-            
+            auto results = testbed.runJelliePnbtrTest(jellie_config);
+            printJellieResults(results);
+
+        } else if (run_all_tests) {
+            testbed.runAllTests();
+        } else {
             for (const auto& file : input_files) {
-                std::cout << "📁 File: " << file << "\n";
-                std::cout << "  🔧 Applying PNBTR dither replacement...\n";
-                std::cout << "  📊 Quality improvement: +6.4 dB SNR\n";
-                std::cout << "  💾 Output: " << config.output_directory << path_stem(file) << "_pnbtr.wav\n";
-                std::cout << "  📊 Report: " << config.report_directory << path_stem(file) << "_report.txt\n\n";
+                testbed.testSingleFile(file, path_stem(file));
             }
-        }
-        else {
-            std::cout << "ℹ️  No specific test selected. Available options:\n\n";
-            std::cout << "  🧪 --run-all-tests     → Basic PNBTR dither replacement tests\n";
-            std::cout << "  🎯 --jellie-test       → JELLIE 8-channel + PNBTR integration\n";
-            std::cout << "  📁 [audio_files...]    → Process specific audio files\n";
-            std::cout << "  ❓ --help              → Show detailed usage information\n\n";
-            
-            std::cout << "💡 Try: " << argv[0] << " --jellie-test\n";
-            std::cout << "   This demonstrates the revolutionary 8-channel JELLIE encoding\n";
-            std::cout << "   with PNBTR packet loss recovery!\n\n";
-            
-            std::cout << "🔬 Or try: " << argv[0] << " --run-all-tests\n";
-            std::cout << "   This demonstrates PNBTR zero-noise dither replacement!\n\n";
         }
         
     } catch (const std::exception& e) {
-        std::cerr << "❌ Error during testing: " << e.what() << std::endl;
+        std::cerr << "❌ An error occurred: " << e.what() << std::endl;
         return 1;
     }
     
-    std::cout << "🏁 Audio testbed completed successfully\n";
+    std::cout << "\n🏁 Audio testbed completed successfully\n";
     
     return 0;
 } 

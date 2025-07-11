@@ -9,6 +9,9 @@ add_subdirectory(network_testbed)
 # Training Testbed - Test neural network training and validation
 add_subdirectory(training_testbed)
 
+# Add the JuceApp
+# add_subdirectory(JuceApp)
+
 # Future testbeds (directories will be created in later phases)
 # add_subdirectory(pnbtr_testbed)
 # add_subdirectory(integration_testbed)

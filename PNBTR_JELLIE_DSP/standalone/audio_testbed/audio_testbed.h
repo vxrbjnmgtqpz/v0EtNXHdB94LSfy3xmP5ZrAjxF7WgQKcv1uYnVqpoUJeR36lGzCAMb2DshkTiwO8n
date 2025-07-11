@@ -5,6 +5,10 @@
 #include <memory>
 #include <map>
 
+#include "MetalBridge.h"
+#include "RingBuffer.h"
+#include "audio_quality_analyzer.h"
+
 // Forward declarations
 class AudioQualityAnalyzer;
 
@@ -66,16 +70,7 @@ public:
     /**
      * @brief Quality analysis results
      */
-    struct QualityMetrics {
-        double snr_db = 0.0;              // Signal-to-Noise Ratio
-        double thd_plus_n_db = 0.0;       // Total Harmonic Distortion + Noise
-        double lufs = 0.0;                // Loudness Units Full Scale
-        double dynamic_range_db = 0.0;    // Dynamic range
-        double peak_amplitude = 0.0;      // Peak amplitude
-        double rms_level_db = 0.0;        // RMS level
-        double crest_factor_db = 0.0;     // Crest factor
-        double noise_floor_db = 0.0;      // Noise floor level
-    };
+    using QualityMetrics = AudioQualityAnalyzer::QualityMetrics;
 
     /**
      * @brief Comparison results between processing methods
@@ -118,6 +113,9 @@ public:
 private:
     Config config_;
     std::unique_ptr<AudioQualityAnalyzer> quality_analyzer_;
+    std::unique_ptr<MetalBridge> metal_bridge_;
+    std::unique_ptr<RingBuffer<float>> input_ring_buffer_;
+    std::unique_ptr<RingBuffer<float>> output_ring_buffer_;
     
     // Test statistics
     struct TestStats {
