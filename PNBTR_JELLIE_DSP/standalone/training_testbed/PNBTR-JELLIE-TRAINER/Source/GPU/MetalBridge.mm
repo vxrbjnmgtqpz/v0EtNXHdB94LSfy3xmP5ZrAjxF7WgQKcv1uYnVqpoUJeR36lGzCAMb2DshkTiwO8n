@@ -209,11 +209,11 @@ void MetalBridge::processAudioBlock(const float* inputData, float* outputData, s
 
     // Update enhanced params for current frame
     GateParams* gp = (GateParams*)gateParamsBuffer[frameIdx].contents;
-    gp->threshold = 0.1f;
+    gp->threshold = 0.001f;  // FIXED: Much lower threshold for microphone input
     gp->jellieRecordArmed = this->jellieRecordArmed;
     gp->pnbtrRecordArmed = this->pnbtrRecordArmed;
     gp->gain = 1.0f;
-    gp->adaptiveThreshold = 0.05f;
+    gp->adaptiveThreshold = 0.0005f;  // FIXED: Lower adaptive threshold too
 
     // Enhanced spectral analysis parameters
     DJAnalysisParams* djp = (DJAnalysisParams*)djAnalysisParamsBuffer[frameIdx].contents;
@@ -545,12 +545,9 @@ kernel void recordArmVisualKernel(constant float* input [[buffer(0)]],
                                  uint id [[thread_position_in_grid]]) {
     float sample = input[id];
     
-    // Create visual feedback based on record arm state
-    float visualIntensity = params.pulseIntensity * sin(params.timePhase + float(id) * 0.1f);
-    
-    // Mix visual feedback with audio signal
-    sample = mix(sample, visualIntensity, 0.1f);
-    
+    // FIXED: Visual feedback should NOT be mixed with audio signal
+    // The visual feedback is for GUI display only, not audio processing
+    // Simply pass through the audio signal unchanged
     output[id] = sample;
 }
 
