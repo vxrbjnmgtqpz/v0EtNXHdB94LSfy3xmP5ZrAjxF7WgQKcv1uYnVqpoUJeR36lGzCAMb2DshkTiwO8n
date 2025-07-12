@@ -17,16 +17,23 @@ void MetalBridge::updateStageParams(int stageIndex, const void* data, size_t siz
 }
 
 void MetalBridge::runPipelineStages(uint32_t frameIndex) {
-    id<MTLBuffer> ping = audioInputBuffer[frameIndex % MAX_FRAMES_IN_FLIGHT];
-    id<MTLBuffer> pong = antiAliasedBuffer[frameIndex % MAX_FRAMES_IN_FLIGHT];
-    id<MTLBuffer> input = ping;
-    id<MTLBuffer> output = pong;
+    if (!initialized || pipelineStages.empty()) return;
+
+    const NSUInteger numSamples = 512;
+    const NSUInteger threadsPerGroup = 64;
+    const NSUInteger threadGroups = (numSamples + threadsPerGroup - 1) / threadsPerGroup;
 
     id<MTLCommandBuffer> cmd = [commandQueue commandBuffer];
-    if (!cmd) return;
+    if (!cmd) {
+        NSLog(@"[❌ GPU] Failed to allocate command buffer for frame %u", frameIndex);
+        return;
+    }
 
-    size_t stageCount = pipelineStages.size();
-    for (size_t i = 0; i < stageCount; ++i) {
+    id<MTLBuffer> input = audioInputBuffer[frameIndex % MAX_FRAMES_IN_FLIGHT];
+    id<MTLBuffer> intermediate = antiAliasedBuffer[frameIndex % MAX_FRAMES_IN_FLIGHT];
+    id<MTLBuffer> output = intermediate;
+
+    for (size_t i = 0; i < pipelineStages.size(); ++i) {
         auto& stage = pipelineStages[i];
         if (stage.dynamicParamGenerator)
             stage.dynamicParamGenerator(stage.paramBuffer.contents, frameIndex);
@@ -35,26 +42,32 @@ void MetalBridge::runPipelineStages(uint32_t frameIndex) {
         [enc setComputePipelineState:stage.pipeline];
         [enc setBuffer:stage.paramBuffer offset:0 atIndex:0];
         [enc setBuffer:input offset:0 atIndex:1];
-        [enc setBuffer:output offset:0 atIndex:2];
-        if (i == stageCount - 1) {
-            NSLog(@"[GPU] Encoding final stage %lu", (unsigned long)i);
+
+        // Final stage: force output to reconstructedBuffer
+        if (i == pipelineStages.size() - 1) {
+            output = reconstructedBuffer[frameIndex % MAX_FRAMES_IN_FLIGHT];
+            NSLog(@"[🟩 FINAL STAGE] Writing to reconstructedBuffer[%u]", frameIndex % MAX_FRAMES_IN_FLIGHT);
         }
-        // ...dispatch threads...
+
+        [enc setBuffer:output offset:0 atIndex:2];
+
+        // Ensure threads are launched
+        [enc dispatchThreadgroups:MTLSizeMake(threadGroups, 1, 1)
+           threadsPerThreadgroup:MTLSizeMake(threadsPerGroup, 1, 1)];
+
         [enc endEncoding];
         std::swap(input, output);
     }
 
-    size_t stageCount = pipelineStages.size();
-    id<MTLBuffer> finalOutput = (stageCount % 2 == 0) ? ping : pong;
-
     [cmd addCompletedHandler:^(id<MTLCommandBuffer> cb) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            outputRingBuffer.writeFrame(frameIndex, finalOutput);
-            frameStateTracker.markStageComplete("GPU", frameIndex);
+            NSLog(@"[✅ GPU COMPLETE] Frame %u written to output", frameIndex);
+            frameSyncCoordinator->markStageComplete(SyncRole::GPUProcessor, frameIndex);
         });
     }];
 
     [cmd commit];
+    NSLog(@"[🚀 COMMIT] GPU frame %u dispatched", frameIndex);
 }
 #endif
 
@@ -222,12 +235,43 @@ MetalBridge::~MetalBridge() {
 }
 
 bool MetalBridge::initialize() {
+    #ifdef __OBJC__
     @autoreleasepool {
         loadShaders();
-        createComputePipelines();
+        if (!metalLibrary) {
+            NSLog(@"[❌ INIT] metalLibrary is nil, cannot proceed");
+            initialized = false;
+            return false;
+        }
+        // --- Ensure final stage is bound to pnbtrReconstructionKernel ---
+        NSError* error = nil;
+        id<MTLFunction> pnbtrFn = [metalLibrary newFunctionWithName:@"pnbtrReconstructionKernel"];
+        id<MTLComputePipelineState> pnbtrPipeline = [device newComputePipelineStateWithFunction:pnbtrFn error:&error];
+        if (!pnbtrPipeline || error) {
+            NSLog(@"[❌ PIPELINE] Failed to create pnbtrReconstructionKernel pipeline: %@", error);
+            return false;
+        }
+        // Create param buffer for final stage
+        PNBTRReconstructionParams finalParams = {1.0f, 440.0f, false, 0.01f, 0.0f, 0.5f};
+        id<MTLBuffer> finalParamBuffer = makeParamBuffer(&finalParams, sizeof(PNBTRReconstructionParams));
+        Stage finalStage;
+        finalStage.pipeline = pnbtrPipeline;
+        finalStage.paramBuffer = finalParamBuffer;
+        finalStage.paramSize = sizeof(PNBTRReconstructionParams);
+        finalStage.dynamicParamGenerator = nullptr;
+        // Remove any previous final stage if present
+        if (!pipelineStages.empty()) {
+            pipelineStages.pop_back();
+        }
+        pipelineStages.push_back(finalStage);
+        NSLog(@"[✅ PIPELINE] Final stage bound to pnbtrReconstructionKernel");
+        initialized = true;
+        return true;
     }
-    initialized = (metalLibrary != nil);
+    #else
+    initialized = false;
     return initialized;
+    #endif
 }
 
 void MetalBridge::prepareBuffers(size_t numSamples, double sampleRate) {
@@ -492,7 +536,7 @@ void MetalBridge::onGPUFrameComplete(uint64_t frameIndex, size_t numSamples) {
     // CRITICAL: Copy GPU-processed audio from Metal shared buffers to AudioFrameBuffer
     // Following the analysis document's zero-copy approach with shared memory
     
-    int frameIdx = frameIndex % MAX_FRAMES_IN_FLIGHT;
+    int frameIdx = (frameIndex + MAX_FRAMES_IN_FLIGHT - 1) % MAX_FRAMES_IN_FLIGHT;
     
     // ALWAYS log this method being called to ensure it's working
     NSLog(@"[🎯 GPU FRAME COMPLETE] Processing frame %llu (buffer index %d) with %zu samples", 

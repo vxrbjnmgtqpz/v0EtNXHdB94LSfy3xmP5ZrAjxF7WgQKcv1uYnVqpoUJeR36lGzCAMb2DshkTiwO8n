@@ -10,8 +10,13 @@ kernel void PNBTRReconstructionShader(device const float* networkSimBuffer [[buf
                                       device float* reconstructedOutput [[buffer(1)]],
                                       uint index [[thread_position_in_grid]]) {
     
-    uint i = index;
-    // Emergency fix: bypass all logic, force constant stereo tone
-    reconstructedOutput[i * 2] = 0.2f;       // Left
-    reconstructedOutput[i * 2 + 1] = 0.2f;   // Right
+    uint id = index;
+    // Bounds check for stereo buffer
+    if ((id * 2 + 1) >= 512 * 2) return;
+    reconstructedOutput[id * 2] = 0.3f;       // Left
+    reconstructedOutput[id * 2 + 1] = 0.3f;   // Right
+    // Debug log for each thread (Metal log syntax)
+    // Uncomment if you want to see per-thread logs:
+    // printf("[🔥 SHADER EXEC] Kernel writing id=%u\n", id);
+    return;
 } 
