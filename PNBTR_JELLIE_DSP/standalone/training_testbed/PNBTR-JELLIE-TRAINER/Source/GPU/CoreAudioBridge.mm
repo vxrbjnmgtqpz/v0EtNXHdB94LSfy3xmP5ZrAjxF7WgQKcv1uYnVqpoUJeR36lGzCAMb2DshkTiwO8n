@@ -192,6 +192,9 @@ static OSStatus OutputRenderCallback(void* inRefCon,
             if ((i * 2 + 1) < (inNumberFrames * 2)) {
                 out[i * 2] = frame.samples[0][i];
                 out[i * 2 + 1] = frame.samples[1][i];
+                if (i < 4) {
+                    NSLog(@"[AUDIO OUT] frame.samples[0][%u]=%f frame.samples[1][%u]=%f", i, frame.samples[0][i], i, frame.samples[1][i]);
+                }
             }
         }
 

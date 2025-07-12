@@ -1,3 +1,90 @@
+#include <algorithm>
+#include <memory>
+#include <vector>
+#include <iostream>
+#include <cstdint>
+#include <chrono>
+#include <CoreAudio/CoreAudio.h>
+#include <mach/mach_time.h>
+
+#ifdef __OBJC__
+#ifdef __OBJC__
+#import <Foundation/Foundation.h>
+#import <Metal/Metal.h>
+#endif
+
+id<MTLBuffer> MetalBridge::makeParamBuffer(const void* data, size_t size) {
+    id<MTLBuffer> buf = [device newBufferWithLength:size options:MTLResourceStorageModeShared];
+    memcpy(buf.contents, data, size);
+    return buf;
+}
+
+void MetalBridge::updateStageParams(int stageIndex, const void* data, size_t size) {
+    if (stageIndex >= pipelineStages.size()) return;
+    Stage& s = pipelineStages[stageIndex];
+    if (size != s.paramSize) return;
+    memcpy(s.paramBuffer.contents, data, size);
+}
+
+void MetalBridge::runPipelineStages(uint32_t frameIndex) {
+    if (!initialized || pipelineStages.empty()) return;
+
+    const NSUInteger numSamples = 512;
+    const NSUInteger threadsPerGroup = 64;
+    const NSUInteger threadGroups = (numSamples + threadsPerGroup - 1) / threadsPerGroup;
+
+    id<MTLCommandBuffer> cmd = [commandQueue commandBuffer];
+    if (!cmd) {
+        NSLog(@"[❌ GPU] Failed to allocate command buffer for frame %u", frameIndex);
+        return;
+    }
+
+    id<MTLBuffer> input = objc_audioInputBuffer[frameIndex % MAX_FRAMES_IN_FLIGHT];
+    id<MTLBuffer> output = objc_antiAliasedBuffer[frameIndex % MAX_FRAMES_IN_FLIGHT];
+
+    for (size_t i = 0; i < pipelineStages.size(); ++i) {
+        auto& stage = pipelineStages[i];
+        if (stage.dynamicParamGenerator)
+            stage.dynamicParamGenerator(stage.paramBuffer.contents, frameIndex);
+
+        id<MTLComputeCommandEncoder> enc = [cmd computeCommandEncoder];
+        [enc setComputePipelineState:stage.pipeline];
+        [enc setBuffer:stage.paramBuffer offset:0 atIndex:0];
+
+        // Bypass RecordArmVisual: after anti-aliasing, feed antiAliasedBuffer directly to next audio stage
+        if (stage.name == "RecordArmVisual") {
+            // Skip this stage for audio path
+            continue;
+        }
+
+        [enc setBuffer:input offset:0 atIndex:1];
+
+        // Final stage: output to reconstructedBuffer
+        if (i == pipelineStages.size() - 1) {
+            output = objc_reconstructedBuffer[frameIndex % MAX_FRAMES_IN_FLIGHT];
+            NSLog(@"[🟩 FINAL STAGE] Writing to reconstructedBuffer[%u]", frameIndex % MAX_FRAMES_IN_FLIGHT);
+        }
+
+        [enc setBuffer:output offset:0 atIndex:2];
+        [enc dispatchThreadgroups:MTLSizeMake(threadGroups, 1, 1)
+           threadsPerThreadgroup:MTLSizeMake(threadsPerGroup, 1, 1)];
+        [enc endEncoding];
+        std::swap(input, output);
+    }
+
+    [cmd addCompletedHandler:^(id<MTLCommandBuffer> cb) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            NSLog(@"[✅ GPU COMPLETE] Frame %u written to output", frameIndex);
+            frameSyncCoordinator->markStageComplete(SyncRole::GPUProcessor, frameIndex);
+        });
+    }];
+
+    [cmd commit];
+    NSLog(@"[🚀 COMMIT] GPU frame %u dispatched", frameIndex);
+}
+#endif
+
+#include "MetalBridge.h"
 // Objective-C methods and imports
 #ifdef __OBJC__
 #import <Foundation/Foundation.h>
@@ -29,9 +116,8 @@ void MetalBridge::runPipelineStages(uint32_t frameIndex) {
         return;
     }
 
-    id<MTLBuffer> input = audioInputBuffer[frameIndex % MAX_FRAMES_IN_FLIGHT];
-    id<MTLBuffer> intermediate = antiAliasedBuffer[frameIndex % MAX_FRAMES_IN_FLIGHT];
-    id<MTLBuffer> output = intermediate;
+    id<MTLBuffer> input = objc_audioInputBuffer[frameIndex % MAX_FRAMES_IN_FLIGHT];
+    id<MTLBuffer> output = objc_antiAliasedBuffer[frameIndex % MAX_FRAMES_IN_FLIGHT];
 
     for (size_t i = 0; i < pipelineStages.size(); ++i) {
         auto& stage = pipelineStages[i];
@@ -41,20 +127,24 @@ void MetalBridge::runPipelineStages(uint32_t frameIndex) {
         id<MTLComputeCommandEncoder> enc = [cmd computeCommandEncoder];
         [enc setComputePipelineState:stage.pipeline];
         [enc setBuffer:stage.paramBuffer offset:0 atIndex:0];
+
+        // Bypass RecordArmVisual: after anti-aliasing, feed antiAliasedBuffer directly to next audio stage
+        if (stage.name == "RecordArmVisual") {
+            // Skip this stage for audio path
+            continue;
+        }
+
         [enc setBuffer:input offset:0 atIndex:1];
 
-        // Final stage: force output to reconstructedBuffer
+        // Final stage: output to reconstructedBuffer
         if (i == pipelineStages.size() - 1) {
-            output = reconstructedBuffer[frameIndex % MAX_FRAMES_IN_FLIGHT];
+            output = objc_reconstructedBuffer[frameIndex % MAX_FRAMES_IN_FLIGHT];
             NSLog(@"[🟩 FINAL STAGE] Writing to reconstructedBuffer[%u]", frameIndex % MAX_FRAMES_IN_FLIGHT);
         }
 
         [enc setBuffer:output offset:0 atIndex:2];
-
-        // Ensure threads are launched
         [enc dispatchThreadgroups:MTLSizeMake(threadGroups, 1, 1)
            threadsPerThreadgroup:MTLSizeMake(threadsPerGroup, 1, 1)];
-
         [enc endEncoding];
         std::swap(input, output);
     }
@@ -74,12 +164,12 @@ void MetalBridge::runPipelineStages(uint32_t frameIndex) {
 #include <algorithm>
 #include <memory>
 #include <cstdint>
-#import "MetalBridge.h"
-#import <iostream>
-#import <vector>
-#import <CoreAudio/CoreAudio.h>
-#import <mach/mach_time.h>
-#import <chrono>
+#include "MetalBridge.h"
+#include <iostream>
+#include <vector>
+#include <CoreAudio/CoreAudio.h>
+#include <mach/mach_time.h>
+#include <chrono>
 
 // Define the shader parameter structs directly here to avoid include issues
 typedef struct {
@@ -210,14 +300,54 @@ MetalBridge& MetalBridge::getInstance() {
 }
 
 MetalBridge::MetalBridge() {
+    initialized = false;
+    currentFrameIndex = 0;
+
+    frameBoundarySemaphore = dispatch_semaphore_create(MAX_FRAMES_IN_FLIGHT);
+
+    // Pure C++ allocations
+    deferredSignalQueue = std::make_unique<DeferredSignalQueue>();
+    frameSyncCoordinator = std::make_unique<FrameSyncCoordinator>();
+    fencePool = nullptr;
+
+    // Init all buffer pointers to nullptr
+    for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i) {
+        audioInputBuffer[i] = nullptr;
+        antiAliasedBuffer[i] = nullptr;
+        stage1Buffer[i] = nullptr;
+        stage2Buffer[i] = nullptr;
+        stage3Buffer[i] = nullptr;
+        stage4Buffer[i] = nullptr;
+        djTransformedBuffer[i] = nullptr;
+        reconstructedBuffer[i] = nullptr;
+
+        gateParamsBuffer[i] = nullptr;
+        djAnalysisParamsBuffer[i] = nullptr;
+        recordArmVisualParamsBuffer[i] = nullptr;
+        jelliePreprocessParamsBuffer[i] = nullptr;
+        networkSimParamsBuffer[i] = nullptr;
+        pnbtrReconstructionParamsBuffer[i] = nullptr;
+
+        frameIndexBuffer[i] = nullptr;
+    }
+
 #ifdef __OBJC__
-    device = MTLCreateSystemDefaultDevice();
-    if (!device) {
-        throw std::runtime_error("Metal is not supported on this device");
+    @autoreleasepool {
+        device = MTLCreateSystemDefaultDevice();
+        if (!device) {
+            NSLog(@"[❌ METAL] No Metal-compatible GPU found");
+            return;
+        }
+
+        commandQueue = [device newCommandQueue];
+        antiAliasingCompletionEvent = [device newSharedEvent];
+
+        NSLog(@"[✅ METAL] Metal device initialized: %@", device.name);
+
+        // Init Metal fence pool
+        fencePool = std::make_unique<GPUCommandFencePool>(device, MAX_FRAMES_IN_FLIGHT);
     }
 #endif
-    commandQueue = [device newCommandQueue];
-    antiAliasingCompletionEvent = [device newSharedEvent];
 }
 
 MetalBridge::~MetalBridge() {
@@ -341,6 +471,7 @@ void MetalBridge::beginNewAudioFrame() {
             buffersInitialized = true;
         }
     }
+    currentFrameIndex++;
 }
 
 void MetalBridge::runSevenStageProcessingPipelineWithSync(size_t numSamples) {
@@ -548,11 +679,8 @@ void MetalBridge::onGPUFrameComplete(uint64_t frameIndex, size_t numSamples) {
         return;
     }
     
-    float* gpuOutput = (float*)reconstructedBuffer[frameIdx].contents;
-    if (!gpuOutput) {
-        NSLog(@"[❌ GPU FRAME COMPLETE] Invalid Metal buffer contents for frame %llu", frameIndex);
-        return;
-    }
+    float* gpuOutput = (float*)[objc_reconstructedBuffer[frameIdx] contents];
+    NSLog(@"Output[0]=%f Output[1]=%f Output[2]=%f Output[3]=%f", gpuOutput[0], gpuOutput[1], gpuOutput[2], gpuOutput[3]);
     
     // Step 2: Access target audio output buffer using write pattern helper
     AudioFrameBuffer* frameBuf = frameSyncCoordinator->getWriteBuffer();
@@ -611,52 +739,56 @@ void MetalBridge::processAudioBlock(const float* inputData, float* outputData, s
     
     // CRITICAL: Begin new frame for synchronization
     beginNewAudioFrame();
-    
+#ifdef __OBJC__
+    int frameIdx = currentFrameIndex % MAX_FRAMES_IN_FLIGHT;
+    id<MTLBuffer> inputBuffer = audioInputBuffer[frameIdx];
+    if (inputBuffer && inputData) {
+        void* dst = [inputBuffer contents];
+        memcpy(dst, inputData, numSamples * sizeof(float) * 2);
+        NSLog(@"Input[0]=%f Input[1]=%f", inputData[0], inputData[1]);
+    }
+#endif
+
     // Use frame-synchronized processing
     runSevenStageProcessingPipelineWithSync(numSamples);
     
-    // FIXED: Get validated output buffer using -2 read pattern for more GPU processing time
-    if (frameSyncCoordinator) {
-        uint64_t readFrame = frameSyncCoordinator->getReadFrameIndex() - 1;  // Additional frame delay
-        const AudioFrameBuffer* frameBuffer = frameSyncCoordinator->getReadBuffer();
+    // FIX: Use correct frame index for output
+    uint64_t readFrame = frameSyncCoordinator->getReadFrameIndex();
+    const AudioFrameBuffer* frameBuffer = frameSyncCoordinator->getReadBuffer();
+    
+    if (frameBuffer && frameBuffer->ready && frameBuffer->data) {
+        // ADDED: Explicit buffer state validation and debugging
+        float maxAmplitude = 0.0f;
+        for (size_t i = 0; i < frameBuffer->sampleCount * 2; i++) {
+            maxAmplitude = std::max(maxAmplitude, std::abs(frameBuffer->data[i]));
+        }
         
-        if (frameBuffer && frameBuffer->ready && frameBuffer->data) {
-            // ADDED: Explicit buffer state validation and debugging
-            float maxAmplitude = 0.0f;
-            for (size_t i = 0; i < frameBuffer->sampleCount * 2; i++) {
-                maxAmplitude = std::max(maxAmplitude, std::abs(frameBuffer->data[i]));
-            }
-            
-            if (maxAmplitude > 0.0001f) {  // Valid audio detected
-            // Copy validated audio to output
-            size_t copySize = std::min(numSamples, frameBuffer->sampleCount);
-            memcpy(outputData, frameBuffer->data, copySize * 2 * sizeof(float));
-            
-            // Mark audio output as complete
-                frameSyncCoordinator->markStageComplete(SyncRole::AudioOutput, readFrame);
-            
-            static uint32_t outputCounter = 0;
-            if (++outputCounter % 200 == 0) {
-                    NSLog(@"[✅ CHECKPOINT 6] Frame-synchronized audio output: %zu samples, max amplitude: %.6f", copySize, maxAmplitude);
-                }
-            } else {
-                // Buffer exists but contains silence - this is the debugging point
-                memset(outputData, 0, numSamples * sizeof(float) * 2);
-                NSLog(@"[🚨 BUFFER DEBUG] Frame %llu has SILENT audio buffer - GPU processing incomplete! Max amplitude: %.6f", readFrame, maxAmplitude);
-                NSLog(@"[🚨 BUFFER DEBUG] Buffer ready: %s, data ptr: %p, sampleCount: %zu", 
-                      frameBuffer->ready ? "YES" : "NO", frameBuffer->data, frameBuffer->sampleCount);
+        if (maxAmplitude > 0.0001f) {  // Valid audio detected
+        // Copy validated audio to output
+        size_t copySize = std::min(numSamples, frameBuffer->sampleCount);
+        memcpy(outputData, frameBuffer->data, copySize * 2 * sizeof(float));
+        
+        // Mark audio output as complete
+            frameSyncCoordinator->markStageComplete(SyncRole::AudioOutput, readFrame);
+        
+        static uint32_t outputCounter = 0;
+        if (++outputCounter % 200 == 0) {
+                NSLog(@"[✅ CHECKPOINT 6] Frame-synchronized audio output: %zu samples, max amplitude: %.6f", copySize, maxAmplitude);
             }
         } else {
-            // No validated buffer available - output silence
+            // Buffer exists but contains silence - this is the debugging point
             memset(outputData, 0, numSamples * sizeof(float) * 2);
-            NSLog(@"[⚠️ FRAME SYNC] No validated buffer available for frame %llu - outputting silence", readFrame);
-            NSLog(@"[⚠️ FRAME SYNC] frameBuffer: %p, ready: %s, data: %p", 
-                  frameBuffer, frameBuffer ? (frameBuffer->ready ? "YES" : "NO") : "NULL", 
-                  frameBuffer ? frameBuffer->data : nullptr);
+            NSLog(@"[🚨 BUFFER DEBUG] Frame %llu has SILENT audio buffer - GPU processing incomplete! Max amplitude: %.6f", readFrame, maxAmplitude);
+            NSLog(@"[🚨 BUFFER DEBUG] Buffer ready: %s, data ptr: %p, sampleCount: %zu", 
+                  frameBuffer->ready ? "YES" : "NO", frameBuffer->data, frameBuffer->sampleCount);
         }
     } else {
-        // Fallback to original processing
+        // No validated buffer available - output silence
         memset(outputData, 0, numSamples * sizeof(float) * 2);
+        NSLog(@"[⚠️ FRAME SYNC] No validated buffer available for frame %llu - outputting silence", readFrame);
+        NSLog(@"[⚠️ FRAME SYNC] frameBuffer: %p, ready: %s, data: %p", 
+              frameBuffer, frameBuffer ? (frameBuffer->ready ? "YES" : "NO") : "NULL", 
+              frameBuffer ? frameBuffer->data : nullptr);
     }
 }
 
@@ -977,7 +1109,7 @@ kernel void AudioBiquadAntiAliasShader(constant BiquadParams& params [[buffer(0)
                 
                 // Apply spectral smoothing within band
                 if (params.spectralSmoothing > 0.0f) {
-                    float smoothingFactor = params.spectralSmoothing * (1.0f - float(band) * 0.1f);
+                    float smoothingFactor = params.spectralSmoothing * (1.0f - float(bband) * 0.1f);
                     sample = mix(sample, sample * smoothingFactor, 0.3f);
                 }
                 break;

@@ -168,32 +168,48 @@ private:
     std::unique_ptr<FrameSyncCoordinator> frameSyncCoordinator;
     std::unique_ptr<DeferredSignalQueue> deferredSignalQueue;
 
-#ifdef __OBJC__
-    void dispatchThreadsForEncoder(id<MTLComputeCommandEncoder> encoder, id<MTLComputePipelineState> pso, size_t numSamples);
-    void executeSevenStageProcessingPipeline(id<MTLCommandBuffer> commandBuffer, size_t numSamples, uint64_t currentFrame);
-    
-    id<MTLDevice> device;
-    id<MTLCommandQueue> commandQueue;
-    id<MTLLibrary> metalLibrary;
-    
+// -------------------- Shared Members (C++ & Objective-C++) --------------------
     dispatch_semaphore_t frameBoundarySemaphore;
     int currentFrameIndex;
-    
-    // ADDED: GPU fence pool for frame synchronization
     std::unique_ptr<GPUCommandFencePool> fencePool;
-    
-    // ADDED: MTLSharedEvent for low-latency completion signaling
-    id<MTLSharedEvent> antiAliasingCompletionEvent;
     uint64_t antiAliasingEventValue;
-    
-    // ADDED: Performance monitoring for async operations
     std::chrono::high_resolution_clock::time_point antiAliasingStartTime;
     std::atomic<uint32_t> totalAntiAliasingFrames{0};
     std::atomic<float> averageAntiAliasingLatency_us{0.0f};
 
-    // --- Pipeline States ---
+    // Buffers (multi-buffering)
+    // void* audioInputBuffer[MAX_FRAMES_IN_FLIGHT]; // REMOVED
+    // void* antiAliasedBuffer[MAX_FRAMES_IN_FLIGHT]; // REMOVED
+    // void* reconstructedBuffer[MAX_FRAMES_IN_FLIGHT]; // REMOVED
+    // void* antiAliasStateXBuffer; // REMOVED
+    // void* antiAliasStateYBuffer; // REMOVED
+    // void* biquadParamsBuffer; // REMOVED
+    // void* antiAliasDebugBuffer; // REMOVED
+    // void* gateParamsBuffer[MAX_FRAMES_IN_FLIGHT]; // REMOVED
+    // void* stage1Buffer[MAX_FRAMES_IN_FLIGHT]; // REMOVED
+    // void* djAnalysisParamsBuffer[MAX_FRAMES_IN_FLIGHT]; // REMOVED
+    // void* djTransformedBuffer[MAX_FRAMES_IN_FLIGHT]; // REMOVED
+    // void* recordArmVisualParamsBuffer[MAX_FRAMES_IN_FLIGHT]; // REMOVED
+    // void* stage2Buffer[MAX_FRAMES_IN_FLIGHT]; // REMOVED
+    // void* jelliePreprocessParamsBuffer[MAX_FRAMES_IN_FLIGHT]; // REMOVED
+    // void* stage3Buffer[MAX_FRAMES_IN_FLIGHT]; // REMOVED
+    // void* networkSimParamsBuffer[MAX_FRAMES_IN_FLIGHT]; // REMOVED
+    // void* stage4Buffer[MAX_FRAMES_IN_FLIGHT]; // REMOVED
+    // void* pnbtrReconstructionParamsBuffer[MAX_FRAMES_IN_FLIGHT]; // REMOVED
+    // void* frameIndexBuffer[MAX_FRAMES_IN_FLIGHT]; // REMOVED
+
+#ifdef __OBJC__
+// -------------------- Metal/Objective-C++ Members Only --------------------
+    void dispatchThreadsForEncoder(id<MTLComputeCommandEncoder> encoder, id<MTLComputePipelineState> pso, size_t numSamples);
+    void executeSevenStageProcessingPipeline(id<MTLCommandBuffer> commandBuffer, size_t numSamples, uint64_t currentFrame);
+
+    id<MTLDevice> device;
+    id<MTLCommandQueue> commandQueue;
+    id<MTLLibrary> metalLibrary;
+    id<MTLSharedEvent> antiAliasingCompletionEvent;
+
     id<MTLComputePipelineState> audioInputCapturePSO;
-    id<MTLComputePipelineState> audioAntiAliasPSO;  // ADDED: Anti-aliasing pipeline state
+    id<MTLComputePipelineState> audioAntiAliasPSO;
     id<MTLComputePipelineState> audioInputGatePSO;
     id<MTLComputePipelineState> djAnalysisPSO;
     id<MTLComputePipelineState> recordArmVisualPSO;
@@ -201,35 +217,25 @@ private:
     id<MTLComputePipelineState> networkSimPSO;
     id<MTLComputePipelineState> pnbtrReconstructionPSO;
 
-    // --- Metal Buffers (arrays for multi-buffering) ---
-    id<MTLBuffer> audioInputBuffer[MAX_FRAMES_IN_FLIGHT];
-    id<MTLBuffer> antiAliasedBuffer[MAX_FRAMES_IN_FLIGHT];  // ADDED: Anti-aliased buffer
-    id<MTLBuffer> reconstructedBuffer[MAX_FRAMES_IN_FLIGHT];
-    
-    // ADDED: Anti-aliasing state buffers
-    id<MTLBuffer> antiAliasStateXBuffer;
-    id<MTLBuffer> antiAliasStateYBuffer;
-    id<MTLBuffer> biquadParamsBuffer;
-    id<MTLBuffer> antiAliasDebugBuffer;  // ADDED: Debug buffer for anti-aliasing inspection
-    
-    id<MTLBuffer> gateParamsBuffer[MAX_FRAMES_IN_FLIGHT];
-    id<MTLBuffer> stage1Buffer[MAX_FRAMES_IN_FLIGHT];
-    
-    id<MTLBuffer> djAnalysisParamsBuffer[MAX_FRAMES_IN_FLIGHT];
-    id<MTLBuffer> djTransformedBuffer[MAX_FRAMES_IN_FLIGHT];
-
-    id<MTLBuffer> recordArmVisualParamsBuffer[MAX_FRAMES_IN_FLIGHT];
-    id<MTLBuffer> stage2Buffer[MAX_FRAMES_IN_FLIGHT];
-
-    id<MTLBuffer> jelliePreprocessParamsBuffer[MAX_FRAMES_IN_FLIGHT];
-    id<MTLBuffer> stage3Buffer[MAX_FRAMES_IN_FLIGHT];
-
-    id<MTLBuffer> networkSimParamsBuffer[MAX_FRAMES_IN_FLIGHT];
-    id<MTLBuffer> stage4Buffer[MAX_FRAMES_IN_FLIGHT];
-
-    id<MTLBuffer> pnbtrReconstructionParamsBuffer[MAX_FRAMES_IN_FLIGHT];
-    
-    // ADDED: Frame index buffer for GPU shaders
-    id<MTLBuffer> frameIndexBuffer[MAX_FRAMES_IN_FLIGHT];
+    // Buffers as Metal types
+    id<MTLBuffer> objc_audioInputBuffer[MAX_FRAMES_IN_FLIGHT];
+    id<MTLBuffer> objc_antiAliasedBuffer[MAX_FRAMES_IN_FLIGHT];
+    id<MTLBuffer> objc_reconstructedBuffer[MAX_FRAMES_IN_FLIGHT];
+    id<MTLBuffer> objc_antiAliasStateXBuffer;
+    id<MTLBuffer> objc_antiAliasStateYBuffer;
+    id<MTLBuffer> objc_biquadParamsBuffer;
+    id<MTLBuffer> objc_antiAliasDebugBuffer;
+    id<MTLBuffer> objc_gateParamsBuffer[MAX_FRAMES_IN_FLIGHT];
+    id<MTLBuffer> objc_stage1Buffer[MAX_FRAMES_IN_FLIGHT];
+    id<MTLBuffer> objc_djAnalysisParamsBuffer[MAX_FRAMES_IN_FLIGHT];
+    id<MTLBuffer> objc_djTransformedBuffer[MAX_FRAMES_IN_FLIGHT];
+    id<MTLBuffer> objc_recordArmVisualParamsBuffer[MAX_FRAMES_IN_FLIGHT];
+    id<MTLBuffer> objc_stage2Buffer[MAX_FRAMES_IN_FLIGHT];
+    id<MTLBuffer> objc_jelliePreprocessParamsBuffer[MAX_FRAMES_IN_FLIGHT];
+    id<MTLBuffer> objc_stage3Buffer[MAX_FRAMES_IN_FLIGHT];
+    id<MTLBuffer> objc_networkSimParamsBuffer[MAX_FRAMES_IN_FLIGHT];
+    id<MTLBuffer> objc_stage4Buffer[MAX_FRAMES_IN_FLIGHT];
+    id<MTLBuffer> objc_pnbtrReconstructionParamsBuffer[MAX_FRAMES_IN_FLIGHT];
+    id<MTLBuffer> objc_frameIndexBuffer[MAX_FRAMES_IN_FLIGHT];
 #endif
 };

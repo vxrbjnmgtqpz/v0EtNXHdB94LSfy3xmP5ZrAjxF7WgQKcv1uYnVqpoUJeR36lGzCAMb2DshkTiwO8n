@@ -160,49 +160,19 @@ kernel void PNBTR_reconstruct(device const float* networkBuffer [[buffer(0)]],
     const int outputChannel = index % 2;
     
     // Reconstruct from 8-channel data
-    float reconstructedSample = 0.0f;
-    
-    for (int ch = 0; ch < 4; ++ch) {
-        const int channelOffset = outputChannel * 4 + ch;
-        const int sourceIndex = outputSample * downsampleRatio * outputChannels + channelOffset;
-        
-        if (sourceIndex < outputSamples * outputChannels) {
-            const int packetIndex = (outputSample * downsampleRatio) / packetSize;
-            
-            if (packetLossMap[packetIndex]) {
-                // Apply neural reconstruction (simplified as spectral interpolation)
-                float interpolatedValue = 0.0f;
-                
-                // Find nearest non-lost packets for interpolation
-                int prevPacket = packetIndex - 1;
-                int nextPacket = packetIndex + 1;
-                
-                while (prevPacket >= 0 && packetLossMap[prevPacket]) prevPacket--;
-                while (nextPacket < (outputSamples / packetSize) && packetLossMap[nextPacket]) nextPacket++;
-                
-                if (prevPacket >= 0 && nextPacket < (outputSamples / packetSize)) {
-                    // Linear interpolation between valid packets
-                    const float prevValue = networkBuffer[prevPacket * packetSize * outputChannels + channelOffset];
-                    const float nextValue = networkBuffer[nextPacket * packetSize * outputChannels + channelOffset];
-                    const float ratio = float(packetIndex - prevPacket) / float(nextPacket - prevPacket);
-                    interpolatedValue = prevValue + ratio * (nextValue - prevValue);
-                } else if (prevPacket >= 0) {
-                    interpolatedValue = networkBuffer[prevPacket * packetSize * outputChannels + channelOffset];
-                } else if (nextPacket < (outputSamples / packetSize)) {
-                    interpolatedValue = networkBuffer[nextPacket * packetSize * outputChannels + channelOffset];
-                }
-                
-                reconstructedSample += interpolatedValue;
-            } else {
-                // Use original data
-                reconstructedSample += networkBuffer[sourceIndex];
-            }
-        }
+    float sample = 0.0f;
+    for (int ch = 0; ch < outputChannels; ++ch) {
+        int srcIndex = outputSample * outputChannels + ch;
+        sample += networkBuffer[srcIndex];
     }
+    sample /= float(outputChannels);
     
-    // Apply gain and output
+    // Apply gain
     const float gainLinear = pow(10.0f, params.gainDb / 20.0f);
-    outputBuffer[index] = reconstructedSample * gainLinear;
+    sample *= gainLinear;
+    
+    // Always write to output
+    outputBuffer[index] = sample;
 }
 
 //==============================================================================
@@ -268,4 +238,4 @@ kernel void calculate_metrics(device const float* inputBuffer [[buffer(0)]],
     metrics->rmsOutput = outputRMS;
     metrics->totalPackets = totalPackets;
     metrics->lostPackets = lostPackets;
-} 
+}
