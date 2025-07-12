@@ -1,3 +1,30 @@
+// --- GPU Pipeline Stage Struct and Utilities ---
+struct Stage {
+    id<MTLComputePipelineState> pipeline;
+    id<MTLBuffer> paramBuffer;
+    size_t paramSize;
+    std::function<void(void*, uint32_t)> dynamicParamGenerator = nullptr;
+};
+
+std::vector<Stage> pipelineStages;
+
+#define REGISTER_GPU_STAGE(NAME, PIPELINE, PARAM_TYPE, INITVAL) \
+    { \
+        PARAM_TYPE initVal = INITVAL; \
+        id<MTLBuffer> buf = makeParamBuffer(&initVal, sizeof(PARAM_TYPE)); \
+        pipelineStages.push_back({PIPELINE, buf, sizeof(PARAM_TYPE), nullptr}); \
+    }
+
+#define REGISTER_GPU_STAGE_DYNAMIC(NAME, PIPELINE, PARAM_TYPE, INITVAL, GEN_FN) \
+    { \
+        PARAM_TYPE initVal = INITVAL; \
+        id<MTLBuffer> buf = makeParamBuffer(&initVal, sizeof(PARAM_TYPE)); \
+        pipelineStages.push_back({PIPELINE, buf, sizeof(PARAM_TYPE), GEN_FN}); \
+    }
+
+id<MTLBuffer> makeParamBuffer(const void* data, size_t size);
+void updateStageParams(int stageIndex, const void* data, size_t size);
+void runPipelineStages(uint32_t frameIndex);
 #pragma once
 
 #ifdef __OBJC__

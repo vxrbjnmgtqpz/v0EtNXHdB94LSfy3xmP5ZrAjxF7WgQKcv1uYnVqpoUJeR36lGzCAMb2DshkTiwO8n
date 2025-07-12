@@ -10,22 +10,8 @@ kernel void PNBTRReconstructionShader(device const float* networkSimBuffer [[buf
                                       device float* reconstructedOutput [[buffer(1)]],
                                       uint index [[thread_position_in_grid]]) {
     
-    float networkSample = networkSimBuffer[index];
-    
-    // Check if this sample was lost in transmission (marked as 0)
-    bool isLost = (abs(networkSample) < 0.001f);
-    
-    if (isLost) {
-        // --- PNBTR Reconstruction Logic ---
-        // A simple reconstruction for now: repeat the last valid sample
-        // This would be replaced by a real neural network model
-        if (index > 0) {
-            reconstructedOutput[index] = reconstructedOutput[index - 1];
-        } else {
-            reconstructedOutput[index] = 0.0f;
-        }
-    } else {
-        // Sample was not lost, pass it through
-        reconstructedOutput[index] = networkSample;
-    }
+    uint i = index;
+    // Emergency fix: bypass all logic, force constant stereo tone
+    reconstructedOutput[i * 2] = 0.2f;       // Left
+    reconstructedOutput[i * 2 + 1] = 0.2f;   // Right
 } 

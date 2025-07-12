@@ -149,16 +149,17 @@ static OSStatus InputRenderCallback(void* inRefCon,
     // Convert mono input to stereo AudioFrame
     AudioFrame frame;
     frame.hostTime = inTimeStamp->mHostTime;
+    frame.frameIndex = frame.hostTime; // Use hostTime as canonical frameIndex
     frame.sample_count = inNumberFrames;
-    
+
     float* inputSamples = (float*)bufferList->mBuffers[0].mData;
     for (uint32_t i = 0; i < inNumberFrames; ++i) {
         frame.samples[0][i] = inputSamples[i];  // Left channel = mono input
         frame.samples[1][i] = inputSamples[i];  // Right channel = duplicate mono
     }
-    
+
     if (!bridge->inputRingBuffer.push(frame)) {
-        // NSLog(@"[InputRenderCallback] Warning: Input ring buffer full, dropping frame.");
+        // NSLog("[InputRenderCallback] Warning: Input ring buffer full, dropping frame.");
     }
     
     free(bufferList->mBuffers[0].mData);

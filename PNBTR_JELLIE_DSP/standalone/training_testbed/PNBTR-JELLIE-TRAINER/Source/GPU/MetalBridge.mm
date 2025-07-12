@@ -1,3 +1,66 @@
+// Objective-C methods and imports
+#ifdef __OBJC__
+#import <Foundation/Foundation.h>
+#import <Metal/Metal.h>
+
+id<MTLBuffer> MetalBridge::makeParamBuffer(const void* data, size_t size) {
+    id<MTLBuffer> buf = [device newBufferWithLength:size options:MTLResourceStorageModeShared];
+    memcpy(buf.contents, data, size);
+    return buf;
+}
+
+void MetalBridge::updateStageParams(int stageIndex, const void* data, size_t size) {
+    if (stageIndex >= pipelineStages.size()) return;
+    Stage& s = pipelineStages[stageIndex];
+    if (size != s.paramSize) return;
+    memcpy(s.paramBuffer.contents, data, size);
+}
+
+void MetalBridge::runPipelineStages(uint32_t frameIndex) {
+    id<MTLBuffer> ping = audioInputBuffer[frameIndex % MAX_FRAMES_IN_FLIGHT];
+    id<MTLBuffer> pong = antiAliasedBuffer[frameIndex % MAX_FRAMES_IN_FLIGHT];
+    id<MTLBuffer> input = ping;
+    id<MTLBuffer> output = pong;
+
+    id<MTLCommandBuffer> cmd = [commandQueue commandBuffer];
+    if (!cmd) return;
+
+    size_t stageCount = pipelineStages.size();
+    for (size_t i = 0; i < stageCount; ++i) {
+        auto& stage = pipelineStages[i];
+        if (stage.dynamicParamGenerator)
+            stage.dynamicParamGenerator(stage.paramBuffer.contents, frameIndex);
+
+        id<MTLComputeCommandEncoder> enc = [cmd computeCommandEncoder];
+        [enc setComputePipelineState:stage.pipeline];
+        [enc setBuffer:stage.paramBuffer offset:0 atIndex:0];
+        [enc setBuffer:input offset:0 atIndex:1];
+        [enc setBuffer:output offset:0 atIndex:2];
+        if (i == stageCount - 1) {
+            NSLog(@"[GPU] Encoding final stage %lu", (unsigned long)i);
+        }
+        // ...dispatch threads...
+        [enc endEncoding];
+        std::swap(input, output);
+    }
+
+    size_t stageCount = pipelineStages.size();
+    id<MTLBuffer> finalOutput = (stageCount % 2 == 0) ? ping : pong;
+
+    [cmd addCompletedHandler:^(id<MTLCommandBuffer> cb) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            outputRingBuffer.writeFrame(frameIndex, finalOutput);
+            frameStateTracker.markStageComplete("GPU", frameIndex);
+        });
+    }];
+
+    [cmd commit];
+}
+#endif
+
+#include <algorithm>
+#include <memory>
+#include <cstdint>
 #import "MetalBridge.h"
 #import <iostream>
 #import <vector>
@@ -57,11 +120,11 @@ struct AdaptiveQualityController {
     // Performance tracking
     float averageLatency_us = 0.0f;
     float peakLatency_us = 0.0f;
-    uint32_t performanceSamples = 0;
+    std::uint32_t performanceSamples = 0;
     
     // Quality parameters
     float currentQualityLevel = 1.0f;  // 0.0 = minimum, 1.0 = maximum
-    uint32_t currentFFTSize = 1024;
+    std::uint32_t currentFFTSize = 1024;
     float currentNeuralComplexity = 1.0f;
     bool enableSpectralProcessing = true;
     
@@ -134,51 +197,14 @@ MetalBridge& MetalBridge::getInstance() {
 }
 
 MetalBridge::MetalBridge() {
+#ifdef __OBJC__
     device = MTLCreateSystemDefaultDevice();
     if (!device) {
         throw std::runtime_error("Metal is not supported on this device");
     }
+#endif
     commandQueue = [device newCommandQueue];
-    frameBoundarySemaphore = dispatch_semaphore_create(MAX_FRAMES_IN_FLIGHT);
-    initialized = false;
-    currentFrameIndex = 0;
-    
-    // ADDED: Initialize MTLSharedEvent for low-latency completion signaling
     antiAliasingCompletionEvent = [device newSharedEvent];
-    antiAliasingEventValue = 0;
-    
-    // ADDED: Initialize frame synchronization components
-    frameSyncCoordinator = std::make_unique<FrameSyncCoordinator>();
-    
-    // CRITICAL: Initialize buffers with max sample count
-    if (!frameSyncCoordinator->initializeBuffers(8192)) {  // Support up to 8192 samples
-        NSLog(@"[❌ INIT] Failed to initialize FrameSyncCoordinator buffers");
-        initialized = false;
-        return;
-    }
-    
-    deferredSignalQueue = std::make_unique<DeferredSignalQueue>();
-    fencePool = std::make_unique<GPUCommandFencePool>(device, MAX_FRAMES_IN_FLIGHT);
-    
-    NSLog(@"[🧠 FRAME SYNC] FrameSyncCoordinator initialized for cross-thread synchronization");
-    
-    // Set buffer pointers to nil
-    for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i) {
-        audioInputBuffer[i] = nil;
-        gateParamsBuffer[i] = nil;
-        stage1Buffer[i] = nil;
-        djAnalysisParamsBuffer[i] = nil;
-        djTransformedBuffer[i] = nil;
-        recordArmVisualParamsBuffer[i] = nil;
-        stage2Buffer[i] = nil;
-        jelliePreprocessParamsBuffer[i] = nil;
-        stage3Buffer[i] = nil;
-        networkSimParamsBuffer[i] = nil;
-        stage4Buffer[i] = nil;
-        pnbtrReconstructionParamsBuffer[i] = nil;
-        reconstructedBuffer[i] = nil;
-        frameIndexBuffer[i] = nil;  // ADDED: Frame index buffer
-    }
 }
 
 MetalBridge::~MetalBridge() {
@@ -211,45 +237,52 @@ void MetalBridge::prepareBuffers(size_t numSamples, double sampleRate) {
     this->sampleRate = sampleRate;
 
     size_t stereoBufferSize = numSamples * sizeof(float) * 2;
-    for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i) {
-        audioInputBuffer[i] = [device newBufferWithLength:stereoBufferSize options:MTLResourceStorageModeShared];
-        antiAliasedBuffer[i] = [device newBufferWithLength:stereoBufferSize options:MTLResourceStorageModeShared];  // ADDED: Anti-aliased buffer
-        stage1Buffer[i] = [device newBufferWithLength:stereoBufferSize options:MTLResourceStorageModeShared];
-        djTransformedBuffer[i] = [device newBufferWithLength:stereoBufferSize options:MTLResourceStorageModeShared];
-        stage2Buffer[i] = [device newBufferWithLength:stereoBufferSize options:MTLResourceStorageModeShared];
-        stage3Buffer[i] = [device newBufferWithLength:stereoBufferSize options:MTLResourceStorageModeShared];
-        stage4Buffer[i] = [device newBufferWithLength:stereoBufferSize options:MTLResourceStorageModeShared];
-        reconstructedBuffer[i] = [device newBufferWithLength:stereoBufferSize options:MTLResourceStorageModeShared];
+#ifdef __OBJC__
+    // MetalBridge Objective-C initialization
+    void MetalBridge::initializeMetalBuffers(size_t stereoBufferSize, size_t maxThreadsTotal) {
+        @autoreleasepool {
+            for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i) {
+                audioInputBuffer[i] = [device newBufferWithLength:stereoBufferSize options:MTLResourceStorageModeShared];
+                antiAliasedBuffer[i] = [device newBufferWithLength:stereoBufferSize options:MTLResourceStorageModeShared];
+                stage1Buffer[i] = [device newBufferWithLength:stereoBufferSize options:MTLResourceStorageModeShared];
+                djTransformedBuffer[i] = [device newBufferWithLength:stereoBufferSize options:MTLResourceStorageModeShared];
+                stage2Buffer[i] = [device newBufferWithLength:stereoBufferSize options:MTLResourceStorageModeShared];
+                stage3Buffer[i] = [device newBufferWithLength:stereoBufferSize options:MTLResourceStorageModeShared];
+                stage4Buffer[i] = [device newBufferWithLength:stereoBufferSize options:MTLResourceStorageModeShared];
+                reconstructedBuffer[i] = [device newBufferWithLength:stereoBufferSize options:MTLResourceStorageModeShared];
 
-        gateParamsBuffer[i] = [device newBufferWithLength:sizeof(GateParams) options:MTLResourceStorageModeShared];
-        djAnalysisParamsBuffer[i] = [device newBufferWithLength:sizeof(DJAnalysisParams) options:MTLResourceStorageModeShared];
-        recordArmVisualParamsBuffer[i] = [device newBufferWithLength:sizeof(RecordArmVisualParams) options:MTLResourceStorageModeShared];
-        jelliePreprocessParamsBuffer[i] = [device newBufferWithLength:sizeof(JELLIEPreprocessParams) options:MTLResourceStorageModeShared];
-        networkSimParamsBuffer[i] = [device newBufferWithLength:sizeof(NetworkSimulationParams) options:MTLResourceStorageModeShared];
-        pnbtrReconstructionParamsBuffer[i] = [device newBufferWithLength:sizeof(PNBTRReconstructionParams) options:MTLResourceStorageModeShared];
+                gateParamsBuffer[i] = [device newBufferWithLength:sizeof(GateParams) options:MTLResourceStorageModeShared];
+                djAnalysisParamsBuffer[i] = [device newBufferWithLength:sizeof(DJAnalysisParams) options:MTLResourceStorageModeShared];
+                recordArmVisualParamsBuffer[i] = [device newBufferWithLength:sizeof(RecordArmVisualParams) options:MTLResourceStorageModeShared];
+                jelliePreprocessParamsBuffer[i] = [device newBufferWithLength:sizeof(JELLIEPreprocessParams) options:MTLResourceStorageModeShared];
+                networkSimParamsBuffer[i] = [device newBufferWithLength:sizeof(NetworkSimulationParams) options:MTLResourceStorageModeShared];
+                pnbtrReconstructionParamsBuffer[i] = [device newBufferWithLength:sizeof(PNBTRReconstructionParams) options:MTLResourceStorageModeShared];
+            }
+            
+            // ADDED: Initialize anti-aliasing state buffers
+            // CRITICAL: Allocate for maximum possible thread count, not just current numSamples
+            // Metal devices typically support 1024+ threads per threadgroup
+            size_t maxThreadsPerGroup = 1024;  // Conservative estimate for Metal compatibility
+            size_t maxThreadsTotal = maxThreadsPerGroup * 16; // Allow for multiple thread groups
+            
+            antiAliasStateXBuffer = [device newBufferWithLength:maxThreadsTotal * sizeof(float) * 2 options:MTLResourceStorageModeShared];
+            antiAliasStateYBuffer = [device newBufferWithLength:maxThreadsTotal * sizeof(float) * 2 options:MTLResourceStorageModeShared];
+            biquadParamsBuffer = [device newBufferWithLength:sizeof(BiquadParams) options:MTLResourceStorageModeShared];
+            antiAliasDebugBuffer = [device newBufferWithLength:(512 * sizeof(float)) options:MTLResourceStorageModeShared];
+        }
+        
+        // CRITICAL: Clear the state buffers to prevent garbage data
+        memset(antiAliasStateXBuffer.contents, 0, antiAliasStateXBuffer.length);
+        memset(antiAliasStateYBuffer.contents, 0, antiAliasStateYBuffer.length);
+        
+        NSLog(@"[🔧 ANTI-ALIAS DEBUG] Allocated state buffers for %zu threads (maxThreadsTotal=%zu)", maxThreadsTotal, maxThreadsTotal);
+        
+        // Initialize anti-aliasing with default 20kHz low-pass filter
+        setAntiAliasingParams(20000.0f, 0.707f);
+        
+        NSLog(@"[METAL] Anti-aliasing filter initialized with 20kHz cutoff");
     }
-    
-    // ADDED: Initialize anti-aliasing state buffers
-    // CRITICAL: Allocate for maximum possible thread count, not just current numSamples
-    // Metal devices typically support 1024+ threads per threadgroup
-    size_t maxThreadsPerGroup = 1024;  // Conservative estimate for Metal compatibility
-    size_t maxThreadsTotal = maxThreadsPerGroup * 16; // Allow for multiple thread groups
-    
-    antiAliasStateXBuffer = [device newBufferWithLength:maxThreadsTotal * sizeof(float) * 2 options:MTLResourceStorageModeShared];
-    antiAliasStateYBuffer = [device newBufferWithLength:maxThreadsTotal * sizeof(float) * 2 options:MTLResourceStorageModeShared];
-    biquadParamsBuffer = [device newBufferWithLength:sizeof(BiquadParams) options:MTLResourceStorageModeShared];
-    antiAliasDebugBuffer = [device newBufferWithLength:(512 * sizeof(float)) options:MTLResourceStorageModeShared];
-    
-    // CRITICAL: Clear the state buffers to prevent garbage data
-    memset(antiAliasStateXBuffer.contents, 0, antiAliasStateXBuffer.length);
-    memset(antiAliasStateYBuffer.contents, 0, antiAliasStateYBuffer.length);
-    
-    NSLog(@"[🔧 ANTI-ALIAS DEBUG] Allocated state buffers for %zu threads (maxThreadsTotal=%zu)", maxThreadsTotal, maxThreadsTotal);
-    
-    // Initialize anti-aliasing with default 20kHz low-pass filter
-    setAntiAliasingParams(20000.0f, 0.707f);
-    
-    NSLog(@"[METAL] Anti-aliasing filter initialized with 20kHz cutoff");
+#endif
 }
 
 // ADDED: Frame synchronization methods
@@ -355,7 +388,7 @@ void MetalBridge::onAntiAliasingComplete(uint64_t frameIndex) {
 // ADDED: Enhanced async completion handlers with error handling
 void MetalBridge::onAntiAliasingCompleteWithValidation(uint64_t frameIndex, bool success, float processingTime_us) {
     // Update atomic state flags
-    antiAliasingInProgress = false;
+    this->antiAliasingInProgress = false;
     lastAntiAliasingFrame = frameIndex;
     lastAntiAliasingLatency_us = processingTime_us;
     
@@ -791,54 +824,91 @@ kernel void AudioBiquadAntiAliasShader(constant BiquadParams& params [[buffer(0)
     // Biquad difference equation: y[n] = b0*x[n] + b1*x[n-1] + b2*x[n-2] - a1*y[n-1] - a2*y[n-2]
     float y0 = params.b0 * x0 + params.b1 * x1 + params.b2 * x2 - params.a1 * y1 - params.a2 * y2;
     
-    // Store output
-    output[inputIndex] = y0;
-    
-    // Update state
-    stateX[gid] = float2(x0, x1);
-    stateY[gid] = float2(y0, y1);
-}
+    if (!frameSyncCoordinator) return;
+    if (!validateFrameState(frameIndex, "runPipelineStages")) return;
 
-kernel void audioInputGateKernel(constant float* input [[buffer(0)]],
-                                constant GateParams& params [[buffer(1)]],
-                                device float* output [[buffer(2)]],
-                                uint id [[thread_position_in_grid]]) {
-    float sample = input[id];
-    
-    // Apply adaptive gating based on threshold
-    float currentThreshold = params.threshold;
-    if (params.adaptiveThreshold > 0.0f) {
-        // Simple adaptive threshold based on recent amplitude
-        currentThreshold = mix(params.threshold, params.adaptiveThreshold, 0.1f);
-    }
-    
-    if (abs(sample) < currentThreshold) {
-        sample = 0.0f;
-    }
-    
-    // Apply gain and record arm logic
-    if (params.jellieRecordArmed || params.pnbtrRecordArmed) {
-        sample *= params.gain;
-    }
-    
-    output[id] = sample;
-}
+    const NSUInteger numSamples = 512;
+    const NSUInteger threadsPerGroup = 64;
+    const NSUInteger threadGroups = (numSamples + threadsPerGroup - 1) / threadsPerGroup;
 
-kernel void djSpectralAnalysisKernel(constant float* input [[buffer(0)]],
-                                   constant DJAnalysisParams& params [[buffer(1)]],
-                                   device float* output [[buffer(2)]],
-                                   uint id [[thread_position_in_grid]]) {
-    float sample = input[id];
-    
-    // REAL FFT PROCESSING FOR SPECTRAL ANALYSIS
-    uint fftSize = uint(params.fftSize);
-    uint sampleRate = uint(params.sampleRate);
-    
-    // Apply window function if enabled
-    if (params.windowType > 0.0f) {
-        float windowPos = float(id % fftSize) / float(fftSize);
-        float window = 0.5f * (1.0f - cos(2.0f * M_PI_F * windowPos)); // Hann window
-        sample *= window;
+    id<MTLCommandBuffer> cmd = [commandQueue commandBuffer];
+    if (!cmd) {
+        NSLog(@"[❌ GPU] Failed to allocate command buffer for frame %u", frameIndex);
+        return;
+    }
+
+    id<MTLBuffer> input = audioInputBuffer[frameIndex % MAX_FRAMES_IN_FLIGHT];
+    id<MTLBuffer> intermediate = antiAliasedBuffer[frameIndex % MAX_FRAMES_IN_FLIGHT];
+    id<MTLBuffer> output = intermediate;
+
+    for (size_t i = 0; i < pipelineStages.size(); ++i) {
+        auto& stage = pipelineStages[i];
+        if (stage.dynamicParamGenerator)
+            stage.dynamicParamGenerator(stage.paramBuffer.contents, frameIndex);
+
+        id<MTLComputeCommandEncoder> enc = [cmd computeCommandEncoder];
+        [enc setComputePipelineState:stage.pipeline];
+        [enc setBuffer:stage.paramBuffer offset:0 atIndex:0];
+        [enc setBuffer:input offset:0 atIndex:1];
+
+        // Final stage: output to reconstructedBuffer
+        if (i == pipelineStages.size() - 1) {
+            output = reconstructedBuffer[frameIndex % MAX_FRAMES_IN_FLIGHT];
+            NSLog(@"[🔁 FINAL STAGE] Output to reconstructedBuffer[%u]", frameIndex % MAX_FRAMES_IN_FLIGHT);
+        }
+
+        [enc setBuffer:output offset:0 atIndex:2];
+        [enc dispatchThreadgroups:MTLSizeMake(threadGroups, 1, 1)
+           threadsPerThreadgroup:MTLSizeMake(threadsPerGroup, 1, 1)];
+        [enc endEncoding];
+
+        std::swap(input, output);
+    }
+
+    [cmd addCompletedHandler:^(id<MTLCommandBuffer> cb) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            int bufIndex = frameIndex % MAX_FRAMES_IN_FLIGHT;
+            float* out = (float*)reconstructedBuffer[bufIndex].contents;
+
+            // Waveform snapshot with quantization and normalization
+            WaveformFrameData* waveform = frameSyncCoordinator->getWriteWaveform();
+            if (waveform && out) {
+                float maxAmp = 0.00001f;
+                const int N = WAVEFORM_SNAPSHOT_SIZE;
+                // Find max amplitude for normalization
+                for (int i = 0; i < numSamples; ++i) {
+                    float L = out[i * 2];
+                    float R = out[i * 2 + 1];
+                    maxAmp = std::max(maxAmp, std::max(std::abs(L), std::abs(R)));
+                }
+                // Downsample + normalize + quantize
+                for (int i = 0; i < N; ++i) {
+                    int srcIndex = (i * numSamples) / N;
+                    float L = out[srcIndex * 2] / maxAmp;
+                    float R = out[srcIndex * 2 + 1] / maxAmp;
+                    L = std::fmax(std::fmin(L, 1.0f), -1.0f);
+                    R = std::fmax(std::fmin(R, 1.0f), -1.0f);
+                    int8_t qL = static_cast<int8_t>(roundf(L * 127.0f));
+                    int8_t qR = static_cast<int8_t>(roundf(R * 127.0f));
+                    waveform->left[i] = qL / 127.0f;
+                    waveform->right[i] = qR / 127.0f;
+                }
+                waveform->ready.store(true);
+                waveform->frameIndex = frameIndex;
+                NSLog(@"[📈 WAVEFORM] Frame %u | MaxAmp: %.5f | L[0]=%.2f L[1]=%.2f R[0]=%.2f R[1]=%.2f",
+                      frameIndex, maxAmp,
+                      waveform->left[0], waveform->left[1],
+                      waveform->right[0], waveform->right[1]);
+                frameSyncCoordinator->markStageComplete(SyncRole::WaveformDisplay, frameIndex);
+            }
+
+            frameSyncCoordinator->markStageComplete(SyncRole::GPUProcessor, frameIndex);
+            NSLog(@"[✅ GPU COMPLETE] Final audio written to reconstructedBuffer[%u]", bufIndex);
+        });
+    }];
+
+    [cmd commit];
+    NSLog(@"[🚀 COMMIT] Submitted GPU frame %u", frameIndex);
     }
     
     // Real-time frequency domain analysis
@@ -1004,7 +1074,8 @@ kernel void pnbtrReconstructionKernel(constant float* input [[buffer(0)]],
         sample = mix(sample, sineWave, 0.1f); // Reduced mixing for neural mode
     }
     
-    output[id] = sample;
+    // DEBUG PATCH: Force output to 0.2f for all samples to validate pipeline
+    output[id] = 0.2f;
 }
 
 // Bulletproof GPU dispatch test wrapper
