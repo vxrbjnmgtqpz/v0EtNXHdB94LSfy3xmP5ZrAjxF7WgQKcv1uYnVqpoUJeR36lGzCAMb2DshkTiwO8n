@@ -3,6 +3,7 @@
 #import <vector>
 #import <CoreAudio/CoreAudio.h>
 #import <mach/mach_time.h>
+#import <chrono>
 
 // Define the shader parameter structs directly here to avoid include issues
 typedef struct {
@@ -142,6 +143,25 @@ MetalBridge::MetalBridge() {
     initialized = false;
     currentFrameIndex = 0;
     
+    // ADDED: Initialize MTLSharedEvent for low-latency completion signaling
+    antiAliasingCompletionEvent = [device newSharedEvent];
+    antiAliasingEventValue = 0;
+    
+    // ADDED: Initialize frame synchronization components
+    frameSyncCoordinator = std::make_unique<FrameSyncCoordinator>();
+    
+    // CRITICAL: Initialize buffers with max sample count
+    if (!frameSyncCoordinator->initializeBuffers(8192)) {  // Support up to 8192 samples
+        NSLog(@"[❌ INIT] Failed to initialize FrameSyncCoordinator buffers");
+        initialized = false;
+        return;
+    }
+    
+    deferredSignalQueue = std::make_unique<DeferredSignalQueue>();
+    fencePool = std::make_unique<GPUCommandFencePool>(device, MAX_FRAMES_IN_FLIGHT);
+    
+    NSLog(@"[🧠 FRAME SYNC] FrameSyncCoordinator initialized for cross-thread synchronization");
+    
     // Set buffer pointers to nil
     for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i) {
         audioInputBuffer[i] = nil;
@@ -157,6 +177,7 @@ MetalBridge::MetalBridge() {
         stage4Buffer[i] = nil;
         pnbtrReconstructionParamsBuffer[i] = nil;
         reconstructedBuffer[i] = nil;
+        frameIndexBuffer[i] = nil;  // ADDED: Frame index buffer
     }
 }
 
@@ -186,9 +207,13 @@ bool MetalBridge::initialize() {
 void MetalBridge::prepareBuffers(size_t numSamples, double sampleRate) {
     if (!initialized) return;
 
+    // Store sample rate for biquad coefficient calculation
+    this->sampleRate = sampleRate;
+
     size_t stereoBufferSize = numSamples * sizeof(float) * 2;
     for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i) {
         audioInputBuffer[i] = [device newBufferWithLength:stereoBufferSize options:MTLResourceStorageModeShared];
+        antiAliasedBuffer[i] = [device newBufferWithLength:stereoBufferSize options:MTLResourceStorageModeShared];  // ADDED: Anti-aliased buffer
         stage1Buffer[i] = [device newBufferWithLength:stereoBufferSize options:MTLResourceStorageModeShared];
         djTransformedBuffer[i] = [device newBufferWithLength:stereoBufferSize options:MTLResourceStorageModeShared];
         stage2Buffer[i] = [device newBufferWithLength:stereoBufferSize options:MTLResourceStorageModeShared];
@@ -203,281 +228,359 @@ void MetalBridge::prepareBuffers(size_t numSamples, double sampleRate) {
         networkSimParamsBuffer[i] = [device newBufferWithLength:sizeof(NetworkSimulationParams) options:MTLResourceStorageModeShared];
         pnbtrReconstructionParamsBuffer[i] = [device newBufferWithLength:sizeof(PNBTRReconstructionParams) options:MTLResourceStorageModeShared];
     }
+    
+    // ADDED: Initialize anti-aliasing state buffers
+    // CRITICAL: Allocate for maximum possible thread count, not just current numSamples
+    // Metal devices typically support 1024+ threads per threadgroup
+    size_t maxThreadsPerGroup = 1024;  // Conservative estimate for Metal compatibility
+    size_t maxThreadsTotal = maxThreadsPerGroup * 16; // Allow for multiple thread groups
+    
+    antiAliasStateXBuffer = [device newBufferWithLength:maxThreadsTotal * sizeof(float) * 2 options:MTLResourceStorageModeShared];
+    antiAliasStateYBuffer = [device newBufferWithLength:maxThreadsTotal * sizeof(float) * 2 options:MTLResourceStorageModeShared];
+    biquadParamsBuffer = [device newBufferWithLength:sizeof(BiquadParams) options:MTLResourceStorageModeShared];
+    antiAliasDebugBuffer = [device newBufferWithLength:(512 * sizeof(float)) options:MTLResourceStorageModeShared];
+    
+    // CRITICAL: Clear the state buffers to prevent garbage data
+    memset(antiAliasStateXBuffer.contents, 0, antiAliasStateXBuffer.length);
+    memset(antiAliasStateYBuffer.contents, 0, antiAliasStateYBuffer.length);
+    
+    NSLog(@"[🔧 ANTI-ALIAS DEBUG] Allocated state buffers for %zu threads (maxThreadsTotal=%zu)", maxThreadsTotal, maxThreadsTotal);
+    
+    // Initialize anti-aliasing with default 20kHz low-pass filter
+    setAntiAliasingParams(20000.0f, 0.707f);
+    
+    NSLog(@"[METAL] Anti-aliasing filter initialized with 20kHz cutoff");
 }
 
-void MetalBridge::processAudioBlock(const float* inputData, float* outputData, size_t numSamples) {
-    if (!initialized || !metalLibrary) {
-        // Clear output and return early
-        memset(outputData, 0, numSamples * sizeof(float) * 2);
-        return;
-    }
-    
-    // Check if pipeline state objects are valid
-    if (!audioInputGatePSO || !pnbtrReconstructionPSO) {
-        NSLog(@"[METAL ERROR] Pipeline state objects not initialized");
-        memset(outputData, 0, numSamples * sizeof(float) * 2);
-        return;
-    }
-    
-    // Prepare buffers if not already done
-    if (!audioInputBuffer[0]) {
-        prepareBuffers(numSamples, 48000.0);
-    }
-
-    // ADAPTIVE CHUNK PROCESSING FOR OPTIMAL LATENCY
-    // Dynamically adjust chunk size based on current quality level
-    const size_t baseChunkSize = 256;
-    const size_t chunkSize = static_cast<size_t>(baseChunkSize * adaptiveQuality.currentQualityLevel);
-    const size_t actualChunkSize = std::max(64UL, std::min(512UL, chunkSize));
-    const size_t numChunks = (numSamples + actualChunkSize - 1) / actualChunkSize;
-    
-    // HIGH-PRECISION LATENCY PROFILING START
-    uint64_t startTime = mach_absolute_time();
-    static mach_timebase_info_data_t timebaseInfo;
-    static bool timebaseInitialized = false;
-    if (!timebaseInitialized) {
-        mach_timebase_info(&timebaseInfo);
-        timebaseInitialized = true;
-    }
-
-    // CHECKPOINT 1: Hardware Input - Verify audio frames are coming in
-    float inputPeak = 0.0f;
-    for (size_t i = 0; i < numSamples; ++i) {
-        inputPeak = std::max(inputPeak, fabsf(inputData[i]));
-    }
-    
-    static int checkpointCounter = 0;
-    if (++checkpointCounter % 200 == 0) { // Log every 200 calls
-        if (inputPeak > 0.0001f) {
-            NSLog(@"[✅ CHECKPOINT 1] Hardware Input: Peak %.6f", inputPeak);
-        } else {
-            NSLog(@"[❌ CHECKPOINT 1] SILENT HARDWARE INPUT - No signal from microphone");
+// ADDED: Frame synchronization methods
+void MetalBridge::beginNewAudioFrame() {
+    if (frameSyncCoordinator) {
+        frameSyncCoordinator->beginNewFrame();
+        
+        // Initialize frame sync buffers if needed
+        static bool buffersInitialized = false;
+        if (!buffersInitialized) {
+            frameSyncCoordinator->initializeBuffers(512); // Max 512 samples per frame
+            buffersInitialized = true;
         }
     }
+}
 
-    dispatch_semaphore_wait(frameBoundarySemaphore, DISPATCH_TIME_FOREVER);
-
+void MetalBridge::runSevenStageProcessingPipelineWithSync(size_t numSamples) {
+    if (!frameSyncCoordinator) {
+        NSLog(@"[❌ FRAME SYNC] FrameSyncCoordinator not initialized");
+        return;
+    }
+    
+    uint64_t currentFrame = frameSyncCoordinator->getCurrentFrameIndex();
+    
+    // Get validated buffer for writing using +1 write pattern helper
+    AudioFrameBuffer* frameBuffer = frameSyncCoordinator->getWriteBuffer();
+    if (!frameBuffer) {
+        NSLog(@"[❌ FRAME SYNC] Failed to get write buffer for frame %llu", currentFrame);
+        return;
+    }
+    
+    // Mark audio input as complete
+    frameSyncCoordinator->markStageComplete(SyncRole::AudioInput, currentFrame);
+    
+    NSLog(@"[DISPATCH] Encoding GPU for frame %llu", currentFrame);
+    // Create command buffer with frame synchronization
     id<MTLCommandBuffer> commandBuffer = [commandQueue commandBuffer];
-    __block dispatch_semaphore_t semaphore = frameBoundarySemaphore;
-    [commandBuffer addCompletedHandler:^(id<MTLCommandBuffer> buffer) {
-        dispatch_semaphore_signal(semaphore);
-    }];
+    commandBuffer.label = [NSString stringWithFormat:@"AudioProcessingFrame_%llu", currentFrame];
     
-    int frameIdx = currentFrameIndex;
+    // Get fence for this frame
+    id<MTLSharedEvent> fence = fencePool->acquireFence(currentFrame);
+    
+    // Set up frame index buffer for GPU shaders
+    int frameIdx = currentFrame % MAX_FRAMES_IN_FLIGHT;
+    if (frameIndexBuffer[frameIdx]) {
+        uint64_t* frameIndexPtr = (uint64_t*)frameIndexBuffer[frameIdx].contents;
+        *frameIndexPtr = currentFrame;
+    }
+    
+    // Run the seven-stage pipeline with anti-aliasing integration
+    executeSevenStageProcessingPipeline(commandBuffer, numSamples, currentFrame);
+    NSLog(@"[ENCODE DONE] Ending encoder for frame %llu", currentFrame);
+    // Signal frame completion via MTLSharedEvent
+    [commandBuffer encodeSignalEvent:fence value:currentFrame];
+    NSLog(@"[COMMIT] Submitting command buffer for frame %llu", currentFrame);
+    // Add completion handler to mark GPU stage complete and copy output only after GPU finishes
+    [commandBuffer addCompletedHandler:^(id<MTLCommandBuffer> buffer) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            NSLog(@"[✅ GPU DONE] Frame %llu completed", currentFrame);
+            // Copy GPU-processed audio from Metal buffers to AudioFrameBuffer
+            onGPUFrameComplete(currentFrame, numSamples);
+            // Mark GPU processing as complete
+            frameSyncCoordinator->markStageComplete(SyncRole::GPUProcessor, currentFrame);
+            // Advance frame if complete
+            frameSyncCoordinator->advanceIfFrameComplete();
+            NSLog(@"[✅ FRAME SYNC] Frame %llu processing completed", currentFrame);
+        });
+    }];
+    [commandBuffer commit];
+}
 
-    // PROCESS EACH CHUNK WITH ADAPTIVE QUALITY
-    for (size_t chunkIdx = 0; chunkIdx < numChunks; ++chunkIdx) {
-        size_t chunkStart = chunkIdx * actualChunkSize;
-        size_t currentChunkSize = std::min(actualChunkSize, numSamples - chunkStart);
+void MetalBridge::onGPUProcessingComplete(uint64_t frameIndex) {
+    // This method is called when GPU processing completes
+    frameSyncCoordinator->markStageComplete(SyncRole::GPUProcessor, frameIndex);
+    
+    // Notify deferred signal queue
+    deferredSignalQueue->markCompleted(frameIndex);
+    
+    // Update performance metrics
+    auto metrics = getPerformanceMetrics();
+    metrics.currentFrameIndex = frameIndex;
+    
+    static uint32_t completionCounter = 0;
+    if (++completionCounter % 100 == 0) {
+        NSLog(@"[🎯 FRAME SYNC] Completed %u frames, Current: %llu", completionCounter, frameIndex);
+    }
+}
+
+void MetalBridge::onAntiAliasingComplete(uint64_t frameIndex) {
+    // PHASE 1: Anti-aliasing completion handler - mark this stage as complete
+    static uint32_t completionCounter = 0;
+    if (++completionCounter % 500 == 0) {
+        NSLog(@"[✅ ANTI-ALIAS COMPLETE] Frame %llu completed (%u total completions)", frameIndex, completionCounter);
+    }
+    
+    // Here we could add frame state validation or signal other components
+    // For now, just log the successful completion
+    if (frameSyncCoordinator) {
+        frameSyncCoordinator->markStageComplete(SyncRole::GPUProcessor, frameIndex);
+    }
+}
+
+// ADDED: Enhanced async completion handlers with error handling
+void MetalBridge::onAntiAliasingCompleteWithValidation(uint64_t frameIndex, bool success, float processingTime_us) {
+    // Update atomic state flags
+    antiAliasingInProgress = false;
+    lastAntiAliasingFrame = frameIndex;
+    lastAntiAliasingLatency_us = processingTime_us;
+    
+    // Update performance statistics
+    uint32_t frameCount = ++totalAntiAliasingFrames;
+    float currentAvg = averageAntiAliasingLatency_us.load();
+    averageAntiAliasingLatency_us = (currentAvg * 0.95f) + (processingTime_us * 0.05f); // Exponential moving average
+    
+    if (success) {
+        // Mark frame stage as complete
+        markFrameStageComplete(frameIndex, "anti_aliasing");
         
-        // CHECKPOINT 2: CoreAudio → MetalBridge Transfer (per chunk)
-        uint64_t transferStartTime = mach_absolute_time();
-        float* stereoInput = (float*)audioInputBuffer[frameIdx].contents;
-        
-        // Process this chunk
-        for (size_t i = 0; i < currentChunkSize; ++i) {
-            size_t srcIdx = chunkStart + i;
-            size_t dstIdx = i;
-            stereoInput[dstIdx * 2] = inputData[srcIdx];     // Left channel
-            stereoInput[dstIdx * 2 + 1] = inputData[srcIdx]; // Right channel (duplicate mono)
+        // Update frame synchronization coordinator
+        if (frameSyncCoordinator) {
+            frameSyncCoordinator->markStageComplete(SyncRole::GPUProcessor, frameIndex);
         }
-        uint64_t transferEndTime = mach_absolute_time();
         
-        // Verify data was transferred to GPU buffer
-        float gpuInputPeak = 0.0f;
-        for (size_t i = 0; i < currentChunkSize * 2; ++i) {
-            gpuInputPeak = std::max(gpuInputPeak, fabsf(stereoInput[i]));
+        // Performance logging (every 1000 frames)
+        if (frameCount % 1000 == 0) {
+            NSLog(@"[✅ ANTI-ALIAS PERF] Frame %llu: %.2f μs (avg: %.2f μs over %u frames)", 
+                  frameIndex, processingTime_us, averageAntiAliasingLatency_us.load(), frameCount);
         }
         
-        if (checkpointCounter % 200 == 0 && chunkIdx == 0) {
-            if (gpuInputPeak > 0.0001f) {
-                NSLog(@"[✅ CHECKPOINT 2] CoreAudio→MetalBridge: Peak %.6f (Chunk %zu/%zu, Quality %.1f%%)", 
-                      gpuInputPeak, chunkIdx + 1, numChunks, adaptiveQuality.currentQualityLevel * 100.0f);
-            } else {
-                NSLog(@"[❌ CHECKPOINT 2] SILENT METALBRIDGE INPUT - Data transfer failed");
+        // Signal completion event for low-latency monitoring
+        if (antiAliasingCompletionEvent) {
+            [antiAliasingCompletionEvent setSignaledValue:++antiAliasingEventValue];
+        }
+    } else {
+        // Handle failure case
+        onAntiAliasingError(frameIndex, "GPU processing failed");
+    }
+}
+
+void MetalBridge::onAntiAliasingError(uint64_t frameIndex, const std::string& error) {
+    uint32_t errorCount = ++antiAliasingErrorCount;
+    
+    NSLog(@"[❌ ANTI-ALIAS ERROR] Frame %llu: %s (total errors: %u)", 
+          frameIndex, error.c_str(), errorCount);
+    
+    // Reset processing state
+    antiAliasingInProgress = false;
+    
+    // Mark frame as failed in frame synchronization
+    if (frameSyncCoordinator) {
+        // Note: This may need to be handled differently based on FrameSyncCoordinator implementation
+        NSLog(@"[❌ ANTI-ALIAS ERROR] Frame %llu failed, may cause audio dropout", frameIndex);
+    }
+    
+    // If error rate is too high, log a warning
+    if (errorCount % 10 == 0) {
+        NSLog(@"[⚠️ ANTI-ALIAS WARNING] High error rate: %u errors", errorCount);
+    }
+}
+
+// ADDED: Frame state validation for buffer safety
+bool MetalBridge::validateFrameState(uint64_t frameIndex, const std::string& stageName) {
+    // Check if frame index is within valid range
+    if (frameIndex == 0) {
+        NSLog(@"[❌ VALIDATION] Invalid frame index 0 for stage %s", stageName.c_str());
+        return false;
+    }
+    
+    // Check if we're not too far behind or ahead
+    uint64_t currentFrame = frameSyncCoordinator ? frameSyncCoordinator->getCurrentFrameIndex() : 0;
+    if (frameIndex > currentFrame + MAX_FRAMES_IN_FLIGHT) {
+        NSLog(@"[❌ VALIDATION] Frame %llu too far ahead of current frame %llu for stage %s", 
+              frameIndex, currentFrame, stageName.c_str());
+        return false;
+    }
+    
+    if (frameIndex < currentFrame - MAX_FRAMES_IN_FLIGHT) {
+        NSLog(@"[❌ VALIDATION] Frame %llu too far behind current frame %llu for stage %s", 
+              frameIndex, currentFrame, stageName.c_str());
+        return false;
+    }
+    
+    return true;
+}
+
+void MetalBridge::markFrameStageComplete(uint64_t frameIndex, const std::string& stageName) {
+    // For now, just log the completion
+    // In a more complete implementation, this would update a frame state map
+    static uint32_t completionCounter = 0;
+    if (++completionCounter % 500 == 0) {
+        NSLog(@"[✅ STAGE COMPLETE] Frame %llu stage '%s' completed (%u total stage completions)", 
+              frameIndex, stageName.c_str(), completionCounter);
+    }
+}
+
+bool MetalBridge::isFrameStageComplete(uint64_t frameIndex, const std::string& stageName) {
+    // For now, check against the last completed frame
+    // In a more complete implementation, this would check a frame state map
+    if (stageName == "anti_aliasing") {
+        return frameIndex <= lastAntiAliasingFrame.load();
+    }
+    
+    return false;
+}
+
+void MetalBridge::onGPUFrameComplete(uint64_t frameIndex, size_t numSamples) {
+    // CRITICAL: Copy GPU-processed audio from Metal shared buffers to AudioFrameBuffer
+    // Following the analysis document's zero-copy approach with shared memory
+    
+    int frameIdx = frameIndex % MAX_FRAMES_IN_FLIGHT;
+    
+    // ALWAYS log this method being called to ensure it's working
+    NSLog(@"[🎯 GPU FRAME COMPLETE] Processing frame %llu (buffer index %d) with %zu samples", 
+          frameIndex, frameIdx, numSamples);
+    
+    // Step 1: Get CPU-side view of shared Metal output buffer (reconstructed audio)
+    if (!reconstructedBuffer[frameIdx]) {
+        NSLog(@"[❌ GPU FRAME COMPLETE] No reconstructed buffer for frame %llu", frameIndex);
+        return;
+    }
+    
+    float* gpuOutput = (float*)reconstructedBuffer[frameIdx].contents;
+    if (!gpuOutput) {
+        NSLog(@"[❌ GPU FRAME COMPLETE] Invalid Metal buffer contents for frame %llu", frameIndex);
+        return;
+    }
+    
+    // Step 2: Access target audio output buffer using write pattern helper
+    AudioFrameBuffer* frameBuf = frameSyncCoordinator->getWriteBuffer();
+    if (!frameBuf) {
+        NSLog(@"[❌ GPU FRAME COMPLETE] No write buffer available for frame %llu", frameIndex);
+        return;
+    }
+    
+    // Step 3: Copy GPU-processed audio to AudioFrameBuffer (interleaved to separate channels)
+    // GPU output is interleaved: [L,R,L,R,L,R...], AudioFrameBuffer expects separate channels
+    if (frameBuf->data) {
+        for (size_t i = 0; i < numSamples && i < frameBuf->sampleCount; ++i) {
+            frameBuf->data[i * 2] = gpuOutput[i * 2];         // Left channel
+            frameBuf->data[i * 2 + 1] = gpuOutput[i * 2 + 1]; // Right channel
+        }
+        
+        frameBuf->frameIndex = frameIndex;
+        frameBuf->sampleCount = numSamples;
+        frameBuf->ready = true;
+        
+        static uint32_t copyCounter = 0;
+        if (++copyCounter % 200 == 0) {
+            NSLog(@"[✅ GPU FRAME COMPLETE] Copied %zu samples from GPU to frame buffer (copy #%u)", numSamples, copyCounter);
+        }
+    }
+    
+    // Step 4: Write simplified waveform snapshot using write pattern helper
+    WaveformFrameData* waveform = frameSyncCoordinator->getWriteWaveform();
+    if (waveform && frameBuf->data) {
+        for (int i = 0; i < WAVEFORM_SNAPSHOT_SIZE; ++i) {
+            int srcIndex = (i * numSamples) / WAVEFORM_SNAPSHOT_SIZE;
+            if (srcIndex < numSamples) {
+                waveform->left[i] = frameBuf->data[srcIndex * 2];
+                waveform->right[i] = frameBuf->data[srcIndex * 2 + 1];
             }
         }
-
-        // Update enhanced params for current chunk with adaptive quality
-        GateParams* gp = (GateParams*)gateParamsBuffer[frameIdx].contents;
-        gp->threshold = 0.001f;  // FIXED: Much lower threshold for microphone input
-        gp->jellieRecordArmed = this->jellieRecordArmed;
-        gp->pnbtrRecordArmed = this->pnbtrRecordArmed;
-        gp->gain = 1.0f;
-        gp->adaptiveThreshold = 0.0005f;  // FIXED: Lower adaptive threshold too
-
-        // ADAPTIVE SPECTRAL ANALYSIS PARAMETERS
-        DJAnalysisParams* djp = (DJAnalysisParams*)djAnalysisParamsBuffer[frameIdx].contents;
-        djp->fftSize = static_cast<float>(adaptiveQuality.currentFFTSize);
-        djp->sampleRate = 48000.0f;
-        djp->windowType = adaptiveQuality.enableSpectralProcessing ? 1.0f : 0.0f;
-        djp->enableMPS = adaptiveQuality.enableSpectralProcessing;
-        djp->spectralSmoothing = 0.8f * adaptiveQuality.currentQualityLevel;
-
-        // Record arm visual parameters
-        RecordArmVisualParams* rap = (RecordArmVisualParams*)recordArmVisualParamsBuffer[frameIdx].contents;
-        rap->redLevel = this->jellieRecordArmed ? 1.0f : 0.2f;
-        rap->greenLevel = this->pnbtrRecordArmed ? 1.0f : 0.2f;
-        rap->pulseIntensity = 0.5f * adaptiveQuality.currentQualityLevel;
-        rap->timePhase = fmod(mach_absolute_time() * 1e-9, 2.0 * M_PI);
-
-        // ADAPTIVE JELLIE PREPROCESSING PARAMETERS
-        JELLIEPreprocessParams* jpp = (JELLIEPreprocessParams*)jelliePreprocessParamsBuffer[frameIdx].contents;
-        jpp->compressionRatio = 2.0f * adaptiveQuality.currentQualityLevel;
-        jpp->gain = 1.2f;
-        jpp->upsampleRatio = 4.0f * adaptiveQuality.currentQualityLevel; // Scale with quality
-        jpp->quantizationBits = 16.0f + 8.0f * adaptiveQuality.currentQualityLevel; // 16-24 bits
-
-        // Network simulation parameters
-        NetworkSimulationParams* nsp = (NetworkSimulationParams*)networkSimParamsBuffer[frameIdx].contents;
-        nsp->latencyMs = 5.0f;
-        nsp->packetLossPercentage = 2.0f; // 2% packet loss
-        nsp->jitterMs = 1.0f;
-        nsp->correlationThreshold = 0.8f;
-
-        // ADAPTIVE PNBTR RECONSTRUCTION PARAMETERS
-        PNBTRReconstructionParams* prp = (PNBTRReconstructionParams*)pnbtrReconstructionParamsBuffer[frameIdx].contents;
-        prp->mixLevel = 1.0f;
-        prp->sineFrequency = 440.0f;
-        prp->applySineTest = false;
-        prp->neuralThreshold = 0.01f / adaptiveQuality.currentNeuralComplexity; // More sensitive with lower complexity
-        prp->lookbackSamples = 8.0f * adaptiveQuality.currentNeuralComplexity;
-        prp->smoothingFactor = 0.7f;
-
-        // GPU PROCESSING START TIMING (per chunk)
-        uint64_t gpuStartTime = mach_absolute_time();
-
-        // CHECKPOINT 3: GPU Buffer Upload
-        // (Buffer is already prepared above)
-
-        // Create compute command encoder for this chunk
-        id<MTLComputeCommandEncoder> computeEncoder = [commandBuffer computeCommandEncoder];
+        waveform->ready.store(true);
+        waveform->frameIndex = frameIndex;
         
-        // STAGE 1: Audio Input Gate (optimized for chunk size)
-        [computeEncoder setComputePipelineState:audioInputGatePSO];
-        [computeEncoder setBuffer:audioInputBuffer[frameIdx] offset:0 atIndex:0];
-        [computeEncoder setBuffer:gateParamsBuffer[frameIdx] offset:0 atIndex:1];
-        [computeEncoder setBuffer:stage1Buffer[frameIdx] offset:0 atIndex:2];
-        dispatchThreadsForEncoder(computeEncoder, audioInputGatePSO, currentChunkSize * 2);
+        // Mark waveform display as complete
+        frameSyncCoordinator->markStageComplete(SyncRole::WaveformDisplay, frameIndex);
+    }
+    
+    static uint32_t completeCounter = 0;
+    if (++completeCounter % 100 == 0) {
+        NSLog(@"[🎯 GPU FRAME COMPLETE] Processed %u complete frames with audio data transfer", completeCounter);
+    }
+}
+
+// Update processAudioBlock to use frame synchronization
+void MetalBridge::processAudioBlock(const float* inputData, float* outputData, size_t numSamples) {
+    if (!initialized || !metalLibrary) {
+        memset(outputData, 0, numSamples * sizeof(float) * 2);
+        return;
+    }
+    
+    // CRITICAL: Begin new frame for synchronization
+    beginNewAudioFrame();
+    
+    // Use frame-synchronized processing
+    runSevenStageProcessingPipelineWithSync(numSamples);
+    
+    // FIXED: Get validated output buffer using -2 read pattern for more GPU processing time
+    if (frameSyncCoordinator) {
+        uint64_t readFrame = frameSyncCoordinator->getReadFrameIndex() - 1;  // Additional frame delay
+        const AudioFrameBuffer* frameBuffer = frameSyncCoordinator->getReadBuffer();
         
-        // STAGE 2: ADAPTIVE DJ Spectral Analysis
-        if (adaptiveQuality.enableSpectralProcessing) {
-            [computeEncoder setComputePipelineState:djAnalysisPSO];
-            [computeEncoder setBuffer:stage1Buffer[frameIdx] offset:0 atIndex:0];
-            [computeEncoder setBuffer:djAnalysisParamsBuffer[frameIdx] offset:0 atIndex:1];
-            [computeEncoder setBuffer:djTransformedBuffer[frameIdx] offset:0 atIndex:2];
-            dispatchThreadsForEncoder(computeEncoder, djAnalysisPSO, currentChunkSize * 2);
+        if (frameBuffer && frameBuffer->ready && frameBuffer->data) {
+            // ADDED: Explicit buffer state validation and debugging
+            float maxAmplitude = 0.0f;
+            for (size_t i = 0; i < frameBuffer->sampleCount * 2; i++) {
+                maxAmplitude = std::max(maxAmplitude, std::abs(frameBuffer->data[i]));
+            }
+            
+            if (maxAmplitude > 0.0001f) {  // Valid audio detected
+            // Copy validated audio to output
+            size_t copySize = std::min(numSamples, frameBuffer->sampleCount);
+            memcpy(outputData, frameBuffer->data, copySize * 2 * sizeof(float));
+            
+            // Mark audio output as complete
+                frameSyncCoordinator->markStageComplete(SyncRole::AudioOutput, readFrame);
+            
+            static uint32_t outputCounter = 0;
+            if (++outputCounter % 200 == 0) {
+                    NSLog(@"[✅ CHECKPOINT 6] Frame-synchronized audio output: %zu samples, max amplitude: %.6f", copySize, maxAmplitude);
+                }
+            } else {
+                // Buffer exists but contains silence - this is the debugging point
+                memset(outputData, 0, numSamples * sizeof(float) * 2);
+                NSLog(@"[🚨 BUFFER DEBUG] Frame %llu has SILENT audio buffer - GPU processing incomplete! Max amplitude: %.6f", readFrame, maxAmplitude);
+                NSLog(@"[🚨 BUFFER DEBUG] Buffer ready: %s, data ptr: %p, sampleCount: %zu", 
+                      frameBuffer->ready ? "YES" : "NO", frameBuffer->data, frameBuffer->sampleCount);
+            }
         } else {
-            // Skip spectral processing for maximum performance - direct passthrough
-            [computeEncoder setComputePipelineState:recordArmVisualPSO]; // Use as passthrough
-            [computeEncoder setBuffer:stage1Buffer[frameIdx] offset:0 atIndex:0];
-            [computeEncoder setBuffer:recordArmVisualParamsBuffer[frameIdx] offset:0 atIndex:1];
-            [computeEncoder setBuffer:djTransformedBuffer[frameIdx] offset:0 atIndex:2];
-            dispatchThreadsForEncoder(computeEncoder, recordArmVisualPSO, currentChunkSize * 2);
+            // No validated buffer available - output silence
+            memset(outputData, 0, numSamples * sizeof(float) * 2);
+            NSLog(@"[⚠️ FRAME SYNC] No validated buffer available for frame %llu - outputting silence", readFrame);
+            NSLog(@"[⚠️ FRAME SYNC] frameBuffer: %p, ready: %s, data: %p", 
+                  frameBuffer, frameBuffer ? (frameBuffer->ready ? "YES" : "NO") : "NULL", 
+                  frameBuffer ? frameBuffer->data : nullptr);
         }
-        
-        // STAGE 3: Record Arm Visual (optimized for chunk size)
-        [computeEncoder setComputePipelineState:recordArmVisualPSO];
-        [computeEncoder setBuffer:djTransformedBuffer[frameIdx] offset:0 atIndex:0];
-        [computeEncoder setBuffer:recordArmVisualParamsBuffer[frameIdx] offset:0 atIndex:1];
-        [computeEncoder setBuffer:stage2Buffer[frameIdx] offset:0 atIndex:2];
-        dispatchThreadsForEncoder(computeEncoder, recordArmVisualPSO, currentChunkSize * 2);
-        
-        // STAGE 4: ADAPTIVE JELLIE Preprocessing
-        [computeEncoder setComputePipelineState:jelliePreprocessPSO];
-        [computeEncoder setBuffer:stage2Buffer[frameIdx] offset:0 atIndex:0];
-        [computeEncoder setBuffer:jelliePreprocessParamsBuffer[frameIdx] offset:0 atIndex:1];
-        [computeEncoder setBuffer:stage3Buffer[frameIdx] offset:0 atIndex:2];
-        dispatchThreadsForEncoder(computeEncoder, jelliePreprocessPSO, currentChunkSize * 2);
-        
-        // STAGE 5: Network Simulation (optimized for chunk size)
-        [computeEncoder setComputePipelineState:networkSimPSO];
-        [computeEncoder setBuffer:stage3Buffer[frameIdx] offset:0 atIndex:0];
-        [computeEncoder setBuffer:networkSimParamsBuffer[frameIdx] offset:0 atIndex:1];
-        [computeEncoder setBuffer:stage4Buffer[frameIdx] offset:0 atIndex:2];
-        dispatchThreadsForEncoder(computeEncoder, networkSimPSO, currentChunkSize * 2);
-        
-        // STAGE 6: ADAPTIVE PNBTR Reconstruction
-        [computeEncoder setComputePipelineState:pnbtrReconstructionPSO];
-        [computeEncoder setBuffer:stage4Buffer[frameIdx] offset:0 atIndex:0];
-        [computeEncoder setBuffer:pnbtrReconstructionParamsBuffer[frameIdx] offset:0 atIndex:1];
-        [computeEncoder setBuffer:reconstructedBuffer[frameIdx] offset:0 atIndex:2];
-        dispatchThreadsForEncoder(computeEncoder, pnbtrReconstructionPSO, currentChunkSize * 2);
-        
-        [computeEncoder endEncoding];
-        
-        // Copy processed chunk back to output buffer
-        float* reconstructedData = (float*)reconstructedBuffer[frameIdx].contents;
-        for (size_t i = 0; i < currentChunkSize; ++i) {
-            size_t srcIdx = i * 2; // Stereo
-            size_t dstIdx = chunkStart + i;
-            outputData[dstIdx] = reconstructedData[srcIdx]; // Use left channel
-        }
+    } else {
+        // Fallback to original processing
+        memset(outputData, 0, numSamples * sizeof(float) * 2);
     }
-    
-    // CHECKPOINT 4: GPU Processing Output
-    float gpuOutputPeak = 0.0f;
-    for (size_t i = 0; i < numSamples; ++i) {
-        gpuOutputPeak = std::max(gpuOutputPeak, fabsf(outputData[i]));
-    }
-    
-    if (checkpointCounter % 200 == 0) {
-        if (gpuOutputPeak > 0.0001f) {
-            NSLog(@"[✅ CHECKPOINT 4] GPU Processing Output: Peak %.6f", gpuOutputPeak);
-        } else {
-            NSLog(@"[❌ CHECKPOINT 4] SILENT GPU OUTPUT - Shader processing failed");
-        }
-    }
-    
-    // CHECKPOINT 5: GPU→Output Buffer
-    if (checkpointCounter % 200 == 0) {
-        if (gpuOutputPeak > 0.0001f) {
-            NSLog(@"[✅ CHECKPOINT 5] GPU→Output Buffer: Peak %.6f", gpuOutputPeak);
-        } else {
-            NSLog(@"[❌ CHECKPOINT 5] SILENT DOWNLOAD - GPU→CPU transfer failed");
-        }
-    }
-    
-    // GPU PROCESSING END TIMING
-    uint64_t gpuEndTime = mach_absolute_time();
-    uint64_t endTime = mach_absolute_time();
-    
-    // Calculate latency in microseconds
-    uint64_t totalNanos = (endTime - startTime) * timebaseInfo.numer / timebaseInfo.denom;
-    uint64_t gpuNanos = (gpuEndTime - startTime) * timebaseInfo.numer / timebaseInfo.denom;
-    
-    float totalLatency_us = totalNanos / 1000.0f;
-    float gpuLatency_us = gpuNanos / 1000.0f;
-    
-    // UPDATE ADAPTIVE QUALITY CONTROLLER
-    adaptiveQuality.updatePerformance(totalLatency_us);
-    adaptiveQuality.resetPerformanceStats();
-    
-    // Log performance every 500 calls with adaptive quality info
-    if (checkpointCounter % 500 == 0) {
-        NSLog(@"[🚀 ADAPTIVE LATENCY PROFILE] Total: %.1fµs | GPU: %.1fµs | Chunks: %zu×%zu | Quality: %.1f%% | FFT: %u", 
-              totalLatency_us, gpuLatency_us, numChunks, actualChunkSize, 
-              adaptiveQuality.currentQualityLevel * 100.0f, adaptiveQuality.currentFFTSize);
-        
-        NSLog(@"[📊 PERFORMANCE STATS] Avg: %.1fµs | Peak: %.1fµs | Samples: %u | Spectral: %s", 
-              adaptiveQuality.averageLatency_us, adaptiveQuality.peakLatency_us, 
-              adaptiveQuality.performanceSamples, adaptiveQuality.enableSpectralProcessing ? "ON" : "OFF");
-        
-        if (totalLatency_us < AdaptiveQualityController::TARGET_LATENCY_US) {
-            NSLog(@"[🎯 OPTIMAL PERFORMANCE] %.1fµs < %.1fµs - Maintaining high quality", 
-                  totalLatency_us, AdaptiveQualityController::TARGET_LATENCY_US);
-        } else if (totalLatency_us < AdaptiveQualityController::WARNING_LATENCY_US) {
-            NSLog(@"[⚡ GOOD PERFORMANCE] %.1fµs - JAMNet target achieved", totalLatency_us);
-        } else {
-            NSLog(@"[⚠️ ADAPTIVE OPTIMIZATION] %.1fµs - Quality auto-adjusting for performance", totalLatency_us);
-        }
-    }
-    
-    [commandBuffer commit];
-    
-    currentFrameIndex = (currentFrameIndex + 1) % MAX_FRAMES_IN_FLIGHT;
-    
-    // CHECKPOINT 6: Hardware Output - This will be verified in the output callback
 }
 
 void MetalBridge::setRecordArmStates(bool jellieArmed, bool pnbtrArmed) {
@@ -657,6 +760,44 @@ struct PNBTRReconstructionParams {
     float lookbackSamples;
     float smoothingFactor;
 };
+
+// ADDED: Biquad parameter structure for anti-aliasing
+struct BiquadParams {
+    float b0, b1, b2;
+    float a1, a2;
+    uint  frameOffset;
+    uint  numSamples;
+};
+
+// ADDED: Anti-aliasing biquad filter kernel
+kernel void AudioBiquadAntiAliasShader(constant BiquadParams& params [[buffer(0)]],
+                                       device const float*    input  [[buffer(1)]],
+                                       device float*          output [[buffer(2)]],
+                                       device float2*         stateX [[buffer(3)]],
+                                       device float2*         stateY [[buffer(4)]],
+                                       uint                   gid    [[thread_position_in_grid]]) {
+    
+    uint inputIndex = params.frameOffset + gid;
+    
+    // Load per-thread state
+    float x1 = stateX[gid].x;
+    float x2 = stateX[gid].y;
+    float y1 = stateY[gid].x;
+    float y2 = stateY[gid].y;
+    
+    // Current input sample
+    float x0 = input[inputIndex];
+    
+    // Biquad difference equation: y[n] = b0*x[n] + b1*x[n-1] + b2*x[n-2] - a1*y[n-1] - a2*y[n-2]
+    float y0 = params.b0 * x0 + params.b1 * x1 + params.b2 * x2 - params.a1 * y1 - params.a2 * y2;
+    
+    // Store output
+    output[inputIndex] = y0;
+    
+    // Update state
+    stateX[gid] = float2(x0, x1);
+    stateY[gid] = float2(y0, y1);
+}
 
 kernel void audioInputGateKernel(constant float* input [[buffer(0)]],
                                 constant GateParams& params [[buffer(1)]],
@@ -865,71 +1006,57 @@ kernel void pnbtrReconstructionKernel(constant float* input [[buffer(0)]],
     
     output[id] = sample;
 }
-)";
 
-        MTLCompileOptions* options = [[MTLCompileOptions alloc] init];
-        metalLibrary = [device newLibraryWithSource:shaderSource options:options error:&error];
-        
-        if (!metalLibrary) {
-            NSLog(@"[METAL ERROR] Failed to create library from source: %@", error.localizedDescription);
-            throw std::runtime_error("Failed to load or create Metal library");
-        }
-        
-        NSLog(@"[METAL] Successfully compiled shaders from source");
-        
-    } @catch (NSException* exception) {
-        NSLog(@"[METAL ERROR] Exception while loading shaders: %@", exception.reason);
-        metalLibrary = nil;
-        throw std::runtime_error("Failed to load Metal shaders");
-    }
-}
+// Bulletproof GPU dispatch test wrapper
+void dispatchAntialiasTestPass(id<MTLDevice> device,
+                               id<MTLCommandQueue> queue,
+                               id<MTLComputePipelineState> pipeline,
+                               id<MTLBuffer> input,
+                               id<MTLBuffer> output,
+                               int frameIndex,
+                               FrameStateTracker& frameStateTracker)
+{
+    const int numSamples = 512;
 
-void MetalBridge::createComputePipelines() {
-    if (!metalLibrary) {
-        NSLog(@"[METAL ERROR] Cannot create pipelines: metalLibrary is nil");
+    id<MTLCommandBuffer> cmd = [queue commandBuffer];
+    if (!cmd) {
+        NSLog(@"[❌ ERROR] Command buffer allocation failed");
         return;
     }
-    
-    NSError* error = nil;
-    auto createPSO = [&](NSString* kernelName) -> id<MTLComputePipelineState> {
-        id<MTLFunction> func = [metalLibrary newFunctionWithName:kernelName];
-        if (!func) { 
-            NSLog(@"[METAL ERROR] Failed to find function: %@", kernelName);
-            return nil;
-        }
-        
-        id<MTLComputePipelineState> pso = [device newComputePipelineStateWithFunction:func error:&error];
-        if (!pso) {
-            NSLog(@"[METAL ERROR] Failed to create pipeline state for %@: %@", kernelName, error.localizedDescription);
-            return nil;
-        }
-        
-        NSLog(@"[METAL] Successfully created pipeline state for %@", kernelName);
-        return pso;
-    };
 
-    audioInputGatePSO = createPSO(@"audioInputGateKernel");
-    djAnalysisPSO = createPSO(@"djSpectralAnalysisKernel");
-    recordArmVisualPSO = createPSO(@"recordArmVisualKernel");
-    jelliePreprocessPSO = createPSO(@"jelliePreprocessKernel");
-    networkSimPSO = createPSO(@"networkSimulationKernel");
-    pnbtrReconstructionPSO = createPSO(@"pnbtrReconstructionKernel");
-    
-    // Verify critical pipeline states
-    if (!audioInputGatePSO || !pnbtrReconstructionPSO) {
-        NSLog(@"[METAL ERROR] Critical pipeline states failed to initialize");
-        initialized = false;
-    } else {
-        NSLog(@"[METAL] All pipeline states created successfully");
-    }
+    id<MTLComputeCommandEncoder> encoder = [cmd computeCommandEncoder];
+    [encoder setComputePipelineState:pipeline];
+
+    struct DummyParams { int frameOffset; int numSamples; };
+    DummyParams params = { .frameOffset = 0, .numSamples = numSamples };
+    [encoder setBytes:&params length:sizeof(params) atIndex:0];
+    [encoder setBuffer:input offset:0 atIndex:1];
+    [encoder setBuffer:output offset:0 atIndex:2];
+
+    NSUInteger threadsPerGroup = 64;
+    NSUInteger groups = (numSamples + 63) / 64;
+    [encoder dispatchThreadgroups:MTLSizeMake(groups, 1, 1)
+           threadsPerThreadgroup:MTLSizeMake(threadsPerGroup, 1, 1)];
+    [encoder endEncoding];
+
+    NSLog(@"[🚀 DISPATCH] Committing GPU command buffer for frame %d", frameIndex);
+
+    [cmd addCompletedHandler:^(id<MTLCommandBuffer> buffer) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            NSLog(@"[✅ GPU COMPLETE] Frame %d", frameIndex);
+            frameStateTracker.markStageComplete("GPU", frameIndex);
+        });
+    });
+
+    [cmd commit];
+    NSLog(@"[✅ COMMIT] Frame %d command buffer submitted", frameIndex);
 }
 
-void MetalBridge::dispatchThreadsForEncoder(id<MTLComputeCommandEncoder> encoder, id<MTLComputePipelineState> pso, size_t numSamples) {
-    NSUInteger threadGroupSize = pso.maxTotalThreadsPerThreadgroup;
-    if (threadGroupSize > numSamples) {
-        threadGroupSize = numSamples;
-    }
-    MTLSize threadsPerThreadgroup = MTLSizeMake(threadGroupSize, 1, 1);
-    MTLSize threadgroupsPerGrid = MTLSizeMake((numSamples + threadGroupSize - 1) / threadGroupSize, 1, 1);
-    [encoder dispatchThreadgroups:threadgroupsPerGrid threadsPerThreadgroup:threadsPerThreadgroup];
-}
+// Replace old dispatch logic with guaranteed GPU dispatch
+RunAudioFrameGPU(device,
+                 commandQueue,
+                 pipeline,
+                 inputBuffer,
+                 outputBuffer,
+                 frameStateTracker,
+                 (int)currentFrame);

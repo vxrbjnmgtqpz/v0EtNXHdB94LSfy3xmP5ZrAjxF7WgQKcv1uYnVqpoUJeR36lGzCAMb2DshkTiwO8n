@@ -60,6 +60,9 @@ private:
         juce::Rectangle<int> progressBounds;
         juce::Rectangle<int> valueBounds;
         
+        // Default constructor
+        MetricDisplay() = default;
+        
         MetricDisplay(const juce::String& n, const juce::String& u, 
                      float min, float max, float target, juce::Colour c)
             : name(n), unit(u), minValue(min), maxValue(max), targetValue(target), colour(c) {}

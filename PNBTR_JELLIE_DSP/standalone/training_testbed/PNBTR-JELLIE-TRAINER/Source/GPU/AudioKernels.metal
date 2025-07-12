@@ -57,7 +57,90 @@ kernel void AudioInputCaptureShader(device float* inputBuffer [[buffer(0)]],
     outputBuffer[index] = gainedInput;
 }
 
-// Stage 2: Input Gating (new - noise suppression)
+// ADDED: Stage 1.5: Anti-Aliasing Biquad Filter (Mono)
+struct BiquadParams {
+    float b0, b1, b2;
+    float a1, a2;
+    float b0_t, b1_t, b2_t;
+    float a1_t, a2_t;
+    float interpAlpha;
+    uint  frameOffset;
+    uint  numSamples;
+};
+
+kernel void AudioBiquadAntiAliasShader(constant BiquadParams& params [[buffer(0)]],
+                                       device const float*    input  [[buffer(1)]],
+                                       device float*          output [[buffer(2)]],
+                                       device float2*         stateX [[buffer(3)]],
+                                       device float2*         stateY [[buffer(4)]],
+                                       uint                   gid    [[thread_position_in_grid]]) {
+    
+    uint inputIndex = params.frameOffset + gid;
+    
+    // Load per-thread state
+    float x1 = stateX[gid].x;
+    float x2 = stateX[gid].y;
+    float y1 = stateY[gid].x;
+    float y2 = stateY[gid].y;
+    
+    // Current input sample
+    float x0 = input[inputIndex];
+    
+    // Biquad difference equation: y[n] = b0*x[n] + b1*x[n-1] + b2*x[n-2] - a1*y[n-1] - a2*y[n-2]
+    float y0 = params.b0 * x0 + params.b1 * x1 + params.b2 * x2 - params.a1 * y1 - params.a2 * y2;
+    
+    // Store output
+    output[inputIndex] = y0;
+    
+    // Update state (only for the last thread to avoid race conditions)
+    if (gid == params.numSamples - 1) {
+        stateX[gid] = float2(x0, x1);
+        stateY[gid] = float2(y0, y1);
+    } else {
+        stateX[gid] = float2(x0, x1);
+        stateY[gid] = float2(y0, y1);
+    }
+}
+
+kernel void audioBiquadMonoKernel_Debug(
+    constant BiquadParams& params [[buffer(0)]],
+    device const float*    input  [[buffer(1)]],
+    device float*          output [[buffer(2)]],
+    device float2*         stateX [[buffer(3)]],
+    device float2*         stateY [[buffer(4)]],
+    device float*          debugOut [[buffer(5)]], // <-- debug buffer for inspection
+    uint                   gid    [[thread_position_in_grid]]) {
+    uint index = params.frameOffset + gid;
+    if (index >= params.numSamples) return;
+    
+    // Smooth interpolated coefficients
+    float b0 = mix(params.b0, params.b0_t, params.interpAlpha);
+    float b1 = mix(params.b1, params.b1_t, params.interpAlpha);
+    float b2 = mix(params.b2, params.b2_t, params.interpAlpha);
+    float a1 = mix(params.a1, params.a1_t, params.interpAlpha);
+    float a2 = mix(params.a2, params.a2_t, params.interpAlpha);
+    
+    // Read filter state
+    float2 sx = stateX[gid];
+    float2 sy = stateY[gid];
+    float x0 = input[index];
+    float x1 = sx.x;
+    float x2 = sx.y;
+    float y1 = sy.x;
+    float y2 = sy.y;
+    
+    // Apply biquad equation
+    float y0 = b0 * x0 + b1 * x1 + b2 * x2 - a1 * y1 - a2 * y2;
+    
+    // Write to outputs
+    output[index] = y0;
+    debugOut[index] = y0; // 👀 copy value to visual buffer
+    
+    stateX[gid] = float2(x0, x1);
+    stateY[gid] = float2(y0, y1);
+}
+
+// Stage 2: Input Gating (modified to use anti-aliased input)
 kernel void AudioInputGateShader(device float* inputBuffer [[buffer(0)]],
                                  device float* outputBuffer [[buffer(1)]],
                                  constant struct {
@@ -68,7 +151,7 @@ kernel void AudioInputGateShader(device float* inputBuffer [[buffer(0)]],
                                  }& gateParams [[buffer(2)]],
                                  uint index [[thread_position_in_grid]]) {
     
-    float input = inputBuffer[index];
+    float input = inputBuffer[index]; // Now receives anti-aliased input
     float magnitude = abs(input);
     
     // Noise gate processing

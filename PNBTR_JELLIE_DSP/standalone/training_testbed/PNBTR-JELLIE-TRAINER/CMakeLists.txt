@@ -84,6 +84,16 @@ target_sources(PnbtrJellieTrainer PRIVATE
     # GPU integration
     Source/GPU/MetalBridge.mm
     Source/GPU/CoreAudioBridge.mm
+    Source/GPU/GPUCommandFencePool.mm
+    Source/GPU/BiquadCoefficients.cpp
+    
+    # Core synchronization
+    Source/Core/FrameSyncCoordinator.cpp
+    
+    # Debug and diagnostic systems
+    Source/Core/FrameStateTracker.cpp
+    Source/GPU/GPUDebugHelper.mm
+    Source/GPU/MetalBridgeDebugIntegration.mm
 )
 
 
@@ -150,6 +160,9 @@ set_source_files_properties(
     PROPERTIES COMPILE_FLAGS "-fobjc-arc"
 )
 
+# Ensure CoreAudioBridge.mm is compiled as Objective-C++
+set_source_files_properties(Source/GPU/CoreAudioBridge.mm PROPERTIES LANGUAGE OBJCXX)
+
 # ==============================================================================
 # Metal Shader Compilation (simplified)
 # ==============================================================================
@@ -194,4 +207,4 @@ if(APPLE)
     # Add Metal shader compilation as dependency
     add_custom_target(CompileMetalShaders ALL DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/default.metallib)
     add_dependencies(PnbtrJellieTrainer CompileMetalShaders)
-endif() 
+endif()

@@ -18,6 +18,8 @@ constexpr size_t AUDIO_CHANNEL_COUNT = 2;
 struct AudioFrame {
   // The host time at which the audio frame was captured.
   uint64_t hostTime;
+  // The true frame index for sync between GPU and CPU
+  uint64_t frameIndex;
   // The audio samples, organized by channel and sample index.
   float samples[AUDIO_CHANNEL_COUNT][AUDIO_FRAME_SIZE];
   // The number of valid samples in this frame.

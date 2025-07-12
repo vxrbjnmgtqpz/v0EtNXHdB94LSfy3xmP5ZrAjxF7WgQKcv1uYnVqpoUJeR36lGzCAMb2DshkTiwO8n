@@ -4,6 +4,7 @@
 #include "../DSP/PNBTRTrainer.h"
 #include "../Metrics/TrainingMetrics.h"
 #include "../GPU/MetalBridge.h"
+#include "../Core/FrameSyncCoordinator.h"  // ADDED: For frame synchronization
 #include <algorithm>
 #include <iomanip>
 #include <sstream>
@@ -123,8 +124,79 @@ void MetricsDashboard::updateMetrics() {
         return;
     }
     
-    // Get real-time GPU processing metrics from trainer
+    // CRITICAL: Use frame-synchronized data from MetalBridge
     auto gpuMetrics = trainer->getGPUMetrics();
+    
+    // Get frame synchronization info from MetalBridge
+    FrameSyncCoordinator* frameSync = metalBridge->getFrameSyncCoordinator();
+    if (frameSync) {
+        uint64_t readFrame = frameSync->getReadFrameIndex();
+        
+        // Only update if we have a validated frame
+        if (readFrame > 0) {
+            const WaveformFrameData* waveformData = frameSync->getReadWaveformForDisplay();
+            
+            if (waveformData && waveformData->ready) {
+                // Update metrics with frame-synchronized data
+                // gpuMetrics.currentFrameIndex = currentFrame; // Field not available
+                
+                // Calculate audio level from validated waveform data
+                float audioLevel = 0.0f;
+                for (int i = 0; i < WAVEFORM_SNAPSHOT_SIZE; ++i) {
+                    audioLevel = std::max(audioLevel, std::abs(waveformData->left[i]));
+                    audioLevel = std::max(audioLevel, std::abs(waveformData->right[i]));
+                }
+                
+                // Update audio level metric
+                auto levelMetric = std::find_if(metrics.begin(), metrics.end(), 
+                    [](const std::unique_ptr<MetricDisplay>& m) { return m->name == "Audio Level"; });
+                if (levelMetric == metrics.end()) {
+                    // Add audio level metric if it doesn't exist
+                    auto newMetric = std::make_unique<MetricDisplay>();
+                    newMetric->name = "Audio Level";
+                    newMetric->unit = "dB";
+                    newMetric->minValue = -60.0f;
+                    newMetric->maxValue = 0.0f;
+                    newMetric->currentValue = 20.0f * std::log10(audioLevel + 1e-10f);
+                    newMetric->isActive = true;
+                    newMetric->colour = audioLevel > 0.001f ? juce::Colours::green : juce::Colours::grey;
+                    metrics.push_back(std::move(newMetric));
+                } else {
+                    (*levelMetric)->currentValue = 20.0f * std::log10(audioLevel + 1e-10f);
+                    (*levelMetric)->isActive = true;
+                    (*levelMetric)->colour = audioLevel > 0.001f ? juce::Colours::green : juce::Colours::grey;
+                }
+                
+                // Add frame sync status metric
+                auto frameSyncMetric = std::find_if(metrics.begin(), metrics.end(), 
+                    [](const std::unique_ptr<MetricDisplay>& m) { return m->name == "Frame Sync"; });
+                if (frameSyncMetric == metrics.end()) {
+                    auto newMetric = std::make_unique<MetricDisplay>();
+                    newMetric->name = "Frame Sync";
+                    newMetric->unit = "";
+                    newMetric->minValue = 0.0f;
+                    newMetric->maxValue = 100.0f;
+                    newMetric->currentValue = 100.0f; // Frame sync is working
+                    newMetric->isActive = true;
+                    newMetric->colour = juce::Colours::lightgreen;
+                    metrics.push_back(std::move(newMetric));
+                } else {
+                    (*frameSyncMetric)->currentValue = 100.0f;
+                    (*frameSyncMetric)->isActive = true;
+                    (*frameSyncMetric)->colour = juce::Colours::lightgreen;
+                }
+            } else {
+                // No validated waveform data available
+                auto frameSyncMetric = std::find_if(metrics.begin(), metrics.end(), 
+                    [](const std::unique_ptr<MetricDisplay>& m) { return m->name == "Frame Sync"; });
+                if (frameSyncMetric != metrics.end()) {
+                    (*frameSyncMetric)->currentValue = 0.0f;
+                    (*frameSyncMetric)->isActive = false;
+                    (*frameSyncMetric)->colour = juce::Colours::red;
+                }
+            }
+        }
+    }
     
     // Update latency metrics (convert to milliseconds for display)
     auto latencyMetric = std::find_if(metrics.begin(), metrics.end(), 

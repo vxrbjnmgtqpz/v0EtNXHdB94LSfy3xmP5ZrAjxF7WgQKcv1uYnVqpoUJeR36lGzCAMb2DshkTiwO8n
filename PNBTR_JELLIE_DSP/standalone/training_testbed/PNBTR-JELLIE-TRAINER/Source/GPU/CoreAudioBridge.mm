@@ -1,13 +1,14 @@
+#ifdef __OBJC__
 #import <Foundation/Foundation.h>
 #import <AudioToolbox/AudioToolbox.h>
 #import <CoreAudio/CoreAudio.h>
+#endif
 #include "MetalBridge.h"
 #include <vector>
 #include <atomic>
 #include <mutex>
 #include <thread> // For GPU processing thread
 #include <chrono> // For sleep
-
 #include "RingBuffer.h" // Our new lock-free ring buffer
 
 /**
@@ -76,27 +77,29 @@ static void gpuProcessingLoop(CoreAudioGPUBridge* bridge) {
     NSLog(@"[GPU Thread] Starting loop.");
     MetalBridge& metalBridge = MetalBridge::getInstance();
 
+    uint64_t nextFrameIndex = 0;
     while(bridge->runGpuThread.load()) {
         AudioFrame inputFrame;
         if (bridge->inputRingBuffer.pop(inputFrame)) {
-            AudioFrame outputFrame = inputFrame; 
+            AudioFrame outputFrame = inputFrame;
+            outputFrame.frameIndex = nextFrameIndex++;
 
             metalBridge.setRecordArmStates(bridge->jellieRecordArmed, bridge->pnbtrRecordArmed);
 
             metalBridge.processAudioBlock(
-                (const float*)inputFrame.samples, 
-                (float*)outputFrame.samples, 
+                (const float*)inputFrame.samples,
+                (float*)outputFrame.samples,
                 inputFrame.sample_count
             );
 
             if (!bridge->outputRingBuffer.push(outputFrame)) {
-                NSLog(@"[GPU Thread] Warning: Output ring buffer full, dropping frame.");
+                NSLog("[GPU Thread] Warning: Output ring buffer full, dropping frame.");
             }
         } else {
             std::this_thread::sleep_for(std::chrono::microseconds(100));
         }
     }
-    NSLog(@"[GPU Thread] Exiting loop.");
+    NSLog("[GPU Thread] Exiting loop.");
 }
 
 
@@ -175,34 +178,41 @@ static OSStatus OutputRenderCallback(void* inRefCon,
 
     AudioFrame frame;
     if (bridge && bridge->outputRingBuffer.pop(frame)) {
+        MetalBridge& metalBridge = MetalBridge::getInstance();
+        auto* frameSyncCoordinator = metalBridge.getFrameSyncCoordinator();
+        uint64_t frameIndex = frame.frameIndex;
+
+        NSLog("[RENDER] frameIndex = %llu", frameIndex);
+        while (!frameSyncCoordinator->isFrameReadyFor(SyncRole::AudioOutput, frameIndex)) {
+            __asm__ __volatile__("" ::: "memory");
+        }
+
         for (uint32_t i = 0; i < frame.sample_count; ++i) {
             if ((i * 2 + 1) < (inNumberFrames * 2)) {
                 out[i * 2] = frame.samples[0][i];
                 out[i * 2 + 1] = frame.samples[1][i];
             }
         }
-        
-        // CHECKPOINT 6: Hardware Output - Verify audio reaches speakers
+
         static int outputCheckpointCounter = 0;
         if (++outputCheckpointCounter % 200 == 0) {
             float outputPeak = 0.0f;
             for (uint32_t i = 0; i < inNumberFrames * 2; ++i) {
                 outputPeak = std::max(outputPeak, fabsf(out[i]));
             }
-            
             if (outputPeak > 0.0001f) {
-                NSLog(@"[✅ CHECKPOINT 6] Hardware Output: Peak %.6f - Audio reaching speakers", outputPeak);
+                NSLog("[✅ CHECKPOINT 6] Hardware Output: Peak %.6f - Audio reaching speakers", outputPeak);
             } else {
-                NSLog(@"[❌ CHECKPOINT 6] SILENT OUTPUT - Final stage failed");
+                NSLog("[❌ CHECKPOINT 6] SILENT OUTPUT - Final stage failed");
             }
         }
+        frameSyncCoordinator->markStageComplete(SyncRole::AudioOutput, frameIndex);
+        frameSyncCoordinator->resetFrame(frameIndex);
     } else {
         memset(out, 0, inNumberFrames * sizeof(float) * 2);
-        
-        // Log when no audio frame is available
         static int silentOutputCounter = 0;
         if (++silentOutputCounter % 1000 == 0) {
-            NSLog(@"[⚠️ CHECKPOINT 6] No audio frame available from GPU processing");
+            NSLog("[⚠️ CHECKPOINT 6] No audio frame available from GPU processing");
         }
     }
     
@@ -890,4 +900,12 @@ extern "C" {
             setOutputDevice(globalBridge, deviceIndex);
         }
     }
-} 
+}
+
+// If compiling as C++, ensure Apple types are available:
+#ifndef UInt32
+typedef unsigned int UInt32;
+#endif
+#ifndef OSStatus
+typedef int OSStatus;
+#endif
